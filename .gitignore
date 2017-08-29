@@ -1,0 +1,11 @@
+*~
+.project
+.settings/
+.classpath
+.metadata/
+
+# Gradle stuff
+build
+.gradle
+
+untracked/
