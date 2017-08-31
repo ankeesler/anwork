@@ -6,6 +6,12 @@ import com.marshmallow.anwork.task.TaskManager;
 
 import static org.junit.Assert.*;
 
+/**
+ * This class tests the Task CRUD operations in a manager.
+ *
+ * @author Andrew
+ * @date Aug 29, 2017
+ */
 public class TaskManagerTest {
 
   private TaskManager manager = new TaskManager();
