@@ -1,10 +1,12 @@
+package com.marshmallow.anwork.task.test;
+
 import org.junit.Test;
 
 import com.marshmallow.anwork.task.TaskManager;
 
 import static org.junit.Assert.*;
 
-public class TaskTest {
+public class TaskManagerTest {
 
   private static final String CONTEXT = "tuna";
 
