@@ -1,6 +1,10 @@
 package com.marshmallow.anwork.task;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.marshmallow.anwork.core.Serializer;
 
 /**
  * This is a single unit of project work. One examples might be a single JIRA
@@ -15,6 +19,85 @@ public class Task implements Comparable<Task> {
   public static int DEFAULT_PRIORITY = 5;
 
   private static int nextId = 1;
+  private static Serializer<Task> serializer;
+
+  public static Serializer<Task> serializer() {
+    if (serializer == null) {
+      serializer = new Serializer<Task>() {
+
+        private static final String START = "Task:";
+        private static final String NAME = "name=";
+        private static final String ID = "id=";
+        private static final String DESCRIPTION = "description=";
+        private static final String DATE = "date=";
+        private static final String PRIORITY = "priority=";
+        private static final String STATE = "state=";
+        private static final String END = ";";
+
+        @Override
+        public String marshall(Task t) {
+          StringBuilder builder = new StringBuilder();
+          builder.append(START);
+          builder.append(NAME).append(t.name).append(END);
+          builder.append(ID).append(t.id).append(END);
+          builder.append(DESCRIPTION).append(t.description).append(END);
+          builder.append(DATE).append(t.startDate.toInstant().toEpochMilli()).append(END);
+          builder.append(PRIORITY).append(t.priority).append(END);
+          builder.append(STATE).append(t.state.name()).append(END);
+          return builder.toString();
+        }
+
+        @Override
+        public Task unmarshall(String string) {
+          StringBuffer buffer = new StringBuffer(string);
+          int index = buffer.indexOf(START);
+          if (index != 0) {
+            return null;
+          }
+          buffer.delete(index, START.length());
+
+          Map<String, String> stuff = new LinkedHashMap<String, String>();
+          stuff.put(NAME, "");
+          stuff.put(ID, "");
+          stuff.put(DESCRIPTION, "");
+          stuff.put(DATE, "");
+          stuff.put(PRIORITY, "");
+          stuff.put(STATE, "");
+          for (String key : stuff.keySet()) {
+            int startIndex = buffer.indexOf(key);
+            if (startIndex != 0) {
+              return null;
+            }
+            int endIndex = buffer.indexOf(END, startIndex);
+            if (endIndex == -1) {
+              return null;
+            }
+            String value = buffer.substring(startIndex + key.length(), endIndex);
+            stuff.put(key, value);
+            buffer.delete(startIndex, endIndex + 1);
+          }
+
+          if (buffer.length() != 0) {
+            return null;
+          }
+
+          Task task = new Task();
+          try {
+            task.name = stuff.get(NAME);
+            task.id = Integer.parseInt(stuff.get(ID));
+            task.description = stuff.get(DESCRIPTION);
+            task.startDate = new Date(Integer.parseInt(stuff.get(DATE)));
+            task.priority = Integer.parseInt(stuff.get(PRIORITY));
+            task.state = TaskState.valueOf(stuff.get(STATE));
+          } catch (NumberFormatException nfe) {
+            return null;
+          }
+          return task;
+        }
+      };
+    }
+    return serializer;
+  }
 
   private String name;
   private int id;
@@ -23,8 +106,12 @@ public class Task implements Comparable<Task> {
   private int priority;
   private TaskState state;
 
-  // There is only one constructor because we want to restrict the creation of
-  // these objects to this package.
+  // This guy is here so that we can use him in the serialization functionality
+  // above.
+  private Task() { }
+
+  // There is only one non-private constructor because we want to restrict the
+  // creation of these objects to this package.
   Task(String name, String description, int priority) {
     this.name = name;
     this.id = nextId++;
