@@ -12,13 +12,8 @@ import java.util.PriorityQueue;
 public class TaskManager {
 
   private String context;
-  private PriorityQueue<Task> tasks;
+  private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
   private Task currentTask;
-
-  public TaskManager(String context) {
-    this.context = context;
-    this.tasks = new PriorityQueue<Task>();
-  }
 
   /**
    * Create a task from a name.
