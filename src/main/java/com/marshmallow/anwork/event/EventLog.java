@@ -1,0 +1,31 @@
+package com.marshmallow.anwork.event;
+
+/**
+ * This is an object that can hold onto {@link Event} instances.
+ *
+ * @author Andrew
+ * @date Aug 31, 2017
+ */
+public interface EventLog {
+
+  /**
+   * Add a {@link Event} to this log.
+   *
+   * @param event The {@link Event} to add
+   */
+  public void add(Event event);
+
+  /**
+   * Clear all {@link Event}'s from the log.
+   */
+  public void clear();
+
+  /**
+   * Get the events that are currently in this log.
+   *
+   * The events should be returned in the order in which they were added.
+   *
+   * @return The events that are currently in this log
+   */
+  public Event[] getEvents();
+}
