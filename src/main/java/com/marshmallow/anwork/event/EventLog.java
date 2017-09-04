@@ -23,7 +23,8 @@ public interface EventLog {
   /**
    * Get the events that are currently in this log.
    *
-   * The events should be returned in the order in which they were added.
+   * The events should be returned in the order in which they were added. This
+   * method should <b>never</b> return <code>null</code>.
    *
    * @return The events that are currently in this log
    */
