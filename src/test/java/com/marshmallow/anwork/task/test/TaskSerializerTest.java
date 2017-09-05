@@ -1,5 +1,8 @@
 package com.marshmallow.anwork.task.test;
 
+import static org.junit.Assert.*;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.marshmallow.anwork.core.test.SerializerTest;
@@ -102,5 +105,17 @@ public class TaskSerializerTest extends SerializerTest<Task> {
     for (TaskState taskState : TaskState.values()) {
       assertGood(String.format(goodTaskFormat, taskState.name()));
     }
+  }
+
+  @Ignore("TODO: need to add in escaping functionality into serialization")
+  public void deliminatorInNameTest() {
+    Task task = assertGood("Task:name=a\\;;id=0;description=b;date=123;priority=3;state=WAITING;");
+    assertEquals("a;", task.getName());
+  }
+
+  @Ignore("TODO: need to add in escaping functionality into serialization")
+  public void escapeInNameTest() {
+    Task task = assertGood("Task:name=a\\\\b\\\\c\\\\;id=0;description=b;date=123;priority=3;state=WAITING;");
+    assertEquals("a\\b\\c\\", task.getName());
   }
 }
