@@ -3,6 +3,8 @@ package com.marshmallow.anwork.task;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 
+import com.marshmallow.anwork.core.Serializer;
+
 /**
  * This guy in a public interface for managing {@link Task} instances.
  *
@@ -11,7 +13,80 @@ import java.util.PriorityQueue;
  */
 public class TaskManager {
 
-  private String context;
+  private static class TaskManagerSerializer implements Serializer<TaskManager> {
+
+    public static final TaskManagerSerializer instance = new TaskManagerSerializer();
+
+    private static final String START = "TaskManager:";
+    private static final char CURRENT_TASK = '*';
+    private static final String TASK_END = ",";
+
+    @Override
+    public String marshall(TaskManager t) {
+      StringBuilder builder = new StringBuilder(START);
+
+      Serializer<Task> taskSerializer = Task.serializer();
+      Task[] tasks = t.tasks.toArray(new Task[0]);
+      for (Task task : tasks) {
+        if (t.currentTask == task) {
+          builder.append(CURRENT_TASK);
+        }
+        builder.append(taskSerializer.marshall(task));
+        builder.append(TASK_END);
+      }
+
+      return builder.toString();
+    }
+
+    @Override
+    public TaskManager unmarshall(String string) {
+      if (!string.startsWith(START)) {
+        return null;
+      }
+
+      TaskManager manager = new TaskManager();
+      Serializer<Task> taskSerializer = Task.serializer();
+      StringBuffer buffer = new StringBuffer(string);
+      buffer.delete(0, START.length());
+      while (buffer.length() != 0) {
+        boolean currentTask = false;
+        if (buffer.charAt(0) == CURRENT_TASK) {
+          currentTask = true;
+          buffer.deleteCharAt(0);
+        }
+
+        int nextEnd = buffer.indexOf(TASK_END);
+        if (nextEnd == -1) {
+          return null;
+        }
+
+        String taskString = buffer.substring(0, nextEnd);
+        Task task = taskSerializer.unmarshall(taskString);
+        if (task == null) {
+          return null;
+        }
+
+        manager.tasks.add(task);
+        if (currentTask) {
+          manager.setCurrentTask(task.getName());
+        }
+
+        buffer.delete(0, taskString.length() + 1);
+      }
+
+      return manager;
+    }
+  }
+
+  /**
+   * Get the instance {@link Serializer<TaskManager>}.
+   *
+   * @return The instance {@link Serializer<TaskManager>}
+   */
+  public static Serializer<TaskManager> serializer() {
+    return TaskManagerSerializer.instance;
+  }
+
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
   private Task currentTask;
 
@@ -123,9 +198,7 @@ public class TaskManager {
    */
   @Override
   public String toString() {
-    StringBuilder builder = new StringBuilder(context);
-    builder.append(':');
-
+    StringBuilder builder = new StringBuilder();
     Task[] taskArray = tasks.toArray(new Task[0]);
     for (Task task : taskArray) {
       if (task == currentTask) {

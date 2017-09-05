@@ -6,12 +6,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import com.marshmallow.anwork.event.test.EventLogTest;
 import com.marshmallow.anwork.task.test.LoggingTaskManagerTest;
-import com.marshmallow.anwork.task.test.TaskManagerTest;
+import com.marshmallow.anwork.task.test.AllTaskTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-    SerializerTest.class,
-    TaskManagerTest.class,
+    AllTaskTests.class,
     EventLogTest.class,
     LoggingTaskManagerTest.class,
   })
