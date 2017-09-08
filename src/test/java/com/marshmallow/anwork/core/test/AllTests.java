@@ -4,15 +4,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-import com.marshmallow.anwork.event.test.EventLogTest;
-import com.marshmallow.anwork.task.test.LoggingTaskManagerTest;
+import com.marshmallow.anwork.event.test.AllEventTests;
 import com.marshmallow.anwork.task.test.AllTaskTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({
     AllTaskTests.class,
-    EventLogTest.class,
-    LoggingTaskManagerTest.class,
+    AllEventTests.class,
   })
 /**
  * This class is a wrapper around all of the unit tests for the ANWORK project.
