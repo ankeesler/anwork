@@ -93,7 +93,7 @@ public class Task implements Comparable<Task> {
         task.name = stuff.get(NAME);
         task.id = Integer.parseInt(stuff.get(ID));
         task.description = stuff.get(DESCRIPTION);
-        task.startDate = new Date(Integer.parseInt(stuff.get(DATE)));
+        task.startDate = new Date(Long.parseLong(stuff.get(DATE)));
         task.priority = Integer.parseInt(stuff.get(PRIORITY));
         task.state = TaskState.valueOf(stuff.get(STATE));
       } catch (NumberFormatException nfe) {

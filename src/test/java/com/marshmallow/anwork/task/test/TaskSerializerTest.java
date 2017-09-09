@@ -86,7 +86,7 @@ public class TaskSerializerTest extends SerializerTest<Task> {
   @Test
   public void datesTest() {
     String goodTaskFormat = "Task:name=a;id=0;description=b;date=%d;priority=3;state=WAITING;";
-    for (long i = 1; i < Integer.MAX_VALUE; i <<= 1) {
+    for (long i = 1; i < (Long.MAX_VALUE >> 1); i <<= 1) {
       assertGood(String.format(goodTaskFormat, i));
     }
   }
