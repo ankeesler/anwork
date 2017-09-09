@@ -1,7 +1,9 @@
 package com.marshmallow.anwork.app;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.marshmallow.anwork.core.Cli;
 import com.marshmallow.anwork.core.FilePersister;
@@ -24,9 +26,35 @@ public class AnworkApp {
     }
   }
 
+  private static class Action {
+
+    private static enum Type {
+      CREATE,
+      SHOW,
+      ;
+    }
+
+    private final Type type;
+    private final String taskName;
+
+    public Action(Type type, String taskName) {
+      this.type = type;
+      this.taskName = taskName;
+    }
+
+    public Type getType() {
+      return type;
+    }
+
+    public String getTaskName() {
+      return taskName;
+    }
+  }
+
   private boolean debug = false;
   private String context = "default-context";
   private File persistenceRoot = new File(".");
+  private List<Action> actions = new ArrayList<Action>();
 
   private void run(String[] args) throws Exception {
     Cli cli = makeCli();
@@ -56,6 +84,16 @@ public class AnworkApp {
                   "Set the output file directory for persistant data",
                   "output-dir", // no argument name
                   (a) -> AnworkApp.this.persistenceRoot = new File(a));
+    cli.addAction("t",
+                  "task-create",
+                  "Create a task",
+                  "task-name",
+                  (a) -> AnworkApp.this.actions.add(new Action(Action.Type.CREATE, a)));
+    cli.addAction("s",
+                  "show",
+                  "Show the tasks that have been created",
+                  null,
+                  (a) -> AnworkApp.this.actions.add(new Action(Action.Type.SHOW, null)));
     return cli;
   }
 
@@ -77,7 +115,20 @@ public class AnworkApp {
     return loadeds.toArray(new TaskManager[0])[0];
   }
 
-  private void runTaskAction(TaskManager taskManager) {
+  private void runTaskAction(TaskManager taskManager) throws Exception {
+    for (Action action : actions) {
+      switch (action.getType()) {
+      case CREATE:
+        debugPrint("creating task " + action.getTaskName());
+        taskManager.createTask(action.getTaskName(), "ummm", 1);
+        break;
+      case SHOW:
+        System.out.println(taskManager.toString());
+        break;
+      default:
+        throw new IllegalStateException("Unknown action type: " + action.getType());
+      }
+    }
   }
 
   private void saveTaskManager(TaskManager taskManager) throws Exception {

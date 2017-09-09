@@ -23,7 +23,8 @@ public class AppTest {
   public void runTest() {
     runApp(new String[] { "-d",
                           "--context", CONTEXT,
-                          "-o", PERSISTENCE_ROOT });
+                          "-o", PERSISTENCE_ROOT,
+                          "-s" });
   }
 
   private void runApp(String[] args) {
