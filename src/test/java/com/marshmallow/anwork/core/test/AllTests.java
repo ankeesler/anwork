@@ -11,6 +11,7 @@ import com.marshmallow.anwork.task.test.AllTaskTests;
 @SuiteClasses({
     AllTaskTests.class,
     AllEventTests.class,
+    FilePersisterTest.class,
   })
 /**
  * This class is a wrapper around all of the unit tests for the ANWORK project.
