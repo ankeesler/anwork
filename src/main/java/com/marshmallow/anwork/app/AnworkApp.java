@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.marshmallow.anwork.core.Cli;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.task.TaskManager;

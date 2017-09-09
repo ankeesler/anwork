@@ -1,4 +1,4 @@
-package com.marshmallow.anwork.core;
+package com.marshmallow.anwork.app;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

@@ -1,8 +1,8 @@
-package com.marshmallow.anwork.core.test;
+package com.marshmallow.anwork.app.test;
 
 import org.junit.Test;
 
-import com.marshmallow.anwork.core.Cli;
+import com.marshmallow.anwork.app.Cli;
 
 import static org.junit.Assert.*;
 
