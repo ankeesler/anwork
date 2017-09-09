@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.task.TaskManager;
@@ -56,8 +57,8 @@ public class AnworkApp {
   private List<Action> actions = new ArrayList<Action>();
 
   private void run(String[] args) throws Exception {
-    CliNode cli = makeCli();
-    cli.runActions(args);
+    Cli cli = makeCli();
+    cli.parse(args);
 
     TaskManager taskManager = loadTaskManager();
 
@@ -66,33 +67,8 @@ public class AnworkApp {
     saveTaskManager(taskManager);
   }
 
-  private CliNode makeCli() throws Exception {
-    CliNode cli = new CliNode("whatever");
-    cli.addFlag("d",
-                "debug",
-                "Turn on extra debug printing",
-                null, // no argument name
-                (a) -> AnworkApp.this.debug = true);
-    cli.addFlag("c",
-                "context",
-                "Set the context in which this app runs",
-                "context-name", // no argument name
-                (a) -> AnworkApp.this.context = a);
-    cli.addFlag("o",
-                "output",
-                "Set the output file directory for persistant data",
-                "output-dir", // no argument name
-                (a) -> AnworkApp.this.persistenceRoot = new File(a));
-    cli.addFlag("t",
-                "task-create",
-                "Create a task",
-                "task-name",
-                (a) -> AnworkApp.this.actions.add(new Action(Action.Type.CREATE, a)));
-    cli.addFlag("s",
-                "show",
-                "Show the tasks that have been created",
-                null,
-                (a) -> AnworkApp.this.actions.add(new Action(Action.Type.SHOW, null)));
+  private Cli makeCli() throws Exception {
+    Cli cli = new Cli();
     return cli;
   }
 
