@@ -2,7 +2,7 @@ package com.marshmallow.anwork.app.test;
 
 import org.junit.Test;
 
-import com.marshmallow.anwork.app.Cli;
+import com.marshmallow.anwork.app.CliNode;
 import com.marshmallow.anwork.app.CliAction;
 
 import static org.junit.Assert.*;
@@ -39,7 +39,7 @@ public class CliTest {
     }
   }
 
-  private Cli cli = new Cli();
+  private CliNode cli = new CliNode("whatever");
   private TestAction aShortFlagAction = new TestAction();
   private TestAction bLongFlagAction = new TestAction();
   private TestAction cShortArgumentAction = new TestAction();
@@ -47,20 +47,20 @@ public class CliTest {
 
   @Before
   public void setupCli() {
-    cli.addAction("a", null, "Description for flag a", null, aShortFlagAction);
-    cli.addAction("b", "bob", null, null, bLongFlagAction);
-    cli.addAction("c", null, "Do something related to something", "thing", cShortArgumentAction);
-    cli.addAction("d", "dog", null, "name", dLongArgumentAction);
+    cli.addFlag("a", null, "Description for flag a", null, aShortFlagAction);
+    cli.addFlag("b", "bob", null, null, bLongFlagAction);
+    cli.addFlag("c", null, "Do something related to something", "thing", cShortArgumentAction);
+    cli.addFlag("d", "dog", null, "name", dLongArgumentAction);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void addBadShortFlagTest() throws IllegalArgumentException {
-    new Cli().addAction(null, "andrew", null, null, NULL_ACTION);
+    new CliNode("whatever").addFlag(null, "andrew", null, null, NULL_ACTION);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void addBadActionTest() throws IllegalArgumentException {
-    new Cli().addAction("a", "andrew", null, null, null);
+    new CliNode("whatever").addFlag("a", "andrew", null, null, null);
   }
 
   @Test(expected = IllegalArgumentException.class)

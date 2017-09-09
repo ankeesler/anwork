@@ -13,7 +13,7 @@ public interface CliAction {
    *
    * @param argument The argument to the action, or <code>null</code> if there
    * is no argument to the action.
-   * @see Cli#addAction(String, String, boolean, CliAction)
+   * @see CliNode#addAction(String, String, boolean, CliAction)
    */
   public void run(String argument);
 

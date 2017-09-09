@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * This is an object that can run actions based off of command line interface
- * arguments.
+ * arguments. It is a "node" because it is somewhere in the CLI tree.
  *
  * This object parses strings of the following form.
  * <pre>
@@ -18,18 +18,18 @@ import java.util.Map;
  *
  * The class is meant to be used in the following way.
  * <pre>
- *   Cli cli = new Cli();
+ *   CliNode cli = new CliNode("command");
  *   cli.addAction("f", "flag", true, new CliAction() { ... });
  *   cli.addAction("v", null, false, new CliAction() { ... });
  *   cli.addAction("d", "debug", false, new CliAction() { ... });
  *   ...
- *   cli.run(args);
+ *   cli.runActions(args);
  * </pre>
  *
  * @author Andrew
  * @date Sep 9, 2017
  */
-public class Cli {
+public class CliNode {
 
   private static class FlagInfo {
     private final String shortFlag;
@@ -81,13 +81,32 @@ public class Cli {
 
   private static final char FLAG_START = '-';
 
+  private String name;
   // This is a map from short flag to information about the flag.
   private Map<String, FlagInfo> shortFlagInfo = new LinkedHashMap<String, FlagInfo>();
   // This is a map from long flag to short flag.
   private Map<String, String> longFlagShortFlags = new HashMap<String, String>();
 
   /**
-   * Add a command line action
+   * Initialize this node with a name.
+   *
+   * @param name The name of this node
+   */
+  public CliNode(String name) {
+    this.name = name;
+  }
+
+  /**
+   * Get the name of this CLI node.
+   *
+   * @return The name of this CLI node
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * Add a command line flag.
    *
    * @param shortFlag The short flag, e.g., f, v, q, etc. This parameter is
    * required!
@@ -103,11 +122,11 @@ public class Cli {
    * passed as <code>null</code>
    * @see CliAction
    */
-  public void addAction(String shortFlag,
-                        String longFlag,
-                        String description,
-                        String argumentName,
-                        CliAction action) throws IllegalArgumentException {
+  public void addFlag(String shortFlag,
+                      String longFlag,
+                      String description,
+                      String argumentName,
+                      CliAction action) throws IllegalArgumentException {
     if (shortFlag == null || action == null) {
       throw new IllegalArgumentException("Short flag and CLI action are required arguments!");
     }
@@ -119,7 +138,7 @@ public class Cli {
   }
 
   /**
-   * Get the usage information for this CLI instance.
+   * Get the usage information for the tree below this node.
    *
    * @return The usage information for this CLI instance
    */

@@ -56,7 +56,7 @@ public class AnworkApp {
   private List<Action> actions = new ArrayList<Action>();
 
   private void run(String[] args) throws Exception {
-    Cli cli = makeCli();
+    CliNode cli = makeCli();
     cli.runActions(args);
 
     TaskManager taskManager = loadTaskManager();
@@ -66,33 +66,33 @@ public class AnworkApp {
     saveTaskManager(taskManager);
   }
 
-  private Cli makeCli() throws Exception {
-    Cli cli = new Cli();
-    cli.addAction("d",
-                  "debug",
-                  "Turn on extra debug printing",
-                  null, // no argument name
-                  (a) -> AnworkApp.this.debug = true);
-    cli.addAction("c",
-                  "context",
-                  "Set the context in which this app runs",
-                  "context-name", // no argument name
-                  (a) -> AnworkApp.this.context = a);
-    cli.addAction("o",
-                  "output",
-                  "Set the output file directory for persistant data",
-                  "output-dir", // no argument name
-                  (a) -> AnworkApp.this.persistenceRoot = new File(a));
-    cli.addAction("t",
-                  "task-create",
-                  "Create a task",
-                  "task-name",
-                  (a) -> AnworkApp.this.actions.add(new Action(Action.Type.CREATE, a)));
-    cli.addAction("s",
-                  "show",
-                  "Show the tasks that have been created",
-                  null,
-                  (a) -> AnworkApp.this.actions.add(new Action(Action.Type.SHOW, null)));
+  private CliNode makeCli() throws Exception {
+    CliNode cli = new CliNode("whatever");
+    cli.addFlag("d",
+                "debug",
+                "Turn on extra debug printing",
+                null, // no argument name
+                (a) -> AnworkApp.this.debug = true);
+    cli.addFlag("c",
+                "context",
+                "Set the context in which this app runs",
+                "context-name", // no argument name
+                (a) -> AnworkApp.this.context = a);
+    cli.addFlag("o",
+                "output",
+                "Set the output file directory for persistant data",
+                "output-dir", // no argument name
+                (a) -> AnworkApp.this.persistenceRoot = new File(a));
+    cli.addFlag("t",
+                "task-create",
+                "Create a task",
+                "task-name",
+                (a) -> AnworkApp.this.actions.add(new Action(Action.Type.CREATE, a)));
+    cli.addFlag("s",
+                "show",
+                "Show the tasks that have been created",
+                null,
+                (a) -> AnworkApp.this.actions.add(new Action(Action.Type.SHOW, null)));
     return cli;
   }
 
