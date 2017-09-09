@@ -30,6 +30,11 @@ public class FilePersister<T> implements Persister<T> {
   }
 
   @Override
+  public boolean contextExists(String context) {
+    return convertContextToFile(context).exists();
+  }
+
+  @Override
   public Collection<T> load(String context, Serializer<T> serializer) throws IOException {
     File file = convertContextToFile(context);
     if (!file.exists()) {

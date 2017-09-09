@@ -17,12 +17,24 @@ import java.util.Collection;
 public interface Persister<T> {
 
   /**
+   * Returns whether or not the context exists.
+   *
+   * @param context The context to check
+   * @return Whether or not the context exists
+   * @throws IOException If something goes wrong
+   */
+  public boolean contextExists(String context) throws IOException;
+
+  /**
    * Load some objects from a persistent store.
    *
-   * @param context The context from which to load the objects
+   * @param context The context from which to load the objects; if this context
+   * does not exist, then the persister should throw an exception
    * @param serializer The serializer to use when loading the objects
    * @return An array of objects
-   * @throws An {@link IOException} if something goes wrong
+   * @throws An {@link IOException} if something goes wrong, like if the
+   * context does not exist
+   * @see #contextExists(String)
    */
   public Collection<T> load(String context, Serializer<T> serializer) throws IOException;
 
