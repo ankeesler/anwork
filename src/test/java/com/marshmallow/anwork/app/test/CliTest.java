@@ -3,6 +3,7 @@ package com.marshmallow.anwork.app.test;
 import org.junit.Test;
 
 import com.marshmallow.anwork.app.Cli;
+import com.marshmallow.anwork.app.CliAction;
 
 import static org.junit.Assert.*;
 
@@ -16,9 +17,9 @@ import org.junit.Before;
  */
 public class CliTest {
 
-  private static final Cli.CliAction NULL_ACTION = (a) -> a.hashCode();
+  private static final CliAction NULL_ACTION = (a) -> a.hashCode();
 
-  private static class TestAction implements Cli.CliAction {
+  private static class TestAction implements CliAction {
 
     private boolean ran = false;
     private String argument = null;
