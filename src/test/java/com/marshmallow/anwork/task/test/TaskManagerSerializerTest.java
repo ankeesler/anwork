@@ -80,6 +80,13 @@ public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
   }
 
   @Test
+  public void testNoTasks() {
+    TaskManager manager = assertGood("TaskManager:");
+    assertNull(manager.getCurrentTask());
+    assertEquals(0, manager.getTaskCount());
+  }
+
+  @Test
   public void testSingleTask() {
     TaskManager manager = assertGood("TaskManager:" + GOOD_TASK_A + ",");
     assertNull(manager.getCurrentTask());
