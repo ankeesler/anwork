@@ -11,7 +11,7 @@ import com.marshmallow.anwork.core.Serializer;
  * ticket.
  *
  * @author Andrew
- * @date Aug 29, 2017
+ * Created Aug 29, 2017
  */
 public class Task implements Comparable<Task> {
 
@@ -104,9 +104,10 @@ public class Task implements Comparable<Task> {
   }
 
   /**
-   * Get the instance {@link Serializer<Task>}.
+   * Get the instance serializer.
    *
-   * @return The instance {@link Serializer<Task>}
+   * @return The instance serializer
+   * @see Serializer
    */
   public static Serializer<Task> serializer() {
     return TaskSerializer.instance;

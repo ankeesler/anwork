@@ -6,7 +6,7 @@ import java.util.Date;
  * This is something that happened that you want to store in a {@link EventLog}.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public interface Event {
 

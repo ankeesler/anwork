@@ -13,7 +13,7 @@ import com.marshmallow.anwork.task.TaskState;
  * A {@link SerializerTest<T>} for {@link Task} objects.
  *
  * @author Andrew
- * @date Sep 4, 2017
+ * Created Sep 4, 2017
  */
 public class TaskSerializerTest extends SerializerTest<Task> {
 

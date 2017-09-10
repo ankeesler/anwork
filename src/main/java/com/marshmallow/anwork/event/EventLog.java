@@ -4,7 +4,7 @@ package com.marshmallow.anwork.event;
  * This is an object that can hold onto {@link Event} instances.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public interface EventLog {
 

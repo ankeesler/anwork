@@ -6,7 +6,7 @@ import static org.junit.Assert.*;
  * Some utilities to be used in the {@link CliTest}.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class CliTestUtilities {
 

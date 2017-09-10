@@ -27,16 +27,27 @@ package com.marshmallow.anwork.app.cli;
  * </pre>
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class Cli {
 
   private final CliNode root;
 
+  /**
+   * Create a new command line interface.
+   *
+   * @param name The name for the command line interface
+   * @param description The description of the command line interface
+   */
   public Cli(String name, String description) {
     root = CliNode.makeRoot(name, description);
   }
 
+  /**
+   * Get the root CLI node for this CLI.
+   *
+   * @return The root CLI node
+   */
   public CliNode getRoot() {
     return root;
   }

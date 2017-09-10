@@ -15,6 +15,6 @@ import org.junit.runners.Suite.SuiteClasses;
  * This class is a wrapper around all of the task-related tests.
  *
  * @author Andrew
- * @date Sep 4, 2017
+ * Created Sep 4, 2017
  */
 public class AllTaskTests { }

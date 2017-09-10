@@ -19,6 +19,6 @@ import com.marshmallow.anwork.task.test.AllTaskTests;
  * This class is a wrapper around all of the unit tests for the ANWORK project.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public class AllTests { }

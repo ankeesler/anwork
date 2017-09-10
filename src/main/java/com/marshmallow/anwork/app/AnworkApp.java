@@ -14,7 +14,7 @@ import com.marshmallow.anwork.task.TaskManager;
  * This is the main class for the anwork app.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class AnworkApp {
 

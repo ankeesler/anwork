@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
  * has a {@link Serializer<T>}.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public class SerializerTest<T> {
 

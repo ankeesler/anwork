@@ -7,7 +7,7 @@ import java.util.List;
  * This is an {@link EventLog} where the events are stored in RAM.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public class RamEventLog implements EventLog {
 

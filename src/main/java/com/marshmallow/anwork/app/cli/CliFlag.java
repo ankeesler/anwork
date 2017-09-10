@@ -12,7 +12,7 @@ package com.marshmallow.anwork.app.cli;
  * </pre>
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 class CliFlag {
 

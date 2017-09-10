@@ -17,7 +17,7 @@ import java.util.Collections;
  * This is a unit test for a {@link FilePersister}.
  *
  * @author Andrew
- * @date Sep 6, 2017
+ * Created Sep 6, 2017
  */
 public class FilePersisterTest {
 

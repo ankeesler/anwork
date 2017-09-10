@@ -12,6 +12,6 @@ import org.junit.runners.Suite.SuiteClasses;
  * This is a bucket for all core unit tests.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class AllCoreTests { }

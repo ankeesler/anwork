@@ -15,6 +15,6 @@ import com.marshmallow.anwork.app.cli.test.CliTest;
  * This is a bucket for all application tests.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class AllAppTests { }

@@ -13,6 +13,6 @@ import org.junit.runners.Suite.SuiteClasses;
  * {@link com.marshmallow.anwork.event} classes.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public class AllEventTests { }

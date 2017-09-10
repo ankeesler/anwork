@@ -5,7 +5,7 @@ package com.marshmallow.anwork.core;
  * String, turn it into an Object.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public interface Serializer<T> {
 

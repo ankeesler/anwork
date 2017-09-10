@@ -11,7 +11,7 @@ import org.junit.Before;
  * This is a test for the CLI.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class CliTest {
 

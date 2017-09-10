@@ -15,7 +15,7 @@ import org.junit.BeforeClass;
  * A {@link SerializerTest<T>} for {@link TaskManager} objects.
  *
  * @author Andrew
- * @date Sep 4, 2017
+ * Created Sep 4, 2017
  */
 public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
 

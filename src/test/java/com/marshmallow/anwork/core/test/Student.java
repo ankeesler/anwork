@@ -6,7 +6,7 @@ import com.marshmallow.anwork.core.Serializer;
  * This is a dummy object to be used in tests.
  *
  * @author Andrew
- * @date Sep 8, 2017
+ * Created Sep 8, 2017
  */
 public class Student {
 

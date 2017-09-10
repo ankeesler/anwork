@@ -9,7 +9,7 @@ import com.marshmallow.anwork.core.Serializer;
  * This guy in a public interface for managing {@link Task} instances.
  *
  * @author Andrew
- * @date Aug 29, 2017
+ * Created Aug 29, 2017
  */
 public class TaskManager {
 
@@ -79,9 +79,10 @@ public class TaskManager {
   }
 
   /**
-   * Get the instance {@link Serializer<TaskManager>}.
+   * Get the instance serializer.
    *
-   * @return The instance {@link Serializer<TaskManager>}
+   * @return The instance serializer
+   * @see Serializer
    */
   public static Serializer<TaskManager> serializer() {
     return TaskManagerSerializer.instance;

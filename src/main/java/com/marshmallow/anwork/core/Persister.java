@@ -11,7 +11,7 @@ import java.util.Collection;
  * loosely typed on purpose for academic purposes.
  *
  * @author Andrew
- * @date Sep 4, 2017
+ * Created Sep 4, 2017
  * @see Serializer
  */
 public interface Persister<T> {
@@ -32,7 +32,7 @@ public interface Persister<T> {
    * does not exist, then the persister should throw an exception
    * @param serializer The serializer to use when loading the objects
    * @return An array of objects
-   * @throws An {@link IOException} if something goes wrong, like if the
+   * @throws IOException if something goes wrong, like if the
    * context does not exist
    * @see #contextExists(String)
    */
@@ -44,7 +44,7 @@ public interface Persister<T> {
    * @param context The context to save the objects to
    * @param serializer The serializer to use
    * @param data The objects to save
-   * @throws An {@link IOException} if something goes wrong
+   * @throws IOException if something goes wrong
    */
   public void save(String context, Serializer<T> serializer, Collection<T> data) throws IOException;
 }

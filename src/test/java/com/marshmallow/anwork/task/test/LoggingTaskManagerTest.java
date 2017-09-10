@@ -14,7 +14,7 @@ import org.junit.Before;
  * A test for the {@link LoggingTaskManager}
  *
  * @author Andrew
- * @date Sep 4, 2017
+ * Created Sep 4, 2017
  */
 public class LoggingTaskManagerTest {
 

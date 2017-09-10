@@ -10,7 +10,7 @@ import java.util.Map;
  * This is an element of the CLI tree.
  *
  * @author Andrew
- * @date Sep 10, 2017
+ * Created Sep 10, 2017
  */
 public class CliNode {
 
@@ -59,7 +59,6 @@ public class CliNode {
    * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
    * @param description The description of the flag
    * @param action The action that the flag takes
-   * @return A new instance of a CliFlag
    */
   public void addShortFlag(String shortFlag, String description, CliAction action) {
     addFlag(CliFlag.makeShortFlag(shortFlag, description, action));
@@ -72,7 +71,6 @@ public class CliNode {
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes
    * @param action The action that the flag takes
-   * @return A new instance of a CliFlag
    */
   public void addShortFlagWithParameter(String shortFlag,
                                         String description,
@@ -89,7 +87,6 @@ public class CliNode {
    * "output", etc.
    * @param description The description of the flag
    * @param action The action that the flag takes
-   * @return A new instance of a CliFlag
    */
   public void addLongFlag(String shortFlag,
                           String longFlag,
@@ -107,7 +104,6 @@ public class CliNode {
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes
    * @param action The action that the flag takes
-   * @return A new instance of a CliFlag
    */
   public void addLongFlagWithParameter(String shortFlag,
                                        String longFlag,

@@ -11,7 +11,7 @@ import com.marshmallow.anwork.event.EventLog;
  * This is a {@link TaskManager} that logs its CRUD operations.
  *
  * @author Andrew
- * @date Aug 31, 2017
+ * Created Aug 31, 2017
  */
 public class LoggingTaskManager extends TaskManager {
 

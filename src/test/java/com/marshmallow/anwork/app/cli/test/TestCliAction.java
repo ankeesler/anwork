@@ -6,7 +6,7 @@ import com.marshmallow.anwork.app.cli.CliAction;
  * This is a dummy {@link CliAction} class to be used in CLI tests.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * Created Sep 9, 2017
  */
 public class TestCliAction implements CliAction {
 
