@@ -16,34 +16,9 @@ public class CliNode {
 
   private static final int LIST_PARAM_COUNT = -1;
 
-  /**
-   * Make a new command list.
-   *
-   * A command list may be something like "task" with child commands "create,"
-   * "update," and "delete."
-   *
-   * @param name The name of the command list
-   * @param description The description of the command list
-   * @return The new CLI node that represents the command list
-   * @see #makeCommand(String, String, CliAction)
-   */
-  public static CliNode makeList(String name, String description) {
+  // Make a root node.
+  static CliNode makeRoot(String name, String description) {
     return new CliNode(name, description, LIST_PARAM_COUNT, null);
-  }
-
-  /**
-   * Make a new command.
-   *
-   * A command may be something like "create," "update," or "delete."
-   *
-   * @param name The name of the command
-   * @param description The description of the command
-   * @param action The action associated with the command
-   * @return The new CLI node representing the command
-   * @see #makeList(String, String)
-   */
-  public static CliNode makeCommand(String name, String description, CliAction action) {
-    return new CliNode(name, description, 0, action);
   }
 
   // This is a map from short flag to information about the flag.
@@ -74,16 +49,126 @@ public class CliNode {
     return paramCount == LIST_PARAM_COUNT;
   }
 
-  public void addFlag(CliFlag flag) {
+  /*
+   * Section - Flags
+   */
+
+  /**
+   * Make a short flag.
+   *
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param description The description of the flag
+   * @param action The action that the flag takes
+   * @return A new instance of a CliFlag
+   */
+  public void addShortFlag(String shortFlag, String description, CliAction action) {
+    addFlag(CliFlag.makeShortFlag(shortFlag, description, action));
+  }
+
+  /**
+   * Make a short flag that takes a parameter.
+   *
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param description The description of the flag
+   * @param parameterName The name of the parameter that the flag takes
+   * @param action The action that the flag takes
+   * @return A new instance of a CliFlag
+   */
+  public void addShortFlagWithParameter(String shortFlag,
+                                        String description,
+                                        String parameterName,
+                                        CliAction action) {
+    addFlag(CliFlag.makeShortFlagWithParameter(shortFlag, description, parameterName, action));
+  }
+
+  /**
+   * Make a long flag.
+   *
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param longFlag The name of the long flag, i.e., "debug", "verbose",
+   * "output", etc.
+   * @param description The description of the flag
+   * @param action The action that the flag takes
+   * @return A new instance of a CliFlag
+   */
+  public void addLongFlag(String shortFlag,
+                          String longFlag,
+                          String description,
+                          CliAction action) {
+    addFlag(CliFlag.makeLongFlag(shortFlag, longFlag, description, action));
+  }
+
+  /**
+   * Make a long flag that takes a parameter.
+   *
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param longFlag The name of the long flag, i.e., "debug", "verbose",
+   * "output", etc.
+   * @param description The description of the flag
+   * @param parameterName The name of the parameter that the flag takes
+   * @param action The action that the flag takes
+   * @return A new instance of a CliFlag
+   */
+  public void addLongFlagWithParameter(String shortFlag,
+                                       String longFlag,
+                                       String description,
+                                       String parameterName,
+                                       CliAction action) {
+    addFlag(CliFlag.makeLongFlagWithParameter(shortFlag, longFlag, description, parameterName, action));
+  }
+
+  private void addFlag(CliFlag flag) {
     shortFlagInfo.put(flag.getShortFlag(), flag);
     if (flag.hasLongFlag()) {
       longFlagShortFlags.put(flag.getLongFlag(), flag.getShortFlag());
     }
   }
 
-  public void addNode(CliNode child) {
+  /*
+   * Section - Children
+   */
+
+ /**
+  * Add a new command list.
+  *
+  * A command list may be something like "task" with child commands "create,"
+  * "update," and "delete."
+  *
+  * @param name The name of the command list
+  * @param description The description of the command list
+  * @return The new CLI node that represents the command list
+  * @see #addCommand(String, String, CliAction)
+  */
+  public CliNode addList(String name, String description) {
+    CliNode list = new CliNode(name, description, LIST_PARAM_COUNT, null);
+    addChild(list);
+    return list;
+  }
+
+  /**
+   * Add a new command.
+   *
+   * A command may be something like "create," "update," or "delete."
+   *
+   * @param name The name of the command
+   * @param description The description of the command
+   * @param action The action associated with the command
+   * @return The new CLI node representing the command
+   * @see #addList(String, String)
+   */
+  public CliNode addCommand(String name, String description, CliAction action) {
+    CliNode command = new CliNode(name, description, 0, action);
+    addChild(command);
+    return command;
+  }
+
+  private void addChild(CliNode child) {
     children.put(child.name, child);
   }
+
+  /*
+   * Section - Usage
+   */
 
   public String getUsage() {
     return makeCommandUsage(makeFlagUsage());
@@ -120,7 +205,11 @@ public class CliNode {
     return builder.toString();
   }
 
-  public void parse(String[] args) {
+  /*
+   * Section - Parse
+   */
+
+  void parse(String[] args) {
     CliParseContext context = new CliParseContext();
     parse(args, 0, context);
     validateContext(context);

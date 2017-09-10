@@ -10,6 +10,10 @@ import static org.junit.Assert.*;
  */
 public class CliTestUtilities {
 
+  public static void assertActionDidNotRun(TestCliAction action) {
+    assertFalse(action.getRan());
+  }
+
   public static void assertActionRan(TestCliAction action, String...expected) {
     assertTrue(action.getRan());
     String[] arguments = action.getArguments();

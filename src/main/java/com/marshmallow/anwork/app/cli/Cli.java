@@ -5,21 +5,19 @@ package com.marshmallow.anwork.app.cli;
  *
  * The class is meant to be used in the following way.
  * <pre>
- *   Cli cli = new Cli("root-command");
- *   cli.addFlag(CliFlag.makeShortFlag("f", "This is a description", new CliAction() { ... });
- *   cli.addFlag(CliFlag.makeLongFlag("v", "verbose", "This is a description", new CliAction() { ... });
- *   cli.addFlag(CliFlag.makeLongFlagWithParameter("o", "output", "This is a description", "location", new CliAction() { ... });
+ *   Cli cli = new Cli();
+ *   CliNode root = cli.getRoot();
+ *   root.addShortFlag("f", "This is a description", new CliAction() { ... });
+ *   root.addLongFlag("v", "verbose", "This is a description", new CliAction() { ... });
+ *   root.addLongFlagWithParameter("o", "output", "This is a description", "location", new CliAction() { ... });
  *
- *   CliNode tunaCommand = CliNode.makeCommand("tuna", "This is a tuna command", new CliAction() { ... });
- *   tunaCommand.addFlag(CliFlag.makeShortFlag("a", "This is a description", new CliAction() { ... });
- *   cli.addNode(tunaCommand);
+ *   CliNode tunaCommand = root.addCommand("tuna", "This is a tuna command", new CliAction() { ... });
+ *   tunaCommand.addShortFlag("a", "This is a description", new CliAction() { ... });
  *
- *   CliNode fishList = CliNode.makeList("fish", "This is the fish command");
- *   cli.addNode(fishList);
- *   CliNode fishMarlinCommand = CliNode.makeCommand("marlin", "This is the marlin command", new CliAction() { ... });
- *   fishList.addNode(fishMarlinCommand);
+ *   CliNode fishList = root.addList("fish", "This is the fish command list");
+ *   CliNode fishMarlinCommand = fishList.addCommand("marlin", "This is the marlin command", new CliAction() { ... });
  *   ...
- *   cli.parse(args);
+ *   root.parse(args);
  * </pre>
  *
  * The above would result in the following command line API.
@@ -33,24 +31,31 @@ package com.marshmallow.anwork.app.cli;
  */
 public class Cli {
 
-  private CliNode root;
+  private final CliNode root;
 
   public Cli(String name, String description) {
-    root = CliNode.makeList(name, description);
+    root = CliNode.makeRoot(name, description);
   }
 
-  public void addFlag(CliFlag flag) {
-    root.addFlag(flag);
+  public CliNode getRoot() {
+    return root;
   }
 
-  public void addNode(CliNode node) {
-    root.addNode(node);
-  }
-
-  public void parse(String[] args) {
+  /**
+   * Parse the provided command line arguments and run the necessary actions.
+   *
+   * @param args The command line arguments
+   * @throws IllegalArgumentException If the command line arguments are bad
+   */
+  public void parse(String[] args) throws IllegalArgumentException {
     root.parse(args);
   }
 
+  /**
+   * Get the usage information for this CLI node.
+   *
+   * @return The usage information for this CLI node
+   */
   public String getUsage() {
     return root.getUsage();
   }
