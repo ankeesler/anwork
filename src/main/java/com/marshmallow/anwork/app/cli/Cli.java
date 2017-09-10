@@ -10,11 +10,14 @@ package com.marshmallow.anwork.app.cli;
  *   cli.addFlag(CliFlag.makeLongFlag("v", "verbose", "This is a description", new CliAction() { ... });
  *   cli.addFlag(CliFlag.makeLongFlagWithParameter("o", "output", "This is a description", "location", new CliAction() { ... });
  *
- *   CliNode tunaCommand = cli.addCommand("tuna", "This is a tuna command", new CliAction() { ... });
- *   cli.addFlag(CliFlag.makeShortFlag("a", "This is a description", new CliAction() { ... });
+ *   CliNode tunaCommand = CliNode.makeCommand("tuna", "This is a tuna command", new CliAction() { ... });
+ *   tunaCommand.addFlag(CliFlag.makeShortFlag("a", "This is a description", new CliAction() { ... });
+ *   cli.addNode(tunaCommand);
  *
- *   CliNode fishCommand = cli.addCommand("fish", "This is the fish command", new CliAction() { ... });
- *   CliNode fishMarlinCommand = cli.addCommand("marlin", "This is the marlin command", new CliAction() { ... });
+ *   CliNode fishList = CliNode.makeList("fish", "This is the fish command");
+ *   cli.addNode(fishList);
+ *   CliNode fishMarlinCommand = CliNode.makeCommand("marlin", "This is the marlin command", new CliAction() { ... });
+ *   fishList.addNode(fishMarlinCommand);
  *   ...
  *   cli.parse(args);
  * </pre>
@@ -28,42 +31,27 @@ package com.marshmallow.anwork.app.cli;
  * @author Andrew
  * @date Sep 9, 2017
  */
-public class Cli implements CliNode {
+public class Cli {
 
   private CliNode root;
 
   public Cli(String name, String description) {
-    CliAction printUsageAction = (a) -> System.out.println(Cli.this.getUsage());
-    root = new CliNodeImpl(name, description, printUsageAction);
+    root = CliNode.makeList(name, description);
   }
 
-  @Override
   public void addFlag(CliFlag flag) {
     root.addFlag(flag);
   }
 
-  @Override
-  public CliNode addCommand(String name, String description, CliAction action) {
-    return root.addCommand(name, description, action);
+  public void addNode(CliNode node) {
+    root.addNode(node);
   }
 
-  @Override
   public void parse(String[] args) {
     root.parse(args);
   }
 
-  @Override
   public String getUsage() {
     return root.getUsage();
-  }
-
-  @Override
-  public String getName() {
-    return root.getName();
-  }
-
-  @Override
-  public String getDescription() {
-    return root.getDescription();
   }
 }

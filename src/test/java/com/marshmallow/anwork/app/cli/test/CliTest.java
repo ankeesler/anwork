@@ -24,7 +24,6 @@ public class CliTest {
   private TestCliAction cShortParameterAction = new TestCliAction();
   private TestCliAction dLongParameterAction = new TestCliAction();
 
-  private TestCliAction tunaAction = new TestCliAction();
   private TestCliAction tunaAndrewParameterAction = new TestCliAction();
   private TestCliAction tunaFShortFlagAction = new TestCliAction();
 
@@ -39,13 +38,16 @@ public class CliTest {
     cli.addFlag(CliFlag.makeShortFlagWithParameter("c", "Description for c flag", "word", cShortParameterAction));
     cli.addFlag(CliFlag.makeLongFlagWithParameter("d", "dog", "Description for d|dog", "name", dLongParameterAction));
 
-    CliNode tunaNode = cli.addCommand("tuna", "This is the tuna command", tunaAction);
-    tunaNode.addFlag(CliFlag.makeLongFlagWithParameter("a", "andrew", "Description for andrew flag", "whatever", tunaAndrewParameterAction));
-    tunaNode.addFlag(CliFlag.makeShortFlag("f", "The f flag, ya know", tunaFShortFlagAction));
+    CliNode tunaList = CliNode.makeList("tuna", "This is the tuna command");
+    tunaList.addFlag(CliFlag.makeLongFlagWithParameter("a", "andrew", "Description for andrew flag", "whatever", tunaAndrewParameterAction));
+    tunaList.addFlag(CliFlag.makeShortFlag("f", "The f flag, ya know", tunaFShortFlagAction));
+    cli.addNode(tunaList);
 
-    tunaNode.addCommand("marlin", "This is the marlin command", tunaMarlinAction);
+    CliNode tunaMarlinCommand = CliNode.makeCommand("marlin", "This is the marlin command", tunaMarlinAction);
+    tunaList.addNode(tunaMarlinCommand);
 
-    cli.addCommand("mayo", "This is the mayo command", mayoAction);
+    CliNode mayoCommand = CliNode.makeCommand("mayo", "This is the mayo command", mayoAction); 
+    cli.addNode(mayoCommand);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -97,7 +99,7 @@ public class CliTest {
   public void shortFlagOnlyTest() throws IllegalArgumentException {
     cli.parse(new String[] { "-a" });
     assertTrue(aShortFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(aShortFlagAction);
+    CliTestUtilities.assertActionRan(aShortFlagAction);
     assertFalse(bLongFlagAction.getRan());
     assertFalse(cShortParameterAction.getRan());
     assertFalse(dLongParameterAction.getRan());
@@ -107,9 +109,9 @@ public class CliTest {
   public void longFlagShortFlagTest() throws IllegalArgumentException {
     cli.parse(new String[] { "--bob", "-a" });
     assertTrue(aShortFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(aShortFlagAction);
+    CliTestUtilities.assertActionRan(aShortFlagAction);
     assertTrue(bLongFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(bLongFlagAction);
+    CliTestUtilities.assertActionRan(bLongFlagAction);
     assertFalse(cShortParameterAction.getRan());
     assertFalse(dLongParameterAction.getRan());
   }
@@ -118,10 +120,10 @@ public class CliTest {
   public void testShortArgumentShortFlag() throws IllegalArgumentException {
     cli.parse(new String[] { "-c", "hello", "-a" });
     assertTrue(aShortFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(aShortFlagAction);
+    CliTestUtilities.assertActionRan(aShortFlagAction);
     assertFalse(bLongFlagAction.getRan());
     assertTrue(cShortParameterAction.getRan());
-    CliTestUtilities.assertValidArguments(cShortParameterAction, "hello");
+    CliTestUtilities.assertActionRan(cShortParameterAction, "hello");
     assertFalse(dLongParameterAction.getRan());
   }
 
@@ -129,13 +131,13 @@ public class CliTest {
   public void testEverything() throws IllegalArgumentException {
     cli.parse(new String[] { "-c", "hello", "--bob", "-a", "--dog", "world" });
     assertTrue(aShortFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(aShortFlagAction);
+    CliTestUtilities.assertActionRan(aShortFlagAction);
     assertTrue(bLongFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(bLongFlagAction);
+    CliTestUtilities.assertActionRan(bLongFlagAction);
     assertTrue(cShortParameterAction.getRan());
-    CliTestUtilities.assertValidArguments(cShortParameterAction, "hello");
+    CliTestUtilities.assertActionRan(cShortParameterAction, "hello");
     assertTrue(dLongParameterAction.getRan());
-    CliTestUtilities.assertValidArguments(dLongParameterAction, "world");
+    CliTestUtilities.assertActionRan(dLongParameterAction, "world");
   }
 
   @Test
@@ -148,32 +150,42 @@ public class CliTest {
   }
 
   @Test
-  public void testTunaActionWithoutPreFlags() {
+  public void testTunaListWithoutPreFlags() {
     cli.parse(new String[] { "tuna" } );
     assertFalse(aShortFlagAction.getRan());
     assertFalse(cShortParameterAction.getRan());
-    assertTrue(tunaAction.getRan());
-    CliTestUtilities.assertValidArguments(tunaAction);
   }
 
   @Test
-  public void testTunaActionWithPreFlags() {
+  public void testTunaListWithPreFlags() {
     cli.parse(new String[] { "-a", "-c", "hello", "tuna" } );
-    assertTrue(aShortFlagAction.getRan());
-    CliTestUtilities.assertValidArguments(aShortFlagAction);
-    assertTrue(cShortParameterAction.getRan());
-    CliTestUtilities.assertValidArguments(cShortParameterAction, "hello");
-    assertTrue(tunaAction.getRan());
-    CliTestUtilities.assertValidArguments(tunaAction);
+    CliTestUtilities.assertActionRan(aShortFlagAction);
+    CliTestUtilities.assertActionRan(cShortParameterAction, "hello");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testTunaListWithArguments() {
+    cli.parse(new String[] { "tuna", "hello", "world" } );
   }
 
   @Test
-  public void testTunaActionWithArguments() {
-    cli.parse(new String[] { "tuna", "hello", "world" } );
-    assertFalse(aShortFlagAction.getRan());
-    assertFalse(cShortParameterAction.getRan());
-    assertTrue(tunaAction.getRan());
-    CliTestUtilities.assertValidArguments(tunaAction, "hello", "world");
+  public void testMarlinCommandWithoutArgument() {
+    cli.parse(new String[] { "tuna", "marlin" } );
+    CliTestUtilities.assertActionRan(tunaMarlinAction);
+  }
+
+  @Test
+  public void testMarlinCommandWithArguments() {
+    cli.parse(new String[] { "tuna", "marlin", "hello", "world" } );
+    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello" , "world");
+  }
+
+  @Test
+  public void testMarlinCommandWitPreFlagsAndArguments() {
+    cli.parse(new String[] { "tuna", "-a", "andrew", "-f", "marlin", "hello", "world" } );
+    CliTestUtilities.assertActionRan(tunaAndrewParameterAction, "andrew");
+    CliTestUtilities.assertActionRan(tunaFShortFlagAction);
+    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello" , "world");
   }
 
   @Test

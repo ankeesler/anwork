@@ -10,7 +10,8 @@ import static org.junit.Assert.*;
  */
 public class CliTestUtilities {
 
-  public static void assertValidArguments(TestCliAction action, String...expected) {
+  public static void assertActionRan(TestCliAction action, String...expected) {
+    assertTrue(action.getRan());
     String[] arguments = action.getArguments();
     assertNotNull(arguments.length);
     assertEquals(expected.length, arguments.length);

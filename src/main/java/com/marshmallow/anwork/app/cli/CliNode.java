@@ -1,58 +1,221 @@
 package com.marshmallow.anwork.app.cli;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * This is a node in a CLI tree.
- *
- * A node has some flags and some children. It can run actions based off of
- * command line interface arguments (see {@link #parse(String[])}). 
+ * This is an element of the CLI tree.
  *
  * @author Andrew
- * @date Sep 9, 2017
+ * @date Sep 10, 2017
  */
-public interface CliNode {
+public class CliNode {
+
+  private static final int LIST_PARAM_COUNT = -1;
 
   /**
-   * Add a flag to this node.
+   * Make a new command list.
    *
-   * @param flag The flag to add to this node.
+   * A command list may be something like "task" with child commands "create,"
+   * "update," and "delete."
+   *
+   * @param name The name of the command list
+   * @param description The description of the command list
+   * @return The new CLI node that represents the command list
+   * @see #makeCommand(String, String, CliAction)
    */
-  public void addFlag(CliFlag flag);
+  public static CliNode makeList(String name, String description) {
+    return new CliNode(name, description, LIST_PARAM_COUNT, null);
+  }
 
   /**
-   * Add a command to this node.
+   * Make a new command.
+   *
+   * A command may be something like "create," "update," or "delete."
    *
    * @param name The name of the command
    * @param description The description of the command
-   * @param action The action for the commmand
-   * @return The CLI node for the new command
+   * @param action The action associated with the command
+   * @return The new CLI node representing the command
+   * @see #makeList(String, String)
    */
-  public CliNode addCommand(String name, String description, CliAction action);
+  public static CliNode makeCommand(String name, String description, CliAction action) {
+    return new CliNode(name, description, 0, action);
+  }
 
-  /**
-   * Parse an array of arguments.
-   *
-   * @param args An array of arguments
-   */
-  public void parse(String[] args);
+  // This is a map from short flag to information about the flag.
+  private Map<String, CliFlag> shortFlagInfo = new LinkedHashMap<String, CliFlag>();
+  // This is a map from long flag to short flag.
+  private Map<String, String> longFlagShortFlags = new HashMap<String, String>();
+  // This is a map from child name to child node.
+  private Map<String, CliNode> children = new HashMap<String, CliNode>();
 
-  /**
-   * Get the name of this CLI node.
-   *
-   * @return The name of this CLI node
-   */
-  public String getName();
+  private final String name;
+  private final String description;
+  private final int paramCount;
+  private final CliAction action;
 
-  /**
-   * Get the description of this CLI node.
-   *
-   * @return The description of this CLI node
-   */
-  public String getDescription();
+  // See static #make... methods above.
+  private CliNode(String name, String description, int paramCount, CliAction action) {
+    this.name = name;
+    this.description = description;
+    this.paramCount = paramCount;
+    if (action == null) {
+      this.action = new CliUsageAction(this);
+    } else {
+      this.action = action;
+    }
+  }
 
-  /**
-   * Get a string describing this CLI node.
-   *
-   * @return A string describing this CLI node
-   */
-  public String getUsage();
+  private boolean isList() {
+    return paramCount == LIST_PARAM_COUNT;
+  }
+
+  public void addFlag(CliFlag flag) {
+    shortFlagInfo.put(flag.getShortFlag(), flag);
+    if (flag.hasLongFlag()) {
+      longFlagShortFlags.put(flag.getLongFlag(), flag.getShortFlag());
+    }
+  }
+
+  public void addNode(CliNode child) {
+    children.put(child.name, child);
+  }
+
+  public String getUsage() {
+    return makeCommandUsage(makeFlagUsage());
+  }
+
+  private String makeFlagUsage() {
+    StringBuilder builder = new StringBuilder();
+    for (CliFlag flag : shortFlagInfo.values()) {
+      builder.append(CliFlag.FLAG_START).append(flag.getShortFlag());
+      if (flag.hasLongFlag()) {
+        builder.append('|').append(CliFlag.FLAG_START).append(CliFlag.FLAG_START).append(flag.getLongFlag());
+      }
+      if (flag.hasParameter()) {
+        builder.append(' ').append('<').append(flag.getParameterName()).append('>');
+      }
+      builder.append(' ').append(flag.getDescription());
+      builder.append('\n');      
+    }
+    return builder.toString();
+  }
+
+  private String makeCommandUsage(String flagUsage) {
+    if (children.size() == 0) {
+      return flagUsage;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for (CliNode child : children.values()) {
+      builder.append(name).append(' ');
+      builder.append(flagUsage).append(' ');
+      builder.append(child.name).append(" : ").append(child.description);
+      builder.append('\n');
+    }
+    return builder.toString();
+  }
+
+  public void parse(String[] args) {
+    CliParseContext context = new CliParseContext();
+    parse(args, 0, context);
+    validateContext(context);
+    runActiveNodeFromContext(context);
+  }
+
+  private int parse(String[] args, int index, CliParseContext context) {
+    context.setActiveNode(this);
+    while (index < args.length) {
+      index = parseArg(args, index, context);
+    }
+    return index;
+  }
+
+  // Process the argument at index. Returns the next index to process.
+  private int parseArg(String[] args, int index, CliParseContext context) {
+    String arg = args[index];
+    int nextIndex;
+    if (isFlag(arg)) {
+      nextIndex = parseFlag(args, index);
+    } else if (isChild(arg) && context.getParameters().length == 0) {
+      CliNode child = getChild(arg);
+      nextIndex = child.parse(args, index + 1, context);
+    } else {
+      context.addParameter(arg);
+      nextIndex = index + 1;
+    }
+    return nextIndex;
+  }
+
+  private boolean isFlag(String arg) {
+    return (arg.charAt(0) == CliFlag.FLAG_START);
+  }
+  
+  private int parseFlag(String[] args, int index) {
+    String arg = args[index];
+
+    // Is it valid flag syntax?
+    boolean isLongFlag = false;
+    if (arg.charAt(0) != CliFlag.FLAG_START) {
+      throwBadArgException("Expected flag syntax", args, index);
+    }
+    if (arg.charAt(1) == CliFlag.FLAG_START) {
+      isLongFlag = true;
+    }
+
+    // Is it a valid flag?
+    String flagString = arg.substring(isLongFlag ? 2 : 1);
+    boolean validFlag = (isLongFlag ? longFlagShortFlags.containsKey(flagString) : shortFlagInfo.containsKey(flagString));
+    if (!validFlag) {
+      throwBadArgException("Unknown flag '" + flagString + "'", args, index);
+    }
+    String shortFlag = (isLongFlag ? longFlagShortFlags.get(flagString) : flagString);
+    CliFlag flag = shortFlagInfo.get(shortFlag);
+
+    // Does it have an argument?
+    List<String> arguments = new ArrayList<String>();
+    if (flag.hasParameter()) {
+      if (index == args.length -1) {
+        throwBadArgException("Expected argument for flag '" + flag + "'", args, index);
+      }
+      index += 1;
+      arguments.add(args[index]);
+    }
+
+    flag.getAction().run(arguments.toArray(new String[0]));
+
+    return index + 1;
+  }
+
+  private boolean isChild(String arg) {
+    return children.containsKey(arg);
+  }
+
+  private CliNode getChild(String arg) {
+    return children.get(arg);
+  }
+
+  private void throwBadArgException(String baseMessage, String args[], int index) {
+    String message = String.format("%s index=%d, arg=%s", baseMessage, index, args[index]);
+    throw new IllegalArgumentException(message);
+  }
+
+  private void validateContext(CliParseContext context) {
+    CliNode activeNode = context.getActiveNode();
+    String[] parameters = context.getParameters();
+    if (activeNode.isList() && parameters.length != 0) {
+      throw new IllegalArgumentException("Unknown command '" + parameters[0]
+                                         + "' for list " + activeNode.name);
+    }
+  }
+
+  private void runActiveNodeFromContext(CliParseContext context) {
+    CliNode activeNode = context.getActiveNode();
+    String[] parameters = context.getParameters();
+    activeNode.action.run(parameters);
+  }
 }
