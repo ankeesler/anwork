@@ -49,7 +49,8 @@ public class FilePersister<T> implements Persister<T> {
       while ((line = lineNumberReader.readLine()) != null) {
         T t = serializer.unmarshall(line);
         if (t == null) {
-          throw new IOException("Unknown serialization '" + line + "' for serializer " + serializer);
+          throw new IOException("Unknown serialization '" + line
+                                + "' for serializer " + serializer);
         }
         ts.add(t);
       }
@@ -61,7 +62,9 @@ public class FilePersister<T> implements Persister<T> {
   }
 
   @Override
-  public void save(String context, Serializer<T> serializer, Collection<T> data) throws IOException {
+  public void save(String context,
+                   Serializer<T> serializer,
+                   Collection<T> data) throws IOException {
     File file = convertContextToFile(context);
     if (!file.exists()) {
       file.delete();
@@ -69,7 +72,7 @@ public class FilePersister<T> implements Persister<T> {
     file.getParentFile().mkdirs();
     file.createNewFile();
 
-    try (Writer fileWriter = new FileWriter(file)){
+    try (Writer fileWriter = new FileWriter(file)) {
       for (T t : data) {
         String marshalled = serializer.marshall(t);
         if (marshalled == null) {

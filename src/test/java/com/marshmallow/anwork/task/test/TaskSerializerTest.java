@@ -1,16 +1,16 @@
 package com.marshmallow.anwork.task.test;
 
-import static org.junit.Assert.*;
-
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import com.marshmallow.anwork.core.test.SerializerTest;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskState;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
 /**
- * A {@link SerializerTest<T>} for {@link Task} objects.
+ * A {@link SerializerTest} for {@link Task} objects.
  *
  * @author Andrew
  * Created Sep 4, 2017
@@ -115,7 +115,9 @@ public class TaskSerializerTest extends SerializerTest<Task> {
 
   @Ignore("TODO: need to add in escaping functionality into serialization")
   public void escapeInNameTest() {
-    Task task = assertGood("Task:name=a\\\\b\\\\c\\\\;id=0;description=b;date=123;priority=3;state=WAITING;");
+    Task task
+      = assertGood("Task:name=a\\\\b\\\\c\\\\;"
+                   + "id=0;description=b;date=123;priority=3;state=WAITING;");
     assertEquals("a\\b\\c\\", task.getName());
   }
 }

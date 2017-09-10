@@ -1,17 +1,17 @@
 package com.marshmallow.anwork.task.test;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.marshmallow.anwork.event.EventLog;
 import com.marshmallow.anwork.event.RamEventLog;
 import com.marshmallow.anwork.task.LoggingTaskManager;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
+import org.junit.Test;
 
 /**
- * A test for the {@link LoggingTaskManager}
+ * A test for the {@link LoggingTaskManager}.
  *
  * @author Andrew
  * Created Sep 4, 2017

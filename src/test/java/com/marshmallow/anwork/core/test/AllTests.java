@@ -1,12 +1,12 @@
 package com.marshmallow.anwork.core.test;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
 import com.marshmallow.anwork.app.test.AllAppTests;
 import com.marshmallow.anwork.event.test.AllEventTests;
 import com.marshmallow.anwork.task.test.AllTaskTests;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({

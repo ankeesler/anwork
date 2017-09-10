@@ -1,17 +1,19 @@
 package com.marshmallow.anwork.core.test;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Serializer;
-
-import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+
+import org.junit.Test;
 
 /**
  * This is a unit test for a {@link FilePersister}.
@@ -21,13 +23,16 @@ import java.util.Collections;
  */
 public class FilePersisterTest {
 
-  private static final File TEST_RESOURCE_ROOT = new File(TestUtilities.TEST_RESOURCES_ROOT, "file-persister-test");
+  private static final File TEST_RESOURCE_ROOT
+    = new File(TestUtilities.TEST_RESOURCES_ROOT, "file-persister-test");
 
   private static final String DEFAULT_CONTEXT = "default-context";
   private static final String CONTEXT_A = "context-a";
   private static final String CONTEXT_B = "context-b";
-  private static final Serializer<Student> DEFAULT_SERIALIZER = Student.serializer();
-  private static final FilePersister<Student> DEFAULT_PERSISTER = new FilePersister<Student>(TEST_RESOURCE_ROOT);
+  private static final Serializer<Student> DEFAULT_SERIALIZER
+    = Student.serializer();
+  private static final FilePersister<Student> DEFAULT_PERSISTER
+    = new FilePersister<Student>(TEST_RESOURCE_ROOT);
 
   @Test(expected = IOException.class)
   public void testContextDoesNotExist() throws IOException {
@@ -88,7 +93,9 @@ public class FilePersisterTest {
   @Test
   public void saveThreeTest() throws IOException {
     assertTrue(DEFAULT_PERSISTER.contextExists(DEFAULT_CONTEXT));
-    Collection<Student> saveds = Arrays.asList(new Student("Andrew", 1), new Student("AC", 2), new Student("Mom", 3));
+    Collection<Student> saveds = Arrays.asList(new Student("Andrew", 1),
+                                               new Student("AC", 2),
+                                               new Student("Mom", 3));
     DEFAULT_PERSISTER.save(DEFAULT_CONTEXT, DEFAULT_SERIALIZER, saveds);
 
     Collection<Student> loadeds = DEFAULT_PERSISTER.load(DEFAULT_CONTEXT, DEFAULT_SERIALIZER);

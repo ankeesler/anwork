@@ -1,14 +1,15 @@
 package com.marshmallow.anwork.event.test;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import com.marshmallow.anwork.event.Event;
 import com.marshmallow.anwork.event.EventLog;
 import com.marshmallow.anwork.event.RamEventLog;
 
-import static org.junit.Assert.*;
-
 import java.util.Date;
+
+import org.junit.Test;
 
 public class EventLogTest {
 

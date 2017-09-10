@@ -1,11 +1,10 @@
 package com.marshmallow.anwork.app.cli.test;
 
-import org.junit.Test;
-
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliNode;
 
 import org.junit.Before;
+import org.junit.Test;
 
 /**
  * This is a test for the CLI.
@@ -32,17 +31,40 @@ public class CliTest {
   @Before
   public void setupCli() {
     CliNode root = cli.getRoot();
-    root.addShortFlag("a", "Description for a flag", aShortFlagAction);
-    root.addLongFlag("b", "bob", "Description for flag b|bob flag", bLongFlagAction);
-    root.addShortFlagWithParameter("c", "Description for c flag", "word", cShortParameterAction);
-    root.addLongFlagWithParameter("d", "dog", "Description for d|dog", "name", dLongParameterAction);
+    root.addShortFlag("a",
+                      "Description for a flag",
+                      aShortFlagAction);
+    root.addLongFlag("b",
+                     "bob",
+                     "Description for flag b|bob flag",
+                     bLongFlagAction);
+    root.addShortFlagWithParameter("c",
+                                   "Description for c flag",
+                                   "word",
+                                   cShortParameterAction);
+    root.addLongFlagWithParameter("d",
+                                  "dog",
+                                  "Description for d|dog",
+                                  "name",
+                                  dLongParameterAction);
 
-    CliNode tunaList = root.addList("tuna", "This is the tuna command list");
-    tunaList.addLongFlagWithParameter("a", "andrew", "Description for andrew flag", "whatever", tunaAndrewParameterAction);
-    tunaList.addShortFlag("f", "The f flag, ya know", tunaFShortFlagAction);
+    CliNode tunaList = root.addList("tuna",
+                                    "This is the tuna command list");
+    tunaList.addLongFlagWithParameter("a",
+                                      "andrew",
+                                      "Description for andrew flag",
+                                      "whatever",
+                                      tunaAndrewParameterAction);
+    tunaList.addShortFlag("f",
+                          "The f flag, ya know",
+                          tunaFShortFlagAction);
 
-    CliNode tunaMarlinCommand = tunaList.addCommand("marlin", "This is the marlin command", tunaMarlinAction);
-    tunaMarlinCommand.addShortFlag("z", "The z flag, ya know", tunaMarlinZShortFlagAction);
+    CliNode tunaMarlinCommand = tunaList.addCommand("marlin",
+                                                    "This is the marlin command",
+                                                    tunaMarlinAction);
+    tunaMarlinCommand.addShortFlag("z",
+                                   "The z flag, ya know",
+                                   tunaMarlinZShortFlagAction);
 
     root.addCommand("mayo", "This is the mayo command", mayoAction);
   }

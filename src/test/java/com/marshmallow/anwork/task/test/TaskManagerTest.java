@@ -1,10 +1,11 @@
 package com.marshmallow.anwork.task.test;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import com.marshmallow.anwork.task.TaskManager;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * This class tests the Task CRUD operations in a manager.

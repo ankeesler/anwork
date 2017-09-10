@@ -5,10 +5,17 @@ package com.marshmallow.anwork.app.cli;
  *
  * This object can represent a couple different types of flags.
  * <pre>
- *   -f (A short flag) (see {@link #makeShortFlag(String, String, CliAction)})
- *   -f something (A short flag and an argument) (see {@link #makeShortFlagWithParameter(String, String, String, CliAction)}
- *   --flag (A long flag) (see {@link #makeLongFlag(String, String, String, CliAction)})
- *   --flag something (A long flag and an argument) (see {@link #makeLongFlagWithParameter(String, String, String, String, CliAction)})
+ *   -f (A short flag)
+ *   (see {@link #makeShortFlag(String, String, CliAction)})
+ * 
+ *   -f something (A short flag and an argument)
+ *   (see {@link #makeShortFlagWithParameter(String, String, String, CliAction)}
+ *
+ *   --flag (A long flag)
+ *   (see {@link #makeLongFlag(String, String, String, CliAction)})
+ * 
+ *   --flag something (A long flag and an argument)
+ *   (see {@link #makeLongFlagWithParameter(String, String, String, String, CliAction)})
  * </pre>
  *
  * @author Andrew
@@ -53,7 +60,11 @@ class CliFlag {
   private final CliAction action;
 
   // See static "make" methods above.
-  private CliFlag(String shortFlag, String longFlag, String description, String parameterName, CliAction action) {
+  private CliFlag(String shortFlag,
+                  String longFlag,
+                  String description,
+                  String parameterName,
+                  CliAction action) {
     this.shortFlag = shortFlag;
     this.longFlag = longFlag;
     this.description = description;

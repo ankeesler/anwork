@@ -7,15 +7,27 @@ package com.marshmallow.anwork.app.cli;
  * <pre>
  *   Cli cli = new Cli();
  *   CliNode root = cli.getRoot();
- *   root.addShortFlag("f", "This is a description", new CliAction() { ... });
- *   root.addLongFlag("v", "verbose", "This is a description", new CliAction() { ... });
- *   root.addLongFlagWithParameter("o", "output", "This is a description", "location", new CliAction() { ... });
+ *   root.addShortFlag("f",
+ *                     "This is a description", new CliAction() { ... });
+ *   root.addLongFlag("v",
+ *                    "verbose",
+ *                    "This is a description",
+ *                    new CliAction() { ... });
+ *   root.addLongFlagWithParameter("o",
+ *                                 "output",
+ *                                 "This is a description",
+ *                                 "location",
+ *                                 new CliAction() { ... });
  *
- *   CliNode tunaCommand = root.addCommand("tuna", "This is a tuna command", new CliAction() { ... });
+ *   CliNode tunaCommand = root.addCommand("tuna",
+ *                                         "This is a tuna command",
+ *                                         new CliAction() { ... });
  *   tunaCommand.addShortFlag("a", "This is a description", new CliAction() { ... });
  *
  *   CliNode fishList = root.addList("fish", "This is the fish command list");
- *   CliNode fishMarlinCommand = fishList.addCommand("marlin", "This is the marlin command", new CliAction() { ... });
+ *   CliNode fishMarlinCommand = fishList.addCommand("marlin",
+ *                                                   "This is the marlin command",
+ *                                                   new CliAction() { ... });
  *   ...
  *   root.parse(args);
  * </pre>

@@ -1,12 +1,14 @@
 package com.marshmallow.anwork.core.test;
 
-import com.marshmallow.anwork.core.Serializer;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import static org.junit.Assert.*;
+import com.marshmallow.anwork.core.Serializer;
 
 /**
  * This is a generic test class for a serializable object (i.e., an object that
- * has a {@link Serializer<T>}.
+ * has a {@link Serializer}.
  *
  * @author Andrew
  * Created Aug 31, 2017

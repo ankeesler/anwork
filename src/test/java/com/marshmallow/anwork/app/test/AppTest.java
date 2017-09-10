@@ -1,11 +1,11 @@
 package com.marshmallow.anwork.app.test;
 
+import com.marshmallow.anwork.app.AnworkApp;
+import com.marshmallow.anwork.core.test.TestUtilities;
+
 import java.io.File;
 
 import org.junit.Test;
-
-import com.marshmallow.anwork.app.AnworkApp;
-import com.marshmallow.anwork.core.test.TestUtilities;
 
 /**
  * This is a test for the anwork application.

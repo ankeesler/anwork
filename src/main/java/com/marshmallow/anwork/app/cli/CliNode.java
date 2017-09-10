@@ -110,7 +110,11 @@ public class CliNode {
                                        String description,
                                        String parameterName,
                                        CliAction action) {
-    addFlag(CliFlag.makeLongFlagWithParameter(shortFlag, longFlag, description, parameterName, action));
+    addFlag(CliFlag.makeLongFlagWithParameter(shortFlag,
+                                              longFlag,
+                                              description,
+                                              parameterName,
+                                              action));
   }
 
   private void addFlag(CliFlag flag) {
@@ -124,17 +128,17 @@ public class CliNode {
    * Section - Children
    */
 
- /**
-  * Add a new command list.
-  *
-  * A command list may be something like "task" with child commands "create,"
-  * "update," and "delete."
-  *
-  * @param name The name of the command list
-  * @param description The description of the command list
-  * @return The new CLI node that represents the command list
-  * @see #addCommand(String, String, CliAction)
-  */
+  /**
+   * Add a new command list.
+   *
+   * A command list may be something like "task" with child commands "create,"
+   * "update," and "delete."
+   *
+   * @param name The name of the command list
+   * @param description The description of the command list
+   * @return The new CLI node that represents the command list
+   * @see #addCommand(String, String, CliAction)
+   */
   public CliNode addList(String name, String description) {
     CliNode list = new CliNode(name, description, LIST_PARAM_COUNT, null);
     addChild(list);
@@ -175,7 +179,8 @@ public class CliNode {
     for (CliFlag flag : shortFlagInfo.values()) {
       builder.append(CliFlag.FLAG_START).append(flag.getShortFlag());
       if (flag.hasLongFlag()) {
-        builder.append('|').append(CliFlag.FLAG_START).append(CliFlag.FLAG_START).append(flag.getLongFlag());
+        builder.append('|').append(CliFlag.FLAG_START).append(CliFlag.FLAG_START);
+        builder.append(flag.getLongFlag());
       }
       if (flag.hasParameter()) {
         builder.append(' ').append('<').append(flag.getParameterName()).append('>');
@@ -254,7 +259,9 @@ public class CliNode {
 
     // Is it a valid flag?
     String flagString = arg.substring(isLongFlag ? 2 : 1);
-    boolean validFlag = (isLongFlag ? longFlagShortFlags.containsKey(flagString) : shortFlagInfo.containsKey(flagString));
+    boolean validFlag = (isLongFlag
+                         ? longFlagShortFlags.containsKey(flagString)
+                         : shortFlagInfo.containsKey(flagString));
     if (!validFlag) {
       throwBadArgException("Unknown flag '" + flagString + "'", args, index);
     }
@@ -264,7 +271,7 @@ public class CliNode {
     // Does it have an argument?
     List<String> arguments = new ArrayList<String>();
     if (flag.hasParameter()) {
-      if (index == args.length -1) {
+      if (index == args.length - 1) {
         throwBadArgException("Expected argument for flag '" + flag + "'", args, index);
       }
       index += 1;
@@ -284,7 +291,7 @@ public class CliNode {
     return children.get(arg);
   }
 
-  private void throwBadArgException(String baseMessage, String args[], int index) {
+  private void throwBadArgException(String baseMessage, String[] args, int index) {
     String message = String.format("%s index=%d, arg=%s", baseMessage, index, args[index]);
     throw new IllegalArgumentException(message);
   }

@@ -1,9 +1,9 @@
 package com.marshmallow.anwork.task;
 
+import com.marshmallow.anwork.core.Serializer;
+
 import java.util.Arrays;
 import java.util.PriorityQueue;
-
-import com.marshmallow.anwork.core.Serializer;
 
 /**
  * This guy in a public interface for managing {@link Task} instances.
@@ -178,7 +178,9 @@ public class TaskManager {
 
     TaskState stateValue = TaskState.valueOf(state.toUpperCase());
     if (stateValue == null) {
-      throw new IllegalArgumentException("State " + state + " is invalid. Here are the potential states: " + Arrays.toString(TaskState.values()));
+      throw new IllegalArgumentException("State " + state
+                                         + " is invalid. Here are the potential states: "
+                                         + Arrays.toString(TaskState.values()));
     }
 
     task.setState(stateValue);

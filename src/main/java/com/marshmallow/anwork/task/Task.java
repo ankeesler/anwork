@@ -1,10 +1,10 @@
 package com.marshmallow.anwork.task;
 
+import com.marshmallow.anwork.core.Serializer;
+
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import com.marshmallow.anwork.core.Serializer;
 
 /**
  * This is a single unit of project work. One examples might be a single JIRA

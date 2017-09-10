@@ -1,14 +1,14 @@
 package com.marshmallow.anwork.app;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.task.TaskManager;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This is the main class for the anwork app.
@@ -18,6 +18,11 @@ import com.marshmallow.anwork.task.TaskManager;
  */
 public class AnworkApp {
 
+  /**
+   * ANWORK main method.
+   *
+   * @param args Command line argument
+   */
   public static void main(String[] args) {
     try {
       new AnworkApp().run(args);
@@ -93,15 +98,15 @@ public class AnworkApp {
   private void runTaskAction(TaskManager taskManager) throws Exception {
     for (Action action : actions) {
       switch (action.getType()) {
-      case CREATE:
-        debugPrint("creating task " + action.getTaskName());
-        taskManager.createTask(action.getTaskName(), "ummm", 1);
-        break;
-      case SHOW:
-        System.out.println(taskManager.toString());
-        break;
-      default:
-        throw new IllegalStateException("Unknown action type: " + action.getType());
+        case CREATE:
+          debugPrint("creating task " + action.getTaskName());
+          taskManager.createTask(action.getTaskName(), "ummm", 1);
+          break;
+        case SHOW:
+          System.out.println(taskManager.toString());
+          break;
+        default:
+          throw new IllegalStateException("Unknown action type: " + action.getType());
       }
     }
   }
