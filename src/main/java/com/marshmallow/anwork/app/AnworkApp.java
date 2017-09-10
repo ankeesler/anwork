@@ -68,7 +68,7 @@ public class AnworkApp {
   }
 
   private Cli makeCli() throws Exception {
-    Cli cli = new Cli();
+    Cli cli = new Cli("anwork", "ANWORK CLI commands");
     return cli;
   }
 

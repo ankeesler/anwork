@@ -5,7 +5,7 @@ package com.marshmallow.anwork.app.cli;
  *
  * The class is meant to be used in the following way.
  * <pre>
- *   Cli cli = new Cli();
+ *   Cli cli = new Cli("root-command");
  *   cli.addFlag(CliFlag.makeShortFlag("f", "This is a description", new CliAction() { ... });
  *   cli.addFlag(CliFlag.makeLongFlag("v", "verbose", "This is a description", new CliAction() { ... });
  *   cli.addFlag(CliFlag.makeLongFlagWithParameter("o", "output", "This is a description", "location", new CliAction() { ... });
@@ -21,9 +21,8 @@ package com.marshmallow.anwork.app.cli;
  *
  * The above would result in the following command line API.
  * <pre>
- *   *root* [-f] [-v|--verbose] [-o|--output location] tuna [-a]
- *   *root* [-f] [-v|--verbose] [-o|--output location] fish
- *   *root* [-f] [-v|--verbose] [-o|--output location] fish marlin 
+ *   root-command [-f] [-v|--verbose] [-o|--output location] tuna [-a]
+ *   root-command [-f] [-v|--verbose] [-o|--output location] fish marlin
  * </pre>
  *
  * @author Andrew
@@ -31,13 +30,12 @@ package com.marshmallow.anwork.app.cli;
  */
 public class Cli implements CliNode {
 
-  private static final String ROOT_NAME = "root";
-  private static final String ROOT_DESCRIPTION = "root CLI node";
+  private CliNode root;
 
-  private CliNode root
-    = new CliNodeImpl(ROOT_NAME,
-                      ROOT_DESCRIPTION,
-                      (a) -> System.out.println(Cli.this.getUsage()));
+  public Cli(String name, String description) {
+    CliAction printUsageAction = (a) -> System.out.println(Cli.this.getUsage());
+    root = new CliNodeImpl(name, description, printUsageAction);
+  }
 
   @Override
   public void addFlag(CliFlag flag) {
