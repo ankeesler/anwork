@@ -106,6 +106,33 @@ public class AppTest {
     assertEquals(TaskState.RUNNING, manager.getState("task-b"));
   }
 
+  @Test
+  public void deleteTest() throws IOException {
+    run("-d",
+        "--context", CONTEXT,
+        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
+        "task", "create", "task-a", "This is the description for task A", "1");
+    run("-d",
+        "--context", CONTEXT,
+        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
+        "task", "create", "task-b", "This is the description for task B", "2");
+    run("-d",
+        "--context", CONTEXT,
+        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
+        "task", "delete", "task-a");
+
+    TaskManager taskManager = readTaskManager();
+    assertEquals(1, taskManager.getTaskCount());
+
+    run("-d",
+        "--context", CONTEXT,
+        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
+        "task", "delete", "task-b");
+
+    taskManager = readTaskManager();
+    assertEquals(0, taskManager.getTaskCount());
+  }
+
   private void run(String...args) {
     AnworkApp.main(args);
   }

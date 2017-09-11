@@ -81,5 +81,14 @@ public class AnworkCliCreator {
     taskCommandList.addCommand("set-finished",
                                "Set a task as finished",
                                new TaskManagerSetStateCliAction(config, TaskState.FINISHED));
+
+    CliAction deleteAction = new TaskManagerCliAction(config) {
+      @Override
+      public void run(String[] args, TaskManager manager) {
+        manager.deleteTask(args[0]);
+        config.getDebugPrinter().accept("deleted task '" + args[0] + "'");
+      }
+    };
+    taskCommandList.addCommand("delete", "Delete a task", deleteAction);
   }
 }
