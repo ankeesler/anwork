@@ -8,9 +8,9 @@ package com.marshmallow.anwork.app.cli;
  */
 public class CliUsageAction implements CliAction {
 
-  private CliNode node;
+  private CliNodeImpl node;
 
-  public CliUsageAction(CliNode node) {
+  public CliUsageAction(CliNodeImpl node) {
     this.node = node;
   }
 

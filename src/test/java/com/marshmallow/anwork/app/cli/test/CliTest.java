@@ -1,7 +1,8 @@
 package com.marshmallow.anwork.app.cli.test;
 
 import com.marshmallow.anwork.app.cli.Cli;
-import com.marshmallow.anwork.app.cli.CliNode;
+import com.marshmallow.anwork.app.cli.CliCommand;
+import com.marshmallow.anwork.app.cli.CliList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class CliTest {
 
   @Before
   public void setupCli() {
-    CliNode root = cli.getRoot();
+    CliList root = cli.getRoot();
     root.addShortFlag("a",
                       "Description for a flag",
                       aShortFlagAction);
@@ -48,7 +49,7 @@ public class CliTest {
                                   "name",
                                   dLongParameterAction);
 
-    CliNode tunaList = root.addList("tuna",
+    CliList tunaList = root.addList("tuna",
                                     "This is the tuna command list");
     tunaList.addLongFlagWithParameter("a",
                                       "andrew",
@@ -59,9 +60,9 @@ public class CliTest {
                           "The f flag, ya know",
                           tunaFShortFlagAction);
 
-    CliNode tunaMarlinCommand = tunaList.addCommand("marlin",
-                                                    "This is the marlin command",
-                                                    tunaMarlinAction);
+    CliCommand tunaMarlinCommand = tunaList.addCommand("marlin",
+                                                      "This is the marlin command",
+                                                      tunaMarlinAction);
     tunaMarlinCommand.addShortFlag("z",
                                    "The z flag, ya know",
                                    tunaMarlinZShortFlagAction);

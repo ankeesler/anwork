@@ -11,14 +11,14 @@ import java.util.List;
  */
 class CliParseContext {
 
-  private CliNode activeNode;
+  private CliNodeImpl activeNode;
   private List<String> parameters = new ArrayList<String>();
 
-  CliNode getActiveNode() {
+  CliNodeImpl getActiveNode() {
     return activeNode;
   }
 
-  void setActiveNode(CliNode activeNode) {
+  void setActiveNode(CliNodeImpl activeNode) {
     this.activeNode = activeNode;
   }
 

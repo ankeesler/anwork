@@ -43,7 +43,7 @@ package com.marshmallow.anwork.app.cli;
  */
 public class Cli {
 
-  private final CliNode root;
+  private final CliNodeImpl root;
 
   /**
    * Create a new command line interface.
@@ -52,7 +52,7 @@ public class Cli {
    * @param description The description of the command line interface
    */
   public Cli(String name, String description) {
-    root = CliNode.makeRoot(name, description);
+    root = CliNodeImpl.makeRoot(name, description);
   }
 
   /**
@@ -60,7 +60,7 @@ public class Cli {
    *
    * @return The root CLI node
    */
-  public CliNode getRoot() {
+  public CliList getRoot() {
     return root;
   }
 

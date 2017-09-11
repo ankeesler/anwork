@@ -13,11 +13,11 @@ public interface CliAction {
    *
    * @param parameters The parameters to the action; this parameter is never
    * <code>null</code>
-   * @see CliNode#addShortFlag(String, String, CliAction)
-   * @see CliNode#addShortFlagWithParameter(String, String, String, CliAction)
-   * @see CliNode#addLongFlag(String, String, String, CliAction)
-   * @see CliNode#addLongFlagWithParameter(String, String, String, String, CliAction)
-   * @see CliNode#addCommand(String, String, CliAction)
+   * @see CliNodeImpl#addShortFlag(String, String, CliAction)
+   * @see CliNodeImpl#addShortFlagWithParameter(String, String, String, CliAction)
+   * @see CliNodeImpl#addLongFlag(String, String, String, CliAction)
+   * @see CliNodeImpl#addLongFlagWithParameter(String, String, String, String, CliAction)
+   * @see CliNodeImpl#addCommand(String, String, CliAction)
    */
   public void run(String[] parameters);
 
