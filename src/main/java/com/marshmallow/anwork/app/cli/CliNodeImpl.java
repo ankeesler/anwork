@@ -127,6 +127,7 @@ class CliNodeImpl implements CliList, CliCommand {
   private String makeFlagUsage() {
     StringBuilder builder = new StringBuilder();
     for (CliFlag flag : shortFlagInfo.values()) {
+      builder.append('[');
       builder.append(CliFlag.FLAG_START).append(flag.getShortFlag());
       if (flag.hasLongFlag()) {
         builder.append('|').append(CliFlag.FLAG_START).append(CliFlag.FLAG_START);
@@ -136,7 +137,8 @@ class CliNodeImpl implements CliList, CliCommand {
         builder.append(' ').append('<').append(flag.getParameterName()).append('>');
       }
       builder.append(' ').append(flag.getDescription());
-      builder.append('\n');      
+      builder.append(']');
+      builder.append(' ');
     }
     return builder.toString();
   }
@@ -149,7 +151,7 @@ class CliNodeImpl implements CliList, CliCommand {
     StringBuilder builder = new StringBuilder();
     for (CliNodeImpl child : children.values()) {
       builder.append(name).append(' ');
-      builder.append(flagUsage).append(' ');
+      builder.append(flagUsage);
       builder.append(child.name).append(" : ").append(child.description);
       builder.append('\n');
     }

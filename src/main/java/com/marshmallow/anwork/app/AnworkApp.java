@@ -1,14 +1,14 @@
 package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.Cli;
+import com.marshmallow.anwork.app.cli.CliAction;
+import com.marshmallow.anwork.app.cli.CliList;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.task.TaskManager;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * This is the main class for the anwork app.
@@ -31,51 +31,71 @@ public class AnworkApp {
     }
   }
 
-  private static class Action {
-
-    private static enum Type {
-      CREATE,
-      SHOW,
-      ;
-    }
-
-    private final Type type;
-    private final String taskName;
-
-    public Action(Type type, String taskName) {
-      this.type = type;
-      this.taskName = taskName;
-    }
-
-    public Type getType() {
-      return type;
-    }
-
-    public String getTaskName() {
-      return taskName;
-    }
-  }
-
+  // Global CLI flags
   private boolean debug = false;
   private String context = "default-context";
   private File persistenceRoot = new File(".");
-  private List<Action> actions = new ArrayList<Action>();
 
   private void run(String[] args) throws Exception {
-    Cli cli = makeCli();
-    cli.parse(args);
-
-    TaskManager taskManager = loadTaskManager();
-
-    runTaskAction(taskManager);
-
-    saveTaskManager(taskManager);
+    makeCli().parse(args);
   }
+
+  private void debugPrint(String string) {
+    if (debug) {
+      System.out.println("debug: " + string);
+    }
+  }
+
+  /*
+   * Section - CLI Creation
+   */
 
   private Cli makeCli() throws Exception {
     Cli cli = new Cli("anwork", "ANWORK CLI commands");
+    CliList root = cli.getRoot();
+    makeRootFlags(root);
+    makeTaskCommands(root);
     return cli;
   }
+
+  private void makeRootFlags(CliList root) {
+    root.addLongFlag("d",
+                     "debug",
+                     "Turn on debug printing",
+      (p) -> AnworkApp.this.debug = true);
+    root.addLongFlagWithParameter("c",
+                                  "context",
+                                  "Set the persistence context",
+                                  "name",
+      (p) -> AnworkApp.this.context = p[0]);
+    root.addLongFlagWithParameter("o",
+                                  "output",
+                                  "Set persistence output directory",
+                                  "directory",
+      (p) -> AnworkApp.this.persistenceRoot = new File(p[0]));
+  }
+
+  private void makeTaskCommands(CliList root) {
+    CliList taskCommandList = root.addList("task", "Task commands...");
+
+    CliAction createAction = new CliAction() {
+      @Override
+      public void run(String[] args) {
+        try {
+          TaskManager manager = loadTaskManager();
+          manager.createTask(args[0], args[1], Integer.parseInt(args[2]));
+          saveTaskManager(manager);
+        } catch (Exception e) {
+          System.out.println("Could not create task: " + e.getMessage());
+        }
+      }
+    };
+    taskCommandList.addCommand("create", "Create a task", createAction);
+  }
+
+  /*
+   * Section - Task Manager Management
+   */
 
   private TaskManager loadTaskManager() throws Exception {
     Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
@@ -95,30 +115,8 @@ public class AnworkApp {
     return loadeds.toArray(new TaskManager[0])[0];
   }
 
-  private void runTaskAction(TaskManager taskManager) throws Exception {
-    for (Action action : actions) {
-      switch (action.getType()) {
-        case CREATE:
-          debugPrint("creating task " + action.getTaskName());
-          taskManager.createTask(action.getTaskName(), "ummm", 1);
-          break;
-        case SHOW:
-          System.out.println(taskManager.toString());
-          break;
-        default:
-          throw new IllegalStateException("Unknown action type: " + action.getType());
-      }
-    }
-  }
-
   private void saveTaskManager(TaskManager taskManager) throws Exception {
     Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
     persister.save(context, TaskManager.serializer(), java.util.Collections.singleton(taskManager));
-  }
-
-  private void debugPrint(String string) {
-    if (debug) {
-      System.out.println("debug: " + string);
-    }
   }
 }

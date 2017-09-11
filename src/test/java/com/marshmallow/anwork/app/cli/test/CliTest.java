@@ -248,6 +248,15 @@ public class CliTest {
   }
 
   @Test
+  public void testMayoCommand() {
+    runTest("mayo", "a", "b", "c");
+    CliTestUtilities.assertActionRan(mayoAction, "a", "b", "c");
+  }
+
+  /*
+   * Section - Usage
+   */
+  @Test
   public void usageTest() {
     System.out.println(cli.getUsage());
   }
