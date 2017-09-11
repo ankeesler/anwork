@@ -10,3 +10,5 @@ TODO
   a verb.
 - The Google checkstyle needs to be adopted.
 - The CLI usage printing is ugly. Write a real test for this.
+- Create a framework where a CLI can be supplied by an XML file and turned into
+  source creation of CLI, tests, and documentation.
