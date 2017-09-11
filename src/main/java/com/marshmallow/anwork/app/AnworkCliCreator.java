@@ -4,6 +4,7 @@ import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliAction;
 import com.marshmallow.anwork.app.cli.CliList;
 import com.marshmallow.anwork.task.TaskManager;
+import com.marshmallow.anwork.task.TaskState;
 
 import java.io.File;
 
@@ -67,5 +68,18 @@ public class AnworkCliCreator {
       }
     };
     taskCommandList.addCommand("create", "Create a task", createAction);
+
+    taskCommandList.addCommand("set-waiting",
+                               "Set a task as waiting",
+                               new TaskManagerSetStateCliAction(config, TaskState.WAITING));
+    taskCommandList.addCommand("set-blocked",
+                               "Set a task as blocked",
+                               new TaskManagerSetStateCliAction(config, TaskState.BLOCKED));
+    taskCommandList.addCommand("set-running",
+                               "Set a task as running",
+                               new TaskManagerSetStateCliAction(config, TaskState.RUNNING));
+    taskCommandList.addCommand("set-finished",
+                               "Set a task as finished",
+                               new TaskManagerSetStateCliAction(config, TaskState.FINISHED));
   }
 }

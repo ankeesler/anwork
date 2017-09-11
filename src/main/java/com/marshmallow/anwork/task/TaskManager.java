@@ -2,7 +2,6 @@ package com.marshmallow.anwork.task;
 
 import com.marshmallow.anwork.core.Serializer;
 
-import java.util.Arrays;
 import java.util.PriorityQueue;
 
 /**
@@ -154,12 +153,12 @@ public class TaskManager {
    * @return A string representing the state of the task.
    * @throws IllegalArgumentException If the task does not exist
    */
-  public String getState(String name) throws IllegalArgumentException {
+  public TaskState getState(String name) throws IllegalArgumentException {
     Task task = findTask(name);
     if (task == null) {
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
-    return task.getState().name().toLowerCase();
+    return task.getState();
   }
 
   /**
@@ -170,20 +169,12 @@ public class TaskManager {
    * @throws IllegalArgumentException If this task does not exist or the state
    * is invalid.
    */
-  public void setState(String name, String state) throws IllegalArgumentException {
+  public void setState(String name, TaskState state) throws IllegalArgumentException {
     Task task = findTask(name);
     if (task == null) {
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
-
-    TaskState stateValue = TaskState.valueOf(state.toUpperCase());
-    if (stateValue == null) {
-      throw new IllegalArgumentException("State " + state
-                                         + " is invalid. Here are the potential states: "
-                                         + Arrays.toString(TaskState.values()));
-    }
-
-    task.setState(stateValue);
+    task.setState(state);
   }
 
   /**

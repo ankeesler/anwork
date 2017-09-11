@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.marshmallow.anwork.task.TaskManager;
+import com.marshmallow.anwork.task.TaskState;
 
 import org.junit.Test;
 
@@ -59,21 +60,21 @@ public class TaskManagerTest {
     manager.createTask("Task1", "This is task 1.", 1);
 
     // By default, tasks start out in the WAITING state.
-    assertEquals("waiting", manager.getState("Task1"));
+    assertEquals(TaskState.WAITING, manager.getState("Task1"));
 
-    manager.setState("Task1", "blocked");
-    assertEquals("blocked", manager.getState("Task1"));
-    manager.setState("Task1", "BLOCKED");
-    assertEquals("blocked", manager.getState("Task1"));
-    manager.setState("Task1", "BlOcKeD");
-    assertEquals("blocked", manager.getState("Task1"));
+    manager.setState("Task1", TaskState.BLOCKED);
+    assertEquals(TaskState.BLOCKED, manager.getState("Task1"));
+    manager.setState("Task1", TaskState.BLOCKED);
+    assertEquals(TaskState.BLOCKED, manager.getState("Task1"));
+    manager.setState("Task1", TaskState.BLOCKED);
+    assertEquals(TaskState.BLOCKED, manager.getState("Task1"));
 
     manager.createTask("Task2", "This is task 2.", 1);
     // See note about the waiting state above.
-    assertEquals("waiting", manager.getState("Task2"));
-    manager.setState("Task2", "running");
-    assertEquals("blocked", manager.getState("Task1"));
-    assertEquals("running", manager.getState("Task2"));
+    assertEquals(TaskState.WAITING, manager.getState("Task2"));
+    manager.setState("Task2", TaskState.RUNNING);
+    assertEquals(TaskState.BLOCKED, manager.getState("Task1"));
+    assertEquals(TaskState.RUNNING, manager.getState("Task2"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -97,6 +98,6 @@ public class TaskManagerTest {
   @Test(expected = IllegalArgumentException.class)
   public void setBadState() {
     manager.createTask("Task1", "This is task 1.", 1);
-    manager.setState("Task2", "whatever");
+    manager.setState("Task2", null);
   }
 }

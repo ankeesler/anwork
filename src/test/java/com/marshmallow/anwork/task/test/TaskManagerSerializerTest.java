@@ -97,7 +97,7 @@ public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
   public void testSingleTask() {
     TaskManager manager = assertGood("TaskManager:" + GOOD_TASK_A + ",");
     assertNull(manager.getCurrentTask());
-    assertEquals(taskA.getState().name().toLowerCase(), manager.getState(taskA.getName()));
+    assertEquals(taskA.getState(), manager.getState(taskA.getName()));
     assertEquals(1, manager.getTaskCount());
   }
 
@@ -106,9 +106,9 @@ public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
     TaskManager manager
       = assertGood("TaskManager:" + GOOD_TASK_A + ",*" + GOOD_TASK_B + "," + GOOD_TASK_C + ",");
     assertEquals(taskB.getName(), manager.getCurrentTask());
-    assertEquals(taskA.getState().name().toLowerCase(), manager.getState(taskA.getName()));
-    assertEquals(taskB.getState().name().toLowerCase(), manager.getState(taskB.getName()));
-    assertEquals(taskC.getState().name().toLowerCase(), manager.getState(taskC.getName()));
+    assertEquals(taskA.getState(), manager.getState(taskA.getName()));
+    assertEquals(taskB.getState(), manager.getState(taskB.getName()));
+    assertEquals(taskC.getState(), manager.getState(taskC.getName()));
     assertEquals(3, manager.getTaskCount());
   }
 }

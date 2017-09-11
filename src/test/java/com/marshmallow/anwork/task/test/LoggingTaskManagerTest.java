@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.marshmallow.anwork.event.EventLog;
 import com.marshmallow.anwork.event.RamEventLog;
 import com.marshmallow.anwork.task.LoggingTaskManager;
+import com.marshmallow.anwork.task.TaskState;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,9 +47,9 @@ public class LoggingTaskManagerTest {
     manager.createTask("name-a", "description", 1);
     manager.setCurrentTask("name-a");
     assertEquals(2, log.getEvents().length);
-    manager.setState("name-a", "WAITING");
+    manager.setState("name-a", TaskState.WAITING);
     assertEquals(3, log.getEvents().length);
-    manager.setState("name-a", "BLOCKED");
+    manager.setState("name-a", TaskState.BLOCKED);
     assertEquals(4, log.getEvents().length);
   }
 

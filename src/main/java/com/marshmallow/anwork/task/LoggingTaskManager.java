@@ -98,7 +98,7 @@ public class LoggingTaskManager extends TaskManager {
   }
 
   @Override
-  public void setState(String name, String state) throws IllegalArgumentException {
+  public void setState(String name, TaskState state) throws IllegalArgumentException {
     boolean success = true;
     try {
       super.setState(name, state);
