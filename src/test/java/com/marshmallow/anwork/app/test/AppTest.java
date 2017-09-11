@@ -44,18 +44,9 @@ public class AppTest {
 
   @Test
   public void createTest() throws IOException {
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-a", "This is the description for task A", "1");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-b", "This is the description for task B", "2");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-c", "This is the description for task C", "3");
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-c", "This is the description for task C", "3");
 
     TaskManager taskManager = readTaskManager();
     assertEquals(3, taskManager.getTaskCount());
@@ -63,42 +54,24 @@ public class AppTest {
 
   @Test
   public void setStateTest() throws IOException {
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-a", "This is the description for task A", "1");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "set-running", "task-a");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-b", "This is the description for task B", "2");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "set-blocked", "task-b");
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "set-running", "task-a");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "set-blocked", "task-b");
 
     TaskManager manager = readTaskManager();
     assertEquals(2, manager.getTaskCount());
     assertEquals(TaskState.RUNNING, manager.getState("task-a"));
     assertEquals(TaskState.BLOCKED, manager.getState("task-b"));
 
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "set-finished", "task-a");
+    run("task", "set-finished", "task-a");
 
     manager = readTaskManager();
     assertEquals(2, manager.getTaskCount());
     assertEquals(TaskState.FINISHED, manager.getState("task-a"));
     assertEquals(TaskState.BLOCKED, manager.getState("task-b"));
 
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "set-running", "task-b");
+    run("task", "set-running", "task-b");
 
     manager = readTaskManager();
     assertEquals(2, manager.getTaskCount());
@@ -108,33 +81,29 @@ public class AppTest {
 
   @Test
   public void deleteTest() throws IOException {
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-a", "This is the description for task A", "1");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "create", "task-b", "This is the description for task B", "2");
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "delete", "task-a");
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "delete", "task-a");
 
     TaskManager taskManager = readTaskManager();
     assertEquals(1, taskManager.getTaskCount());
 
-    run("-d",
-        "--context", CONTEXT,
-        "-o", PERSISTENCE_ROOT.getAbsolutePath(),
-        "task", "delete", "task-b");
+    run("task", "delete", "task-b");
 
     taskManager = readTaskManager();
     assertEquals(0, taskManager.getTaskCount());
   }
 
   private void run(String...args) {
-    AnworkApp.main(args);
+    String[] baseArgs = new String[] {
+      "-d",
+      "--context", CONTEXT,
+      "-o", PERSISTENCE_ROOT.getAbsolutePath(),
+    };
+    String[] allArgs = new String[baseArgs.length + args.length];
+    System.arraycopy(baseArgs, 0, allArgs, 0, baseArgs.length);
+    System.arraycopy(args, 0, allArgs, baseArgs.length, args.length);
+    AnworkApp.main(allArgs);
   }
 
   private TaskManager readTaskManager() throws IOException {
