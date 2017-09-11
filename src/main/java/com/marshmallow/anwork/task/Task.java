@@ -20,14 +20,6 @@ public class Task implements Comparable<Task> {
 
   private static int nextId = 1;
 
-  private String name;
-  private int id;
-  private String description;
-  private Date startDate;
-  private int priority;
-  private TaskState state;
-
-
   private static class TaskSerializer implements Serializer<Task> {
 
     public static final Serializer<Task> instance = new TaskSerializer();
@@ -113,6 +105,13 @@ public class Task implements Comparable<Task> {
     return TaskSerializer.instance;
   }
 
+  private String name;
+  private int id;
+  private String description;
+  private Date startDate;
+  private int priority;
+  private TaskState state;
+
   // This guy is here so that we can use him in the serialization functionality
   // above.
   private Task() { }
@@ -181,6 +180,13 @@ public class Task implements Comparable<Task> {
 
   @Override
   public String toString() {
-    return serializer().marshall(this);
+    StringBuilder builder = new StringBuilder();
+    builder.append("Task:");
+    builder.append(" n='").append(name).append("'");
+    builder.append(" d='").append(description).append("'");
+    builder.append(" s='").append(startDate.toString()).append("'");
+    builder.append(" p='").append(priority).append("'");
+    builder.append(" t='").append(state).append("'");
+    return builder.toString();
   }
 }

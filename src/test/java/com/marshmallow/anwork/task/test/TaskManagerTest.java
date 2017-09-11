@@ -3,6 +3,7 @@ package com.marshmallow.anwork.task.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
 
@@ -75,6 +76,35 @@ public class TaskManagerTest {
     manager.setState("Task2", TaskState.RUNNING);
     assertEquals(TaskState.BLOCKED, manager.getState("Task1"));
     assertEquals(TaskState.RUNNING, manager.getState("Task2"));
+  }
+
+  @Test
+  public void testTaskOrder() {
+    manager.createTask("Task1", "This is task 1.", 2);
+    Task[] tasks = manager.getTasks();
+    assertEquals(1, tasks.length);
+    assertEquals("Task1", tasks[0].getName());
+
+    // Tasks are supposed to be returned in order of priority (see
+    // TaskManager#getTasks).
+    manager.createTask("Task2", "This is task 2.", 0);
+    tasks = manager.getTasks();
+    assertEquals(2, tasks.length);
+    assertEquals("Task2", tasks[0].getName());
+    assertEquals("Task1", tasks[1].getName());
+
+    manager.createTask("Task3", "This is task 3.", 1);
+    tasks = manager.getTasks();
+    assertEquals(3, tasks.length);
+    assertEquals("Task2", tasks[0].getName());
+    assertEquals("Task3", tasks[1].getName());
+    assertEquals("Task1", tasks[2].getName());
+
+    manager.deleteTask("Task2");
+    tasks = manager.getTasks();
+    assertEquals(2, tasks.length);
+    assertEquals("Task3", tasks[0].getName());
+    assertEquals("Task1", tasks[1].getName());
   }
 
   @Test(expected = IllegalArgumentException.class)

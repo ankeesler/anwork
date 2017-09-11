@@ -3,6 +3,7 @@ package com.marshmallow.anwork.app;
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliAction;
 import com.marshmallow.anwork.app.cli.CliList;
+import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
 
@@ -90,5 +91,15 @@ public class AnworkCliCreator {
       }
     };
     taskCommandList.addCommand("delete", "Delete a task", deleteAction);
+
+    CliAction showAction = new TaskManagerCliAction(config) {
+      @Override
+      public void run(String[] args, TaskManager manager) {
+        for (Task task : manager.getTasks()) {
+          System.out.println(task);
+        }
+      }
+    };
+    taskCommandList.addCommand("show", "Show all tasks", showAction);
   }
 }

@@ -94,6 +94,15 @@ public class AppTest {
     assertEquals(0, taskManager.getTaskCount());
   }
 
+  @Test
+  public void showTest() throws IOException {
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "show");
+    run("task", "delete", "task-a");
+    run("task", "show");
+  }
+
   private void run(String...args) {
     String[] baseArgs = new String[] {
       "-d",

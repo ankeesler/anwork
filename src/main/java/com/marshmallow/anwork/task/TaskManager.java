@@ -2,6 +2,7 @@ package com.marshmallow.anwork.task;
 
 import com.marshmallow.anwork.core.Serializer;
 
+import java.util.Arrays;
 import java.util.PriorityQueue;
 
 /**
@@ -184,6 +185,19 @@ public class TaskManager {
    */
   public int getTaskCount() {
     return tasks.size();
+  }
+
+  /**
+   * Get the tasks associated with this task manager.
+   *
+   * @return The tasks associated with this manager
+   */
+  public Task[] getTasks() {
+    // TODO: this should be improved! We should write our own heap that can
+    // return the elements to us in order.
+    Task[] taskArray = tasks.toArray(new Task[0]);
+    Arrays.sort(taskArray);
+    return taskArray;
   }
 
   /**
