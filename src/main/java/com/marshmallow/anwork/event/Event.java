@@ -5,15 +5,20 @@ import java.util.Date;
 /**
  * This is something that happened that you want to store in a {@link EventLog}.
  *
- * @author Andrew
+ * <p>
  * Created Aug 31, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public interface Event {
 
   /**
    * Get the type of this event.
    *
+   * <p>
    * This is purposely loosely typed for academic purposes...
+   * </p>
    *
    * @return The type of this event
    */

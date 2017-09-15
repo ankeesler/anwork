@@ -4,8 +4,11 @@ package com.marshmallow.anwork.core;
  * This is an object that can 1) turn an Object into a String and 2) given a
  * String, turn it into an Object.
  *
- * @author Andrew
+ * <p>
  * Created Aug 31, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public interface Serializer<T> {
 

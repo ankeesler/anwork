@@ -18,7 +18,10 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * This class is a wrapper around all of the unit tests for the ANWORK project.
  *
- * @author Andrew
+ * <p>
  * Created Aug 31, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class AllTests { }

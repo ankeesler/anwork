@@ -10,8 +10,11 @@ import org.junit.Test;
 /**
  * This is a test for the CLI.
  *
- * @author Andrew
+ * <p>
  * Created Sep 9, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class CliTest {
 
@@ -29,6 +32,9 @@ public class CliTest {
 
   private TestCliAction mayoAction = new TestCliAction();
 
+  /**
+   * Setup the CLI tree for these test cases.
+   */
   @Before
   public void setupCli() {
     CliList root = cli.getRoot();
@@ -84,12 +90,12 @@ public class CliTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadFlagSyntaxStart() throws IllegalArgumentException {
-    runTest("---a", "-b" );
+    runTest("---a", "-b");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadFlagSyntaxEnd() throws IllegalArgumentException {
-    runTest("-b", "---a" );
+    runTest("-b", "---a");
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -228,7 +234,7 @@ public class CliTest {
   @Test
   public void testMarlinCommandWithArguments() {
     runTest("tuna", "marlin", "hello", "world");
-    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello" , "world");
+    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello", "world");
     CliTestUtilities.assertActionDidNotRun(tunaMarlinZShortFlagAction);
   }
 

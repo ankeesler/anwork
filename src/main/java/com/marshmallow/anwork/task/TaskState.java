@@ -3,8 +3,11 @@ package com.marshmallow.anwork.task;
 /**
  * This is the state of a task.
  *
- * @author Andrew
+ * <p>
  * Created Aug 29, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public enum TaskState {
   WAITING,

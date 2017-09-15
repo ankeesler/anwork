@@ -8,8 +8,11 @@ import java.util.PriorityQueue;
 /**
  * This guy in a public interface for managing {@link Task} instances.
  *
- * @author Andrew
+ * <p>
  * Created Aug 29, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class TaskManager {
 
@@ -127,7 +130,7 @@ public class TaskManager {
    * Get the current task name.
    *
    * @return name The name of the current task, or <code>null</code> if there
-   * is no current task.
+   *     is no current task.
    */
   public String getCurrentTask() {
     return (currentTask == null ? null : currentTask.getName());
@@ -168,7 +171,7 @@ public class TaskManager {
    * @param name The name of the current task
    * @param state The name of the state.
    * @throws IllegalArgumentException If this task does not exist or the state
-   * is invalid.
+   *     is invalid.
    */
   public void setState(String name, TaskState state) throws IllegalArgumentException {
     Task task = findTask(name);

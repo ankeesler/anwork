@@ -14,8 +14,11 @@ import org.junit.Test;
 /**
  * A test for the {@link LoggingTaskManager}.
  *
- * @author Andrew
+ * <p>
  * Created Sep 4, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class LoggingTaskManagerTest {
 

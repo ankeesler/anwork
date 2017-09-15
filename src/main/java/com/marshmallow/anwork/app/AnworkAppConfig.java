@@ -7,8 +7,11 @@ import java.util.function.Consumer;
  * This is a data bucket for configuration options to be passed around through
  * the ANWORK app.
  *
- * @author Andrew
+ * <p>
  * Created Sep 11, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class AnworkAppConfig {
 

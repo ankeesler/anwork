@@ -3,6 +3,7 @@ package com.marshmallow.anwork.app.cli;
 /**
  * This is a single flag passed to a command line invocation.
  *
+ * <p>
  * This object can represent a couple different types of flags.
  * <pre>
  *   -f (A short flag)
@@ -17,9 +18,13 @@ package com.marshmallow.anwork.app.cli;
  *   --flag something (A long flag and an argument)
  *   (see {@link #makeLongFlagWithParameter(String, String, String, String, CliAction)})
  * </pre>
+ * </p>
+ *
+ * <p>
+ * Created Sep 9, 2017
+ * </p>
  *
  * @author Andrew
- * Created Sep 9, 2017
  */
 class CliFlag {
 

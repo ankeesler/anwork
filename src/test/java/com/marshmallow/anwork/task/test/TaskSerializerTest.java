@@ -12,11 +12,17 @@ import org.junit.Test;
 /**
  * A {@link SerializerTest} for {@link Task} objects.
  *
- * @author Andrew
+ * <p>
  * Created Sep 4, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class TaskSerializerTest extends SerializerTest<Task> {
 
+  /**
+   * Initialize this test as a subclass of {@link SerializerTest}.
+   */
   public TaskSerializerTest() {
     super(Task.serializer());
   }
@@ -116,8 +122,8 @@ public class TaskSerializerTest extends SerializerTest<Task> {
   @Ignore("TODO: need to add in escaping functionality into serialization")
   public void escapeInNameTest() {
     Task task
-      = assertGood("Task:name=a\\\\b\\\\c\\\\;"
-                   + "id=0;description=b;date=123;priority=3;state=WAITING;");
+        = assertGood("Task:name=a\\\\b\\\\c\\\\;"
+                     + "id=0;description=b;date=123;priority=3;state=WAITING;");
     assertEquals("a\\b\\c\\", task.getName());
   }
 }

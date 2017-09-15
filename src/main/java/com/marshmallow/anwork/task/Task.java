@@ -10,8 +10,11 @@ import java.util.Map;
  * This is a single unit of project work. One examples might be a single JIRA
  * ticket.
  *
- * @author Andrew
+ * <p>
  * Created Aug 29, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class Task implements Comparable<Task> {
 

@@ -10,8 +10,11 @@ import com.marshmallow.anwork.core.Serializer;
  * This is a generic test class for a serializable object (i.e., an object that
  * has a {@link Serializer}.
  *
- * @author Andrew
+ * <p>
  * Created Aug 31, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class SerializerTest<T> {
 

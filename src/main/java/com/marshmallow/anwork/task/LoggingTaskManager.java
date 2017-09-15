@@ -10,8 +10,11 @@ import java.util.List;
 /**
  * This is a {@link TaskManager} that logs its CRUD operations.
  *
- * @author Andrew
+ * <p>
  * Created Aug 31, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class LoggingTaskManager extends TaskManager {
 
@@ -114,7 +117,9 @@ public class LoggingTaskManager extends TaskManager {
   /**
    * Add an {@link EventLog} to this manager.
    *
+   * <p>
    * The log will be used to record the manager's CRUD operations.
+   * </p>
    *
    * @param log The log to add
    */

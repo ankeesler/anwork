@@ -5,8 +5,11 @@ import com.marshmallow.anwork.app.cli.CliAction;
 /**
  * This is a dummy {@link CliAction} class to be used in CLI tests.
  *
- * @author Andrew
+ * <p>
  * Created Sep 9, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class TestCliAction implements CliAction {
 

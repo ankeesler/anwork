@@ -18,21 +18,24 @@ import org.junit.Test;
 /**
  * This is a unit test for a {@link FilePersister}.
  *
- * @author Andrew
+ * <p>
  * Created Sep 6, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class FilePersisterTest {
 
   private static final File TEST_RESOURCE_ROOT
-    = new File(TestUtilities.TEST_RESOURCES_ROOT, "file-persister-test");
+      = new File(TestUtilities.TEST_RESOURCES_ROOT, "file-persister-test");
 
   private static final String DEFAULT_CONTEXT = "default-context";
   private static final String CONTEXT_A = "context-a";
   private static final String CONTEXT_B = "context-b";
   private static final Serializer<Student> DEFAULT_SERIALIZER
-    = Student.serializer();
+      = Student.serializer();
   private static final FilePersister<Student> DEFAULT_PERSISTER
-    = new FilePersister<Student>(TEST_RESOURCE_ROOT);
+      = new FilePersister<Student>(TEST_RESOURCE_ROOT);
 
   @Test(expected = IOException.class)
   public void testContextDoesNotExist() throws IOException {

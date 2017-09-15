@@ -12,8 +12,11 @@ import java.io.File;
 /**
  * This class creates the CLI for the ANWORK app.
  *
- * @author Andrew
+ * <p>
  * Created Sep 11, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class AnworkCliCreator {
 
@@ -45,17 +48,17 @@ public class AnworkCliCreator {
     root.addLongFlag("d",
                      "debug",
                      "Turn on debug printing",
-      (p) -> config.setDebug(true));
+        (p) -> config.setDebug(true));
     root.addLongFlagWithParameter("c",
                                   "context",
                                   "Set the persistence context",
                                   "name",
-      (p) -> config.setContext(p[0]));
+        (p) -> config.setContext(p[0]));
     root.addLongFlagWithParameter("o",
                                   "output",
                                   "Set persistence output directory",
                                   "directory",
-      (p) -> config.setPersistenceRoot(new File(p[0])));
+        (p) -> config.setPersistenceRoot(new File(p[0])));
   }
 
   private void makeTaskCommands(CliList root) {

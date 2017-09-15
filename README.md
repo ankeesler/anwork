@@ -14,7 +14,6 @@ ANWORK is a personal task management system.
 - There should probably be a #clear method on Persister to erase a context.
 
 ### Infrastructure
-- The Google checkstyle needs to be adopted.
 
 ### CLI
 - Add CLI documentation generator.

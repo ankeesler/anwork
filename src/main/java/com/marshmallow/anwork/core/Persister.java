@@ -6,12 +6,17 @@ import java.util.Collection;
 /**
  * This represents an object that can persist some data.
  *
+ * <p>
  * This object operates on some loosely typed "context" object. This can be a
  * file path, a URI, simply a file name, or anything else. The context is
  * loosely typed on purpose for academic purposes.
+ * </p>
+ *
+ * <p>
+ * Created Sep 4, 2017
+ * </p>
  *
  * @author Andrew
- * Created Sep 4, 2017
  * @see Serializer
  */
 public interface Persister<T> {
@@ -29,11 +34,11 @@ public interface Persister<T> {
    * Load some objects from a persistent store.
    *
    * @param context The context from which to load the objects; if this context
-   * does not exist, then the persister should throw an exception
+   *     does not exist, then the persister should throw an exception
    * @param serializer The serializer to use when loading the objects
    * @return An array of objects
    * @throws IOException if something goes wrong, like if the
-   * context does not exist
+   *     context does not exist
    * @see #contextExists(String)
    */
   public Collection<T> load(String context, Serializer<T> serializer) throws IOException;

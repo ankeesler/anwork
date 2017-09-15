@@ -8,8 +8,11 @@ import static org.junit.Assert.assertTrue;
 /**
  * Some utilities to be used in the {@link CliTest}.
  *
- * @author Andrew
+ * <p>
  * Created Sep 9, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class CliTestUtilities {
 

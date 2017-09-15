@@ -3,6 +3,7 @@ package com.marshmallow.anwork.app.cli;
 /**
  * This class represents the entry point for the CLI tree.
  *
+ * <p>
  * The class is meant to be used in the following way.
  * <pre>
  *   Cli cli = new Cli();
@@ -37,9 +38,13 @@ package com.marshmallow.anwork.app.cli;
  *   root-command [-f] [-v|--verbose] [-o|--output location] tuna [-a]
  *   root-command [-f] [-v|--verbose] [-o|--output location] fish marlin
  * </pre>
+ * </p>
+ *
+ * <p>
+ * Created Sep 9, 2017
+ * </p>
  *
  * @author Andrew
- * Created Sep 9, 2017
  */
 public class Cli {
 

@@ -15,28 +15,37 @@ import org.junit.Test;
 /**
  * A {@link SerializerTest} for {@link TaskManager} objects.
  *
- * @author Andrew
+ * <p>
  * Created Sep 4, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
 
   private static final String GOOD_TASK_A
-    = "Task:name=a;id=0;description=b;date=123;priority=3;state=WAITING;";
+      = "Task:name=a;id=0;description=b;date=123;priority=3;state=WAITING;";
   private static final String GOOD_TASK_B
-    = "Task:name=b;id=0;description=b;date=123;priority=3;state=WAITING;";
+      = "Task:name=b;id=0;description=b;date=123;priority=3;state=WAITING;";
   private static final String GOOD_TASK_C
-    = "Task:name=c;id=0;description=b;date=123;priority=3;state=WAITING;";
+      = "Task:name=c;id=0;description=b;date=123;priority=3;state=WAITING;";
   private static final String BAD_TASK_A
-    = "Task:name=a;id=0;escription=b;date=123;priority=3;state=WAITING;";
+      = "Task:name=a;id=0;escription=b;date=123;priority=3;state=WAITING;";
 
   private static Task taskA;
   private static Task taskB;
   private static Task taskC;
 
+  /**
+   * Initialize this test as a subclass of {@link SerializerTest}.
+   */
   public TaskManagerSerializerTest() {
     super(TaskManager.serializer());
   }
 
+  /**
+   * Set up {@link Task} objects for the test vectors.
+   */
   @BeforeClass
   public static void setupTasks() {
     Serializer<Task> taskSerializer = Task.serializer();
@@ -104,7 +113,7 @@ public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
   @Test
   public void testMultipleTasks() {
     TaskManager manager
-      = assertGood("TaskManager:" + GOOD_TASK_A + ",*" + GOOD_TASK_B + "," + GOOD_TASK_C + ",");
+        = assertGood("TaskManager:" + GOOD_TASK_A + ",*" + GOOD_TASK_B + "," + GOOD_TASK_C + ",");
     assertEquals(taskB.getName(), manager.getCurrentTask());
     assertEquals(taskA.getState(), manager.getState(taskA.getName()));
     assertEquals(taskB.getState(), manager.getState(taskB.getName()));

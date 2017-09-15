@@ -12,8 +12,11 @@ import org.junit.Test;
 /**
  * This class tests the Task CRUD operations in a manager.
  *
- * @author Andrew
+ * <p>
  * Created Aug 29, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class TaskManagerTest {
 

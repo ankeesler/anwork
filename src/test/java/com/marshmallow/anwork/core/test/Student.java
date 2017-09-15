@@ -5,8 +5,11 @@ import com.marshmallow.anwork.core.Serializer;
 /**
  * This is a dummy object to be used in tests.
  *
- * @author Andrew
+ * <p>
  * Created Sep 8, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class Student {
 

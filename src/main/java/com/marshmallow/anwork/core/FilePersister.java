@@ -13,8 +13,11 @@ import java.util.List;
 /**
  * This object loads and saves an object to a file on disk.
  *
- * @author Andrew
+ * <p>
  * Created Sep 4, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class FilePersister<T> implements Persister<T> {
 

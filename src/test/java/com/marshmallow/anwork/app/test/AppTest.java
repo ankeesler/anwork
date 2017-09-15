@@ -19,15 +19,21 @@ import org.junit.Test;
 /**
  * This is a test for the anwork application.
  *
- * @author Andrew
+ * <p>
  * Created Sep 9, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class AppTest {
 
   private static final String CONTEXT = "app-test-context";
   private static final File PERSISTENCE_ROOT
-    = new File(TestUtilities.TEST_RESOURCES_ROOT, "app-test");
+      = new File(TestUtilities.TEST_RESOURCES_ROOT, "app-test");
 
+  /**
+   * Hack-ish-ly clean up any existing context so we run our test cases fresh.
+   */
   @Before
   public void removePreviousContext() {
     // FIXME: this is hardcoded based on internal FilePersister logic! Bad!

@@ -3,10 +3,15 @@ package com.marshmallow.anwork.app.cli;
 /**
  * This is the base interface for how to work with a node in a CLI tree. 
  *
+ * <p>
  * This interface is to be used within this package.
+ * </p>
+ *
+ * <p>
+ * Created Sep 10, 2017
+ * </p>
  *
  * @author Andrew
- * Created Sep 10, 2017
  * @see CliList
  * @see CliCommand
  */
@@ -39,7 +44,7 @@ interface CliNode {
    *
    * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
    * @param longFlag The name of the long flag, i.e., "debug", "verbose",
-   * "output", etc.
+   *     "output", etc.
    * @param description The description of the flag
    * @param action The action that the flag takes
    */
@@ -53,7 +58,7 @@ interface CliNode {
    *
    * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
    * @param longFlag The name of the long flag, i.e., "debug", "verbose",
-   * "output", etc.
+   *     "output", etc.
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes
    * @param action The action that the flag takes

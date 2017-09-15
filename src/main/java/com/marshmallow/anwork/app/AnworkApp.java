@@ -3,8 +3,11 @@ package com.marshmallow.anwork.app;
 /**
  * This is the main class for the anwork app.
  *
- * @author Andrew
+ * <p>
  * Created Sep 9, 2017
+ * </p>
+ *
+ * @author Andrew
  */
 public class AnworkApp {
 
