@@ -81,7 +81,6 @@ public class FilePersisterTest {
 
   @Test
   public void saveOneTest() throws IOException {
-    assertTrue(DEFAULT_PERSISTER.contextExists(DEFAULT_CONTEXT));
     Student saved = new Student("Andrew", 12345);
     DEFAULT_PERSISTER.save(DEFAULT_CONTEXT, DEFAULT_SERIALIZER, Collections.singleton(saved));
 
@@ -95,7 +94,6 @@ public class FilePersisterTest {
 
   @Test
   public void saveThreeTest() throws IOException {
-    assertTrue(DEFAULT_PERSISTER.contextExists(DEFAULT_CONTEXT));
     Collection<Student> saveds = Arrays.asList(new Student("Andrew", 1),
                                                new Student("AC", 2),
                                                new Student("Mom", 3));
@@ -115,8 +113,6 @@ public class FilePersisterTest {
 
   @Test
   public void doubleContextTest() throws IOException {
-    assertTrue(DEFAULT_PERSISTER.contextExists(CONTEXT_A));
-    assertTrue(DEFAULT_PERSISTER.contextExists(CONTEXT_B));
     Collection<Student> savedA = Arrays.asList(new Student("Andrew", 1));
     Collection<Student> savedB = Arrays.asList(new Student("AC", 2), new Student("Mom", 3));
     DEFAULT_PERSISTER.save(CONTEXT_A, DEFAULT_SERIALIZER, savedA);
