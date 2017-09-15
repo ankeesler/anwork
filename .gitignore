@@ -14,3 +14,6 @@ src/test/resource/file-persister-test/default-context
 src/test/resource/file-persister-test/context-a
 src/test/resource/file-persister-test/context-b
 src/test/resource/app-test/
+
+# Generated Protocol Buffer files
+**/protobuf/*.java
