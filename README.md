@@ -12,6 +12,7 @@ ANWORK is a personal task management system.
 - The #serializer methods should be #getSerializer so that the methods start with
   a verb.
 - There should probably be a #clear method on Persister to erase a context.
+- We should use Protocol Buffers for serialization of data. We just should.
 
 ### Infrastructure
 
