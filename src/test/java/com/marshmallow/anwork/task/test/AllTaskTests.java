@@ -6,7 +6,6 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-    LoggingTaskManagerTest.class,
     TaskManagerSerializerTest.class,
     TaskManagerTest.class,
     TaskSerializerTest.class,
