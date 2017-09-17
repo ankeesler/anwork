@@ -55,7 +55,7 @@ public class AppTest {
     run("task", "create", "task-c", "This is the description for task C", "3");
 
     TaskManager taskManager = readTaskManager();
-    assertEquals(3, taskManager.getTaskCount());
+    assertEquals(3, taskManager.getTasks().length);
   }
 
   @Test
@@ -66,21 +66,21 @@ public class AppTest {
     run("task", "set-blocked", "task-b");
 
     TaskManager manager = readTaskManager();
-    assertEquals(2, manager.getTaskCount());
+    assertEquals(2, manager.getTasks().length);
     assertEquals(TaskState.RUNNING, manager.getState("task-a"));
     assertEquals(TaskState.BLOCKED, manager.getState("task-b"));
 
     run("task", "set-finished", "task-a");
 
     manager = readTaskManager();
-    assertEquals(2, manager.getTaskCount());
+    assertEquals(2, manager.getTasks().length);
     assertEquals(TaskState.FINISHED, manager.getState("task-a"));
     assertEquals(TaskState.BLOCKED, manager.getState("task-b"));
 
     run("task", "set-running", "task-b");
 
     manager = readTaskManager();
-    assertEquals(2, manager.getTaskCount());
+    assertEquals(2, manager.getTasks().length);
     assertEquals(TaskState.FINISHED, manager.getState("task-a"));
     assertEquals(TaskState.RUNNING, manager.getState("task-b"));
   }
@@ -92,12 +92,12 @@ public class AppTest {
     run("task", "delete", "task-a");
 
     TaskManager taskManager = readTaskManager();
-    assertEquals(1, taskManager.getTaskCount());
+    assertEquals(1, taskManager.getTasks().length);
 
     run("task", "delete", "task-b");
 
     taskManager = readTaskManager();
-    assertEquals(0, taskManager.getTaskCount());
+    assertEquals(0, taskManager.getTasks().length);
   }
 
   @Test
@@ -123,7 +123,7 @@ public class AppTest {
 
   private TaskManager readTaskManager() throws IOException {
     Persister<TaskManager> persister = new FilePersister<TaskManager>(PERSISTENCE_ROOT);
-    Collection<TaskManager> loadeds = persister.load(CONTEXT, TaskManager.serializer());
+    Collection<TaskManager> loadeds = persister.load(CONTEXT, TaskManager.SERIALIZER);
     assertEquals(1, loadeds.size());
     return loadeds.toArray(new TaskManager[0])[0];
   }

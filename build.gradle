@@ -59,8 +59,8 @@ checkstyle {
 }
 
 // Ignore the generated Protocol Buffer code, which doesn't follow some pieces of the coding standard.
-checkstyleMain {
-    exclude 'com/marshmallow/anwork/**/protobuf/**.java'
+[checkstyleMain, checkstyleTest].each() {
+    it.exclude 'com/marshmallow/anwork/**/protobuf/**.java'
 }
 
 // Generate the Protocol Buffer code into the source directory so that we can pull it into the Eclipse build.

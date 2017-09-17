@@ -1,15 +1,13 @@
 package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
-import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.core.test.SerializerTest;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 
-import org.junit.BeforeClass;
+import java.io.IOException;
+
 import org.junit.Test;
 
 /**
@@ -23,101 +21,53 @@ import org.junit.Test;
  */
 public class TaskManagerSerializerTest extends SerializerTest<TaskManager> {
 
-  private static final String GOOD_TASK_A
-      = "Task:name=a;id=0;description=b;date=123;priority=3;state=WAITING;";
-  private static final String GOOD_TASK_B
-      = "Task:name=b;id=0;description=b;date=123;priority=3;state=WAITING;";
-  private static final String GOOD_TASK_C
-      = "Task:name=c;id=0;description=b;date=123;priority=3;state=WAITING;";
-  private static final String BAD_TASK_A
-      = "Task:name=a;id=0;escription=b;date=123;priority=3;state=WAITING;";
-
-  private static Task taskA;
-  private static Task taskB;
-  private static Task taskC;
+  private TaskManager manager = new TaskManager();
 
   /**
-   * Initialize this test as a subclass of {@link SerializerTest}.
+   * Instantiate this test as a {@link SerializerTest}.
    */
   public TaskManagerSerializerTest() {
-    super(TaskManager.serializer());
-  }
-
-  /**
-   * Set up {@link Task} objects for the test vectors.
-   */
-  @BeforeClass
-  public static void setupTasks() {
-    Serializer<Task> taskSerializer = Task.serializer();
-    taskA = taskSerializer.unmarshall(GOOD_TASK_A);
-    assertNotNull(taskA);
-    taskB = taskSerializer.unmarshall(GOOD_TASK_B);
-    assertNotNull(taskB);
-    taskC = taskSerializer.unmarshall(GOOD_TASK_C);
-    assertNotNull(taskC);
+    super(TaskManager.SERIALIZER);
   }
 
   @Test
-  public void testEmpty() {
-    assertBad("");
+  public void testNoTasks() throws IOException {
+    manager = runSerialization(manager);
+    assertEquals(0, manager.getTasks().length);
   }
 
   @Test
-  public void testJustPlainWrongTask() {
-    assertBad("This is not a task");
+  public void testSingleTask() throws IOException {
+    manager.createTask("task-a", "This is task a", 1);
+    manager = runSerialization(manager);
+
+    Task[] tasks = manager.getTasks();
+    assertEquals(1, tasks.length);
+    assertEquals("task-a", tasks[0].getName());
+    assertEquals("This is task a", tasks[0].getDescription());
+    assertEquals(1, tasks[0].getPriority());
   }
 
   @Test
-  public void testBadStart() {
-    assertBad(":" + GOOD_TASK_A);
-    assertBad("Task:" + GOOD_TASK_A);
-    assertBad("TaskManage:" + GOOD_TASK_A);
-    assertBad("TaskManager;" + GOOD_TASK_A);
-  }
+  public void testMultipleTasks() throws IOException {
+    manager.createTask("task-a", "This is task a", 1);
+    manager.createTask("task-b", "This is task b", 2);
+    manager.createTask("task-c", "This is task c", 0);
+    manager = runSerialization(manager);
 
-  @Test
-  public void testBadTask() {
-    assertBad("TaskManager:" + BAD_TASK_A);
-    assertBad("TaskManager:" + GOOD_TASK_A + "," + BAD_TASK_A);
-  }
+    Task[] tasks = manager.getTasks();
+    assertEquals(3, tasks.length);
 
-  @Test
-  public void testBadSeparator() {
-    assertBad("TaskManager:" + GOOD_TASK_A);
-    assertBad("TaskManager:" + GOOD_TASK_A + GOOD_TASK_B);
-    assertBad("TaskManager:" + GOOD_TASK_A + GOOD_TASK_B + ",");
-  }
+    assertEquals("task-c", tasks[0].getName());
+    assertEquals("This is task c", tasks[0].getDescription());
+    assertEquals(0, tasks[0].getPriority());
 
-  @Test
-  public void testBadSpaces() {
-    assertBad("TaskManager :" + GOOD_TASK_A + ",");
-    assertBad("TaskManager: " + GOOD_TASK_A + ",");
-    assertBad("TaskManager:" + GOOD_TASK_A + " ,");
-  }
+    assertEquals("task-a", tasks[1].getName());
+    assertEquals("This is task a", tasks[1].getDescription());
+    assertEquals(1, tasks[1].getPriority());
 
-  @Test
-  public void testNoTasks() {
-    TaskManager manager = assertGood("TaskManager:");
-    assertNull(manager.getCurrentTask());
-    assertEquals(0, manager.getTaskCount());
-  }
-
-  @Test
-  public void testSingleTask() {
-    TaskManager manager = assertGood("TaskManager:" + GOOD_TASK_A + ",");
-    assertNull(manager.getCurrentTask());
-    assertEquals(taskA.getState(), manager.getState(taskA.getName()));
-    assertEquals(1, manager.getTaskCount());
-  }
-
-  @Test
-  public void testMultipleTasks() {
-    TaskManager manager
-        = assertGood("TaskManager:" + GOOD_TASK_A + ",*" + GOOD_TASK_B + "," + GOOD_TASK_C + ",");
-    assertEquals(taskB.getName(), manager.getCurrentTask());
-    assertEquals(taskA.getState(), manager.getState(taskA.getName()));
-    assertEquals(taskB.getState(), manager.getState(taskB.getName()));
-    assertEquals(taskC.getState(), manager.getState(taskC.getName()));
-    assertEquals(3, manager.getTaskCount());
+    assertEquals("task-b", tasks[2].getName());
+    assertEquals("This is task b", tasks[2].getDescription());
+    assertEquals(2, tasks[2].getPriority());
   }
 }

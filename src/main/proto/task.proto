@@ -1,19 +1,24 @@
 syntax = "proto3";
 
 option java_package = "com.marshmallow.anwork.task.protobuf";
-option java_outer_classname = "TaskProtobuf";
+option java_multiple_files = true;
 
-enum TaskState {
+enum TaskStateProtobuf {
   WAITING = 0;
   BLOCKED = 1;
   RUNNING = 2;
   FINISHED = 3;
 }
 
-message Task {
+message TaskProtobuf {
   string name = 1;
   int32 id = 2;
   string description = 3;
   int64 startDate = 4;
-  TaskState state = 5;
+  int32 priority = 5;
+  TaskStateProtobuf state = 6;
+}
+
+message TaskManagerProtobuf {
+  repeated TaskProtobuf tasks = 1;
 }

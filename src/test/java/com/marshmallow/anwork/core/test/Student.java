@@ -1,6 +1,11 @@
 package com.marshmallow.anwork.core.test;
 
+import com.marshmallow.anwork.core.ProtobufSerializer;
+import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
+import com.marshmallow.anwork.core.test.protobuf.StudentProtobuf;
+
+import java.io.IOException;
 
 /**
  * This is a dummy object to be used in tests.
@@ -11,68 +16,19 @@ import com.marshmallow.anwork.core.Serializer;
  *
  * @author Andrew
  */
-public class Student {
+public class Student implements Serializable<StudentProtobuf> {
 
-  private static class StudentSerializer implements Serializer<Student> {
-
-    public static final StudentSerializer instance = new StudentSerializer();
-
-    @Override
-    public String marshall(Student t) {
-      return String.format("Student:name=%s;id=%d;", t.getName(), t.getId());
-    }
-
-    @Override
-    public Student unmarshall(String string) {
-      StringBuffer buffer = new StringBuffer(string);
-      if (!buffer.toString().startsWith("Student:")) {
-        return null;
-      }
-      buffer.delete(0, "Student:".length());
-
-      if (!buffer.toString().startsWith("name=")) {
-        return null;
-      }
-      buffer.delete(0, "name=".length());
-      int end = buffer.indexOf(";");
-      if (end == -1) {
-        return null;
-      }
-      String name = buffer.substring(0, end);
-      buffer.delete(0, name.length() + 1);
-
-      if (!buffer.toString().startsWith("id=")) {
-        return null;
-      }
-      buffer.delete(0, "id=".length());
-      end = buffer.indexOf(";");
-      if (end == -1) {
-        return null;
-      }
-      String id = buffer.substring(0, end);
-      buffer.delete(0, id.length() + 1);
-
-      if (buffer.length() != 0) {
-        return null;
-      }
-
-      int idInt;
-      try {
-        idInt = Integer.parseInt(id);
-      } catch (NumberFormatException nfe) {
-        return null;
-      }
-
-      return new Student(name, idInt);
-    }
-  }
-
-  public static Serializer<Student> serializer() {
-    return StudentSerializer.instance;
-  }
+  public static final Serializer<Student> SERIALIZER
+      = new ProtobufSerializer<StudentProtobuf, Student>(() -> new Student(),
+                                                         StudentProtobuf.parser());
 
   private String name;
   private int id;
+
+  // This constructor is used in the serializer above.
+  private Student() {
+    this("", 0);
+  }
 
   public Student(String name, int id) {
     this.name = name;
@@ -87,4 +43,14 @@ public class Student {
     return id;
   }
 
+  @Override
+  public StudentProtobuf marshall() throws IOException {
+    return StudentProtobuf.newBuilder().setName(getName()).setId(getId()).build();
+  }
+
+  @Override
+  public void unmarshall(StudentProtobuf t) throws IOException {
+    name = t.getName();
+    id = t.getId();
+  }
 }

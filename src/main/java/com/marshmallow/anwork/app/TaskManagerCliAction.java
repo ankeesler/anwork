@@ -57,7 +57,7 @@ public abstract class TaskManagerCliAction implements CliAction {
       return new TaskManager();
     }
 
-    Collection<TaskManager> loadeds = persister.load(context, TaskManager.serializer());
+    Collection<TaskManager> loadeds = persister.load(context, TaskManager.SERIALIZER);
     if (loadeds.size() != 1) {
       throw new IllegalStateException("Persistence root " + persistenceRoot
                                       + " and context " + context
@@ -68,8 +68,6 @@ public abstract class TaskManagerCliAction implements CliAction {
 
   private void saveTaskManager(TaskManager taskManager) throws Exception {
     Persister<TaskManager> persister = new FilePersister<TaskManager>(config.getPersistenceRoot());
-    persister.save(config.getContext(),
-                   TaskManager.serializer(),
-                   Collections.singleton(taskManager));
+    persister.save(config.getContext(), TaskManager.SERIALIZER, Collections.singleton(taskManager));
   }
 }

@@ -1,58 +1,54 @@
 package com.marshmallow.anwork.core.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
+import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
- * This is a generic test class for a serializable object (i.e., an object that
- * has a {@link Serializer}.
+ * This is a generic test class for a serializable object.
  *
  * <p>
  * Created Aug 31, 2017
  * </p>
  *
+ * <p>
+ * Refactored September 16, 2017
+ * </p>
+ *
  * @author Andrew
  */
-public class SerializerTest<T> {
+public class SerializerTest<T extends Serializable<?>> {
 
-  private Serializer<T> serializer;
+  private final Serializer<T> serializer;
 
+  /**
+   * Initialize this instance with a {@link Serializer} to test.
+   *
+   * @param serializer The serializer that is under test
+   */
   public SerializerTest(Serializer<T> serializer) {
     this.serializer = serializer;
   }
 
   /**
-   * Assert that this string is a valid serialization of an object of type T.
+   * Serialize an object and then unserialize it.
    *
-   * @param string The valid serialization of an object of type T.
+   * @param t The object to serialize
+   * @return The unserialized object
+   * @throws IOException if any of the un/serialization fails
    */
-  protected T assertGood(String string) {
-    T t = serializer.unmarshall(string);
-    String message = String.format("Expected %s from %s", getParameterizedTypeName(), string);
-    assertNotNull(message, t);
-
-    message = String.format("Marshalled (%s) does not match original string (%s)", t, string);
-    assertEquals(message, string, serializer.marshall(t));
-
-    return t;
-  }
-
-  /**
-   * Assert that this string is an invalid serialization of an object of type T.
-   *
-   * @param string The invalid serialization of an object of type T.
-   */
-  protected void assertBad(String string) {
-    T t = serializer.unmarshall(string);
-    String message = String.format("Expected no %s from %s", getParameterizedTypeName(), string);
-    assertNull(message, t);
-  }
-
-  private String getParameterizedTypeName() {
-    // TODO: how do I do this the right way?
-    return "type";
+  protected T runSerialization(T t) throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    serializer.serialize(t, outputStream);
+    InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+    T unserialized = serializer.unserialize(inputStream);
+    assertNotNull(unserialized);
+    return unserialized;
   }
 }

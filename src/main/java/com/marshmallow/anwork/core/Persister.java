@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * This represents an object that can persist some data.
+ * This represents an object that can persist some data with the help of a {@link Serializer}.
  *
  * <p>
  * This object operates on some loosely typed "context" object. This can be a
@@ -19,7 +19,7 @@ import java.util.Collection;
  * @author Andrew
  * @see Serializer
  */
-public interface Persister<T> {
+public interface Persister<T extends Serializable<?>> {
 
   /**
    * Returns whether or not the context exists.

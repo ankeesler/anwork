@@ -1,6 +1,10 @@
 package com.marshmallow.anwork.task;
 
+import com.marshmallow.anwork.core.ProtobufSerializer;
+import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
+import com.marshmallow.anwork.task.protobuf.TaskManagerProtobuf;
+import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
@@ -14,82 +18,14 @@ import java.util.PriorityQueue;
  *
  * @author Andrew
  */
-public class TaskManager {
-
-  private static class TaskManagerSerializer implements Serializer<TaskManager> {
-
-    public static final TaskManagerSerializer instance = new TaskManagerSerializer();
-
-    private static final String START = "TaskManager:";
-    private static final char CURRENT_TASK = '*';
-    private static final String TASK_END = ",";
-
-    @Override
-    public String marshall(TaskManager t) {
-      StringBuilder builder = new StringBuilder(START);
-
-      Serializer<Task> taskSerializer = Task.serializer();
-      Task[] tasks = t.tasks.toArray(new Task[0]);
-      for (Task task : tasks) {
-        if (t.currentTask == task) {
-          builder.append(CURRENT_TASK);
-        }
-        builder.append(taskSerializer.marshall(task));
-        builder.append(TASK_END);
-      }
-
-      return builder.toString();
-    }
-
-    @Override
-    public TaskManager unmarshall(String string) {
-      if (!string.startsWith(START)) {
-        return null;
-      }
-
-      TaskManager manager = new TaskManager();
-      Serializer<Task> taskSerializer = Task.serializer();
-      StringBuffer buffer = new StringBuffer(string);
-      buffer.delete(0, START.length());
-      while (buffer.length() != 0) {
-        boolean currentTask = false;
-        if (buffer.charAt(0) == CURRENT_TASK) {
-          currentTask = true;
-          buffer.deleteCharAt(0);
-        }
-
-        int nextEnd = buffer.indexOf(TASK_END);
-        if (nextEnd == -1) {
-          return null;
-        }
-
-        String taskString = buffer.substring(0, nextEnd);
-        Task task = taskSerializer.unmarshall(taskString);
-        if (task == null) {
-          return null;
-        }
-
-        manager.tasks.add(task);
-        if (currentTask) {
-          manager.setCurrentTask(task.getName());
-        }
-
-        buffer.delete(0, taskString.length() + 1);
-      }
-
-      return manager;
-    }
-  }
+public class TaskManager implements Serializable<TaskManagerProtobuf> {
 
   /**
-   * Get the instance serializer.
-   *
-   * @return The instance serializer
-   * @see Serializer
+   * This is the singleton {@link Serializer} for this class.
    */
-  public static Serializer<TaskManager> serializer() {
-    return TaskManagerSerializer.instance;
-  }
+  public static Serializer<TaskManager> SERIALIZER
+      = new ProtobufSerializer<TaskManagerProtobuf, TaskManager>(() -> new TaskManager(),
+                                                                 TaskManagerProtobuf.parser());
 
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
   private Task currentTask;
@@ -182,15 +118,6 @@ public class TaskManager {
   }
 
   /**
-   * Get the number of tasks that currently exist.
-   *
-   * @return The number of tasks that currently exist.
-   */
-  public int getTaskCount() {
-    return tasks.size();
-  }
-
-  /**
    * Get the tasks associated with this task manager.
    *
    * @return The tasks associated with this manager
@@ -229,5 +156,25 @@ public class TaskManager {
       }
     }
     return null;
+  }
+
+  @Override
+  public TaskManagerProtobuf marshall() {
+    TaskManagerProtobuf.Builder builder = TaskManagerProtobuf.newBuilder();
+    Task[] taskArray = tasks.toArray(new Task[0]);
+    for (Task task : taskArray) {
+      builder.addTasks(task.marshall());
+    }
+    return builder.build();
+  }
+
+  @Override
+  public void unmarshall(TaskManagerProtobuf protobuf) {
+    for (int i = 0; i < protobuf.getTasksCount(); i++) {
+      TaskProtobuf taskProtobuf = protobuf.getTasks(i);
+      Task task = Task.FACTORY.makeBlankInstance();
+      task.unmarshall(taskProtobuf);
+      tasks.add(task);
+    }
   }
 }

@@ -33,7 +33,7 @@ public class FilePersisterTest {
   private static final String CONTEXT_A = "context-a";
   private static final String CONTEXT_B = "context-b";
   private static final Serializer<Student> DEFAULT_SERIALIZER
-      = Student.serializer();
+      = Student.SERIALIZER;
   private static final FilePersister<Student> DEFAULT_PERSISTER
       = new FilePersister<Student>(TEST_RESOURCE_ROOT);
 

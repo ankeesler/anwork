@@ -24,13 +24,13 @@ public class TaskManagerTest {
 
   @Test
   public void testCreateTask() {
-    assertEquals(0, manager.getTaskCount());
+    assertEquals(0, manager.getTasks().length);
 
     manager.createTask("Task1", "This is task 1.", 1);
-    assertEquals(1, manager.getTaskCount());
+    assertEquals(1, manager.getTasks().length);
 
     manager.createTask("Task2", "This is task 2.", 1);
-    assertEquals(2, manager.getTaskCount());
+    assertEquals(2, manager.getTasks().length);
   }
 
   @Test
@@ -39,16 +39,16 @@ public class TaskManagerTest {
     manager.createTask("Task2", "This is task 2.", 1);
 
     manager.deleteTask("Task1");
-    assertEquals(1, manager.getTaskCount());
+    assertEquals(1, manager.getTasks().length);
 
     manager.createTask("Task3", "This is task 3.", 1);
-    assertEquals(2, manager.getTaskCount());
+    assertEquals(2, manager.getTasks().length);
 
     manager.deleteTask("Task2");
-    assertEquals(1, manager.getTaskCount());
+    assertEquals(1, manager.getTasks().length);
 
     manager.deleteTask("Task3");
-    assertEquals(0, manager.getTaskCount());
+    assertEquals(0, manager.getTasks().length);
   }
 
   @Test
