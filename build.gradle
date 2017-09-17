@@ -50,6 +50,11 @@ dependencies {
 // Define the main class for the application
 mainClassName = 'com.marshmallow.anwork.app.AnworkApp'
 
+// Filter out test superclasses
+test {
+    exclude 'com/marshmallow/anwork/*/test/Base**'
+}
+
 // This is the checkstyle configuration
 checkstyle {
     configFile = file('checkstyle.xml')

@@ -44,3 +44,18 @@ such as this.
 
 There is currently one com.marshmallow.anwork.core.Persister implementation. This implementation
 (com.marshmallow.anwork.core.FilePersister) persists serialized objects to disk via a java.io.File.
+
+## Test
+
+All tests must go in the src/test source set. Here are naming conventions for tests.
+- Tests for classes should live in the analagous package name in the src/test source set. A
+  package's analagous test package is simple the package's name plus *.test*. For example, the
+  package com.marshmallow.anwork.tuna would have a test package com.marshmallow.anwork.tuna.test.
+- Test classes should be named starting with the name of the class being tested and ending with
+  "Test." For example, the class TunaFish would have a test class called TunaFishMarlin.
+- Superclasses of tests should be begin with *Base* so that the gradle test action can filter these
+  tests out. For example, a base test class for an interface Marlin should be called BaseMarlinTest.
+  See build.gradle for more information.
+- Junit suite definitions should begin with *All* and end in *Tests*. Each test package should have
+  a suite that begins with the name of the last segment of the package name. For example, in the
+  package com.marshmallow.anwork.foo.test, there should be a Junit suite class named AllFooTests.

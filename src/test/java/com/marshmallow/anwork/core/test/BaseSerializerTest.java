@@ -23,7 +23,7 @@ import java.io.InputStream;
  *
  * @author Andrew
  */
-public class SerializerTest<T extends Serializable<?>> {
+public class BaseSerializerTest<T extends Serializable<?>> {
 
   private final Serializer<T> serializer;
 
@@ -32,7 +32,7 @@ public class SerializerTest<T extends Serializable<?>> {
    *
    * @param serializer The serializer that is under test
    */
-  public SerializerTest(Serializer<T> serializer) {
+  public BaseSerializerTest(Serializer<T> serializer) {
     this.serializer = serializer;
   }
 

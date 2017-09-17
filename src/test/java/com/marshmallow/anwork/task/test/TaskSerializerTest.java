@@ -2,7 +2,7 @@ package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
 
-import com.marshmallow.anwork.core.test.SerializerTest;
+import com.marshmallow.anwork.core.test.BaseSerializerTest;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskState;
 import com.marshmallow.anwork.task.protobuf.TaskStateProtobuf;
@@ -10,7 +10,7 @@ import com.marshmallow.anwork.task.protobuf.TaskStateProtobuf;
 import org.junit.Test;
 
 /**
- * A {@link SerializerTest} for {@link Task} objects.
+ * A {@link BaseSerializerTest} for {@link Task} objects.
  *
  * <p>
  * Created Sep 4, 2017
@@ -18,10 +18,10 @@ import org.junit.Test;
  *
  * @author Andrew
  */
-public class TaskSerializerTest extends SerializerTest<Task> {
+public class TaskSerializerTest extends BaseSerializerTest<Task> {
 
   /**
-   * Instantiate this test as a {@link SerializerTest}.
+   * Instantiate this test as a {@link BaseSerializerTest}.
    */
   public TaskSerializerTest() {
     super(Task.SERIALIZER);
