@@ -3,8 +3,7 @@ package com.marshmallow.anwork.app.cli;
 /**
  * This class represents the entry point for the CLI tree.
  *
- * <p>
- * The class is meant to be used in the following way.
+ * <p>The class is meant to be used in the following way.
  * <pre>
  *   Cli cli = new Cli();
  *   CliNode root = cli.getRoot();
@@ -33,12 +32,11 @@ package com.marshmallow.anwork.app.cli;
  *   root.parse(args);
  * </pre>
  *
- * The above would result in the following command line API.
+ * <p>The above would result in the following command line API.
  * <pre>
  *   root-command [-f] [-v|--verbose] [-o|--output location] tuna [-a]
  *   root-command [-f] [-v|--verbose] [-o|--output location] fish marlin
  * </pre>
- * </p>
  *
  * <p>
  * Created Sep 9, 2017

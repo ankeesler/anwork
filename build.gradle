@@ -55,6 +55,11 @@ test {
     include 'com/marshmallow/anwork/core/test/AllTests**'
 }
 
+// Filter out Protocol Buffers generated classes in Javadoc
+javadoc {
+    exclude 'com/marshmallow/anwork/**/protobuf/**.java'
+}
+
 // This is the checkstyle configuration
 checkstyle {
     configFile = file('checkstyle.xml')
