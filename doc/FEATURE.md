@@ -7,11 +7,7 @@ into sections below.
 - Add note command for adding a note to a task.
 
 ## Persistence
-- The serialization system should support escaping certain characters.
-- The #serializer methods should be #getSerializer so that the methods start with
-  a verb.
 - There should probably be a #clear method on Persister to erase a context.
-- We should use Protocol Buffers for serialization of data. We just should.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
