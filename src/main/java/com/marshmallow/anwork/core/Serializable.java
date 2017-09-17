@@ -15,7 +15,7 @@ import java.io.IOException;
  *
  * @author Andrew
  */
-public interface Serializable<T> {
+public interface Serializable<MediumT> {
 
   /**
    * Turn this object into bytes on an instance of the medium of type T. The instance medium is
@@ -25,7 +25,7 @@ public interface Serializable<T> {
    *     this should <b>NEVER</b> return <code>null</code>
    * @throws IOException if something goes wrong
    */
-  public T marshall() throws IOException;
+  public MediumT marshall() throws IOException;
 
   /**
    * Read in this object from an instance of the medium of type T.
@@ -33,5 +33,5 @@ public interface Serializable<T> {
    * @param t The instance of the medium of type T from which to read this object
    * @throws IOException if something goes wrong
    */
-  public void unmarshall(T t) throws IOException;
+  public void unmarshall(MediumT t) throws IOException;
 }
