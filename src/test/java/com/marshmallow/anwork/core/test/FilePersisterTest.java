@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.marshmallow.anwork.core.FilePersister;
+import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.core.Serializer;
 
 import java.io.File;
@@ -34,27 +35,42 @@ public class FilePersisterTest {
   private static final String CONTEXT_B = "context-b";
   private static final Serializer<Student> DEFAULT_SERIALIZER
       = Student.SERIALIZER;
-  private static final FilePersister<Student> DEFAULT_PERSISTER
+  private static final Persister<Student> DEFAULT_PERSISTER
       = new FilePersister<Student>(TEST_RESOURCE_ROOT);
 
   @Test(expected = IOException.class)
   public void testContextDoesNotExist() throws IOException {
     String context = "this-context-does-not-exist";
-    assertFalse(DEFAULT_PERSISTER.contextExists(context));
+    assertFalse(DEFAULT_PERSISTER.exists(context));
     DEFAULT_PERSISTER.load(context, DEFAULT_SERIALIZER);
   }
 
   @Test(expected = IOException.class)
   public void testBadSerialization() throws IOException {
     String context = "this-context-has-a-bad-serialization";
-    assertTrue(DEFAULT_PERSISTER.contextExists(context));
+    assertTrue(DEFAULT_PERSISTER.exists(context));
     DEFAULT_PERSISTER.load(context, DEFAULT_SERIALIZER);
+  }
+
+  @Test(expected = IOException.class)
+  public void testBadClear() throws IOException {
+    String context = "this-context-does-not-exist";
+    assertFalse(DEFAULT_PERSISTER.exists(context));
+    DEFAULT_PERSISTER.clear(context);
+  }
+
+  @Test(expected = IOException.class)
+  public void testBadLoadAfterClear() throws IOException {
+    Student saved = new Student("Andrew", 12345);
+    DEFAULT_PERSISTER.save(DEFAULT_CONTEXT, DEFAULT_SERIALIZER, Collections.singleton(saved));
+    DEFAULT_PERSISTER.clear(DEFAULT_CONTEXT);
+    DEFAULT_PERSISTER.load(DEFAULT_CONTEXT, DEFAULT_SERIALIZER);
   }
 
   @Test()
   public void loadOneTest() throws IOException {
     String context = "load-one-test";
-    assertTrue(DEFAULT_PERSISTER.contextExists(context));
+    assertTrue(DEFAULT_PERSISTER.exists(context));
     Collection<Student> loadeds = DEFAULT_PERSISTER.load(context, DEFAULT_SERIALIZER);
     assertEquals(1, loadeds.size());
 
@@ -66,7 +82,7 @@ public class FilePersisterTest {
   @Test()
   public void loadThreeTest() throws IOException {
     String context = "load-three-test";
-    assertTrue(DEFAULT_PERSISTER.contextExists(context));
+    assertTrue(DEFAULT_PERSISTER.exists(context));
     Collection<Student> loadeds = DEFAULT_PERSISTER.load(context, DEFAULT_SERIALIZER);
     assertEquals(3, loadeds.size());
 
@@ -131,5 +147,14 @@ public class FilePersisterTest {
     assertEquals(2, loadedsArrayB[0].getId());
     assertEquals("Mom", loadedsArrayB[1].getName());
     assertEquals(3, loadedsArrayB[1].getId());
+  }
+
+  @Test
+  public void clearTest() throws IOException {
+    Student saved = new Student("Andrew", 12345);
+    DEFAULT_PERSISTER.save(DEFAULT_CONTEXT, DEFAULT_SERIALIZER, Collections.singleton(saved));
+    assertTrue(DEFAULT_PERSISTER.exists(DEFAULT_CONTEXT));
+    DEFAULT_PERSISTER.clear(DEFAULT_CONTEXT);
+    assertFalse(DEFAULT_PERSISTER.exists(DEFAULT_CONTEXT));
   }
 }

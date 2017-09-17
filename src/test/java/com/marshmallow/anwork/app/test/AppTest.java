@@ -35,11 +35,10 @@ public class AppTest {
    * Hack-ish-ly clean up any existing context so we run our test cases fresh.
    */
   @Before
-  public void removePreviousContext() {
-    // FIXME: this is hardcoded based on internal FilePersister logic! Bad!
-    File persistenceFile = new File(PERSISTENCE_ROOT, CONTEXT);
-    if (persistenceFile.exists()) {
-      persistenceFile.delete();
+  public void removePreviousContext() throws IOException {
+    Persister<TaskManager> persister = new FilePersister<TaskManager>(PERSISTENCE_ROOT);
+    if (persister.exists(CONTEXT)) {
+      persister.clear(CONTEXT);
     }
   }
 

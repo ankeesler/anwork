@@ -33,8 +33,17 @@ public class FilePersister<T extends Serializable<?>> implements Persister<T> {
   }
 
   @Override
-  public boolean contextExists(String context) {
+  public boolean exists(String context) {
     return convertContextToFile(context).exists();
+  }
+
+  @Override
+  public void clear(String context) throws IOException {
+    if (!exists(context)) {
+      throw new IOException("Context does not exist: " + context);
+    } else {
+      convertContextToFile(context).delete();
+    }
   }
 
   @Override

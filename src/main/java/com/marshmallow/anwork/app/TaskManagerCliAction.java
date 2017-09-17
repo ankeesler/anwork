@@ -50,7 +50,7 @@ public abstract class TaskManagerCliAction implements CliAction {
     String context = config.getContext();
     File persistenceRoot = config.getPersistenceRoot();
     Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
-    if (!persister.contextExists(context)) {
+    if (!persister.exists(context)) {
       config.getDebugPrinter().accept("context " + context
                                       + " does not exist at root " + persistenceRoot + "!"
                                       + " creating new task manager");

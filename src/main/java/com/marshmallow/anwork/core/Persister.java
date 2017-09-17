@@ -28,7 +28,16 @@ public interface Persister<T extends Serializable<?>> {
    * @return Whether or not the context exists
    * @throws IOException If something goes wrong
    */
-  public boolean contextExists(String context) throws IOException;
+  public boolean exists(String context) throws IOException;
+
+  /**
+   * Clears a context. After this call, {@link #exists(String)} should return
+   * <code>false</code>.
+   *
+   * @param context The context to clear
+   * @throws IOException if something goes wrong, like if the context does not exist
+   */
+  public void clear(String context) throws IOException;
 
   /**
    * Load some objects from a persistent store.
@@ -39,7 +48,7 @@ public interface Persister<T extends Serializable<?>> {
    * @return An array of objects
    * @throws IOException if something goes wrong, like if the
    *     context does not exist
-   * @see #contextExists(String)
+   * @see #exists(String)
    */
   public Collection<T> load(String context, Serializer<T> serializer) throws IOException;
 
