@@ -3,6 +3,10 @@ package com.marshmallow.anwork.task;
 import com.marshmallow.anwork.core.ProtobufSerializer;
 import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
+import com.marshmallow.anwork.journal.BaseJournal;
+import com.marshmallow.anwork.journal.FilteredJournal;
+import com.marshmallow.anwork.journal.Journal;
+import com.marshmallow.anwork.journal.MultiJournaled;
 import com.marshmallow.anwork.task.protobuf.TaskManagerProtobuf;
 import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 
@@ -18,7 +22,7 @@ import java.util.PriorityQueue;
  *
  * @author Andrew
  */
-public class TaskManager implements Serializable<TaskManagerProtobuf> {
+public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJournaled<Task> {
 
   /**
    * This is the singleton {@link Serializer} for this class.
@@ -29,6 +33,8 @@ public class TaskManager implements Serializable<TaskManagerProtobuf> {
 
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
   private Task currentTask;
+
+  private Journal journal = new BaseJournal();
 
   /**
    * Create a task from a name.
@@ -176,5 +182,15 @@ public class TaskManager implements Serializable<TaskManagerProtobuf> {
       task.unmarshall(taskProtobuf);
       tasks.add(task);
     }
+  }
+
+  @Override
+  public Journal getJournal() {
+    return journal;
+  }
+
+  @Override
+  public Journal getJournal(Task key) {
+    return new FilteredJournal(journal, null);
   }
 }

@@ -1,4 +1,4 @@
-package com.marshmallow.anwork.event.test;
+package com.marshmallow.anwork.journal.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -6,13 +6,15 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-    EventLogTest.class,
+    FilteredJournalTest.class,
   })
 /**
  * This class is a wrapper around all of the unit tests for
- * {@link com.marshmallow.anwork.event} classes.
+ * {@link com.marshmallow.anwork.journal} classes.
  *
  * @author Andrew
- * Created Aug 31, 2017
+ * Created September 17, 2017
  */
-public class AllEventTests { }
+public class AllJournalTests {
+
+}

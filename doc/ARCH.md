@@ -45,6 +45,24 @@ such as this.
 There is currently one com.marshmallow.anwork.core.Persister implementation. This implementation
 (com.marshmallow.anwork.core.FilePersister) persists serialized objects to disk via a java.io.File.
 
+## Journal
+
+The journal framework provides a way to maintain a history of events. The framework goes further to
+support the use case of getting a specific collection of events with a common quality in the order
+that they occured. Here are the major interfaces.
+- A **JournalEvent** is an object that describes some activity that has happened.
+- A **Journal** is an object that maintains an ordering of events (JournalEvent's) that have
+  happened.
+- A **Journaled** is an object that has an associated journal.
+- A **MultiJournaled** is a Journaled that has multiple Journal instances that can be acquired based
+  on a key. This key type is implementation specific in order to support all types as a key.
+
+There are some simple objects provided as base classes for these types. These objects are trivial to
+understand. See **BaseJournalEvent** and **BaseJournal**.
+
+The most complicated type in this package is the **FilteredJournal**. It is a Journal that can
+make itself yield different events depending on a filter applied to another Journal.
+
 ## Test
 
 All tests must go in the src/test source set. Here are naming conventions for tests.
