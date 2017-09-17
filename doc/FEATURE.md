@@ -16,4 +16,7 @@ into sections below.
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
 
+## Journaling
+- Refactor com.marshmallow.anwork.event package to be a package for journaling functionality.
+
 ## Persistence
