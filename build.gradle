@@ -52,7 +52,7 @@ mainClassName = 'com.marshmallow.anwork.app.AnworkApp'
 
 // Filter out test superclasses
 test {
-    exclude 'com/marshmallow/anwork/*/test/Base**'
+    include 'com/marshmallow/anwork/core/test/AllTests**'
 }
 
 // This is the checkstyle configuration

@@ -59,3 +59,4 @@ All tests must go in the src/test source set. Here are naming conventions for te
 - Junit suite definitions should begin with *All* and end in *Tests*. Each test package should have
   a suite that begins with the name of the last segment of the package name. For example, in the
   package com.marshmallow.anwork.foo.test, there should be a Junit suite class named AllFooTests.
+- The AllTests class should be kept up to date to run all tests for the ANWORK project.
