@@ -50,7 +50,11 @@ public abstract class TaskManagerCliAction implements CliAction {
     String context = config.getContext();
     File persistenceRoot = config.getPersistenceRoot();
     Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
-    if (!persister.exists(context)) {
+    if (!config.getDoPersist()) {
+      config.getDebugPrinter().accept("not loading task manager because"
+                                      + " persist command line option set to false");
+      return new TaskManager();
+    } else if (!persister.exists(context)) {
       config.getDebugPrinter().accept("context " + context
                                       + " does not exist at root " + persistenceRoot + "!"
                                       + " creating new task manager");
@@ -68,6 +72,13 @@ public abstract class TaskManagerCliAction implements CliAction {
 
   private void saveTaskManager(TaskManager taskManager) throws Exception {
     Persister<TaskManager> persister = new FilePersister<TaskManager>(config.getPersistenceRoot());
-    persister.save(config.getContext(), TaskManager.SERIALIZER, Collections.singleton(taskManager));
+    if (!config.getDoPersist()) {
+      config.getDebugPrinter().accept("not saving task manager because"
+                                      + " no-persist command line option set");
+    } else {
+      persister.save(config.getContext(),
+                     TaskManager.SERIALIZER,
+                     Collections.singleton(taskManager));
+    }
   }
 }

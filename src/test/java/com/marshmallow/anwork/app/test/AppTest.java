@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.app.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import com.marshmallow.anwork.app.AnworkApp;
 import com.marshmallow.anwork.core.FilePersister;
@@ -106,6 +107,21 @@ public class AppTest {
     run("task", "show");
     run("task", "delete", "task-a");
     run("task", "show");
+  }
+
+  @Test
+  public void showAllJournalTest() throws IOException {
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("journal", "show-all");
+    run("task", "delete", "task-a");
+    run("journal", "show-all");
+  }
+
+  @Test
+  public void testNoPersist() throws IOException {
+    run("--no-persist", "task", "create", "task-a", "This is the description for task A", "1");
+    assertFalse(new FilePersister<TaskManager>(PERSISTENCE_ROOT).exists(CONTEXT));
   }
 
   private void run(String...args) {

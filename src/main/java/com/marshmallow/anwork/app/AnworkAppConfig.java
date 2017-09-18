@@ -18,6 +18,7 @@ public class AnworkAppConfig {
   // These fields are set to their defaults.
   private String context = "default-context";
   private File persistenceRoot = new File(".");
+  private boolean doPersist = true;
   private boolean debug = false;
   private Consumer<String> debugPrinter = new Consumer<String>() {
     @Override
@@ -42,6 +43,14 @@ public class AnworkAppConfig {
 
   public void setPersistenceRoot(File persistenceRoot) {
     this.persistenceRoot = persistenceRoot;
+  }
+
+  public boolean getDoPersist() {
+    return doPersist;
+  }
+
+  public void setDoPersist(boolean doPersist) {
+    this.doPersist = doPersist;
   }
 
   public boolean getDebug() {

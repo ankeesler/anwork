@@ -8,6 +8,7 @@ import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * This class creates the CLI for the ANWORK app.
@@ -41,6 +42,7 @@ public class AnworkCliCreator {
     CliList root = cli.getRoot();
     makeRootFlags(root);
     makeTaskCommands(root);
+    makeJournalCommands(root);
     return cli;
   }
 
@@ -59,6 +61,10 @@ public class AnworkCliCreator {
                                   "Set persistence output directory",
                                   "directory",
         (p) -> config.setPersistenceRoot(new File(p[0])));
+    root.addLongFlag("n",
+                     "no-persist",
+                     "Do not persist any task information",
+        (p) -> config.setDoPersist(false));
   }
 
   private void makeTaskCommands(CliList root) {
@@ -104,5 +110,19 @@ public class AnworkCliCreator {
       }
     };
     taskCommandList.addCommand("show", "Show all tasks", showAction);
+  }
+
+  private void makeJournalCommands(CliList root) {
+    CliList journalCommandList = root.addList("journal", "Journal commands...");
+
+    CliAction showAllAction = new TaskManagerCliAction(config) {
+      @Override
+      public void run(String[] args, TaskManager manager) {
+        System.out.println(Arrays.toString(manager.getJournal().getEntries()));
+      }
+    };
+    journalCommandList.addCommand("show-all",
+                                  "Show all of the entries in the journal",
+                                  showAllAction);
   }
 }

@@ -35,6 +35,7 @@ public class TaskManagerJournalCache {
    * Get the {@link Journal} for a {@link Task} name, or create one if there is none that exists.
    *
    * @param taskName The name of the task
+   * @return The {@link Journal} associated with this {@link Task}, or a new one if none exists
    */
   public Journal get(String taskName) {
     Journal journal = cache.get(taskName);
