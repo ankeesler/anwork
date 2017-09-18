@@ -1,7 +1,6 @@
 package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
@@ -49,14 +48,6 @@ public class TaskManagerTest {
 
     manager.deleteTask("Task3");
     assertEquals(0, manager.getTasks().length);
-  }
-
-  @Test
-  public void testCurrentTask() {
-    assertNull(manager.getCurrentTask());
-    manager.createTask("Task1", "This is task 1.", 1);
-    manager.setCurrentTask("Task1");
-    assertEquals("Task1", manager.getCurrentTask());
   }
 
   @Test
@@ -120,12 +111,6 @@ public class TaskManagerTest {
   public void deleteUnknownTask() {
     manager.createTask("Task1", "This is task 1.", 1);
     manager.deleteTask("Task2");
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void setUnknownCurrentTask() {
-    manager.createTask("Task1", "This is task 1.", 1);
-    manager.setCurrentTask("Task2");
   }
 
   @Test(expected = IllegalArgumentException.class)

@@ -12,6 +12,7 @@ import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
+import java.util.stream.Stream;
 
 /**
  * This guy in a public interface for managing {@link Task} instances.
@@ -32,7 +33,6 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
                                                                  TaskManagerProtobuf.parser());
 
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
-  private Task currentTask;
 
   private Journal journal = new BaseJournal();
 
@@ -69,30 +69,6 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
   }
 
   /**
-   * Get the current task name.
-   *
-   * @return name The name of the current task, or <code>null</code> if there
-   *     is no current task.
-   */
-  public String getCurrentTask() {
-    return (currentTask == null ? null : currentTask.getName());
-  }
-
-  /**
-   * Set the current task.
-   *
-   * @param name The name of the current task
-   * @throws IllegalArgumentException If this task does not exist
-   */
-  public void setCurrentTask(String name) throws IllegalArgumentException {
-    Task task = findTask(name);
-    if (task == null) {
-      throw new IllegalArgumentException("Task " + name + " does not exist");
-    }
-    currentTask = task;
-  }
-
-  /**
    * Get the state of a task.
    *
    * @param name The name of the task
@@ -110,7 +86,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
   /**
    * Set the state of a task.
    *
-   * @param name The name of the current task
+   * @param name The name of the task
    * @param state The name of the state.
    * @throws IllegalArgumentException If this task does not exist or the state
    *     is invalid.
@@ -143,14 +119,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    Task[] taskArray = tasks.toArray(new Task[0]);
-    for (Task task : taskArray) {
-      if (task == currentTask) {
-        builder.append('*');
-      }
-      builder.append(task);
-    }
-
+    Stream.of(tasks.toArray(new Task[0])).forEach(task -> builder.append(task));
     return builder.toString();
   }
 
