@@ -19,5 +19,6 @@ into sections below.
 
 ## Journaling
 - Implement the Journaled methods on TaskManager.
+- Add serialization to the journal object model.
 
 ## Persistence
