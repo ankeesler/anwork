@@ -77,3 +77,10 @@ checkstyle {
 protobuf {
     generatedFilesBaseDir = 'src'
 }
+
+// Create a jar with the correct so that users can easily run this app
+jar {
+    manifest {
+        attributes("Main-Class": "com.marshmallow.anwork.app.AnworkApp")
+    }
+}
