@@ -21,7 +21,8 @@ public interface Journal {
   /**
    * Get the entries in this journal in the order in which they were added.
    *
-   * @return The entries in this journal in the order in which they were added
+   * @return The entries in this journal in the order in which they were added; this will
+   *     <b>never</b> return <code>null</code>
    */
   public JournalEntry[] getEntries();
 }

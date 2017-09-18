@@ -44,4 +44,8 @@ public class BaseJournalEntry implements JournalEntry {
     return date;
   }
 
+  @Override
+  public String toString() {
+    return String.format("[%s]: %s: %s", date, title, description);
+  }
 }

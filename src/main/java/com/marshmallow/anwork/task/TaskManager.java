@@ -4,7 +4,6 @@ import com.marshmallow.anwork.core.ProtobufSerializer;
 import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.journal.BaseJournal;
-import com.marshmallow.anwork.journal.FilteredJournal;
 import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.journal.MultiJournaled;
 import com.marshmallow.anwork.task.protobuf.TaskManagerProtobuf;
@@ -23,7 +22,7 @@ import java.util.stream.Stream;
  *
  * @author Andrew
  */
-public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJournaled<Task> {
+public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJournaled {
 
   /**
    * This is the singleton {@link Serializer} for this class.
@@ -35,6 +34,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
 
   private Journal journal = new BaseJournal();
+  private TaskManagerJournalCache cache = new TaskManagerJournalCache(journal);
 
   /**
    * Create a task from a name.
@@ -52,6 +52,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
     }
     Task task = new Task(name, description, priority);
     tasks.add(task);
+    journal.addEntry(new TaskManagerJournalEntry(name, TaskManagerActionType.CREATE));
   }
 
   /**
@@ -66,6 +67,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
     tasks.remove(task);
+    journal.addEntry(new TaskManagerJournalEntry(name, TaskManagerActionType.DELETE));
   }
 
   /**
@@ -97,6 +99,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
     task.setState(state);
+    journal.addEntry(new TaskManagerJournalEntry(name, TaskManagerActionType.SET_STATE));
   }
 
   /**
@@ -158,8 +161,15 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
     return journal;
   }
 
+  /**
+   * Get the {@link Journal} associated with a {@link Task}.
+   *
+   * @param key The name of the {@link Task} for which to get the {@link Journal}
+   * @return The journal associated with a {@link Task}, or null if there is no {@link Task} with
+   *     the provided name
+   */
   @Override
-  public Journal getJournal(Task key) {
-    return new FilteredJournal(journal, null);
+  public Journal getJournal(String key) {
+    return (findTask(key) == null ? null : cache.get(key));
   }
 }

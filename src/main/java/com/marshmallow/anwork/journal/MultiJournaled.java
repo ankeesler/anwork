@@ -2,7 +2,7 @@ package com.marshmallow.anwork.journal;
 
 /**
  * This is an object that has more than one associated {@link Journal}'s. These {@link Journal}'s
- * are accessed via a key of type KeyT.
+ * are accessed via a key.
  *
  * <p>
  * Created Sep 17, 2017
@@ -10,7 +10,7 @@ package com.marshmallow.anwork.journal;
  *
  * @author Andrew
  */
-public interface MultiJournaled<KeyT> extends Journaled {
+public interface MultiJournaled extends Journaled {
 
   /**
    * Get the journal associated with this object using the key provided.
@@ -18,5 +18,5 @@ public interface MultiJournaled<KeyT> extends Journaled {
    * @param key The key to use to fetch a specific journal associated with this object
    * @return The journal associated with this object using the key provided
    */
-  public Journal getJournal(KeyT key);
+  public Journal getJournal(String key);
 }
