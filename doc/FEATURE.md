@@ -5,6 +5,7 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
+- Implement "anwork journal" CLI commands.
 
 ## CLI
 - Add CLI documentation generator.
@@ -17,6 +18,6 @@ into sections below.
 - Can we mandate that protocol buffer classes are named accordingly?
 
 ## Journaling
-- Refactor com.marshmallow.anwork.event package to be a package for journaling functionality.
+- Implement the Journaled methods on TaskManager.
 
 ## Persistence
