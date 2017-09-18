@@ -16,6 +16,7 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
+- Add some sort of gradle dependency on protoc so that users don't have to download this binary?
 
 ## Journaling
 - Implement the Journaled methods on TaskManager.
