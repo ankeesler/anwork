@@ -4,9 +4,6 @@ import com.marshmallow.anwork.core.Factory;
 import com.marshmallow.anwork.core.ProtobufSerializer;
 import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
-import com.marshmallow.anwork.journal.BaseJournal;
-import com.marshmallow.anwork.journal.Journal;
-import com.marshmallow.anwork.journal.Journaled;
 import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 import com.marshmallow.anwork.task.protobuf.TaskStateProtobuf;
 
@@ -22,7 +19,7 @@ import java.util.Date;
  *
  * @author Andrew
  */
-public class Task implements Comparable<Task>, Serializable<TaskProtobuf>, Journaled {
+public class Task implements Comparable<Task>, Serializable<TaskProtobuf> {
 
   /** I totally made up this value. */
   public static int DEFAULT_PRIORITY = 5;
@@ -47,8 +44,6 @@ public class Task implements Comparable<Task>, Serializable<TaskProtobuf>, Journ
   private Date startDate;
   private int priority;
   private TaskState state;
-
-  private BaseJournal journal;
 
   // This is for the factory above.
   private Task() { }
@@ -147,10 +142,5 @@ public class Task implements Comparable<Task>, Serializable<TaskProtobuf>, Journ
     startDate = new Date(t.getStartDate());
     priority = t.getPriority();
     state = TaskState.values()[t.getState().ordinal()];
-  }
-
-  @Override
-  public Journal getJournal() {
-    return journal;
   }
 }
