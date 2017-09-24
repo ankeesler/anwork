@@ -24,3 +24,6 @@ into sections below.
 - Add serialization to the journal object model.
 
 ## Persistence
+
+## Serialization
+- We need a more defined way to get a class' Serializer.
