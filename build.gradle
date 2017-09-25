@@ -18,6 +18,9 @@ apply plugin: 'checkstyle'
 // Apply the Protocol Buffers plugin
 apply plugin: 'com.google.protobuf'
 
+// Set the default task
+defaultTasks 'build'
+
 // Declare some dependencies for this build.gradle file
 buildscript {
     repositories {
