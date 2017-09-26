@@ -16,8 +16,6 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- Add some sort of gradle dependency on protoc so that users don't have to download this binary?
-- We need an "all" task that runs check, javadoc, install, and tests the installed thing.
 - We need to figure out what the installed "thing" is above and make sure it has the right classes with it.
 
 ## Journaling
