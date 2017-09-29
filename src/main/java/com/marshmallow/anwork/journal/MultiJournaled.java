@@ -10,13 +10,14 @@ package com.marshmallow.anwork.journal;
  *
  * @author Andrew
  */
-public interface MultiJournaled extends Journaled {
+public interface MultiJournaled<EntryT extends JournalEntry> extends Journaled<EntryT> {
 
   /**
    * Get the journal associated with this object using the key provided.
    *
    * @param key The key to use to fetch a specific journal associated with this object
-   * @return The journal associated with this object using the key provided
+   * @return The journal associated with this object using the key provided; this should return
+   *     <code>null</code> if there is no {@link Journal} associated with this key
    */
-  public Journal getJournal(String key);
+  public Journal<EntryT> getJournal(String key);
 }

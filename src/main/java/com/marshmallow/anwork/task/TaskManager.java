@@ -3,7 +3,6 @@ package com.marshmallow.anwork.task;
 import com.marshmallow.anwork.core.ProtobufSerializer;
 import com.marshmallow.anwork.core.Serializable;
 import com.marshmallow.anwork.core.Serializer;
-import com.marshmallow.anwork.journal.BaseJournal;
 import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.journal.MultiJournaled;
 import com.marshmallow.anwork.task.protobuf.TaskManagerProtobuf;
@@ -22,7 +21,8 @@ import java.util.stream.Stream;
  *
  * @author Andrew
  */
-public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJournaled {
+public class TaskManager implements Serializable<TaskManagerProtobuf>,
+                                    MultiJournaled<TaskManagerJournalEntry> {
 
   /**
    * This is the singleton {@link Serializer} for this class.
@@ -33,8 +33,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
 
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
 
-  private Journal journal = new BaseJournal();
-  private TaskManagerJournalCache cache = new TaskManagerJournalCache(journal);
+  private TaskManagerJournal journal = new TaskManagerJournal();
 
   /**
    * Create a task from a name.
@@ -52,7 +51,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
     }
     Task task = new Task(name, description, priority);
     tasks.add(task);
-    journal.addEntry(new TaskManagerJournalEntry(name, TaskManagerActionType.CREATE));
+    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.CREATE));
   }
 
   /**
@@ -67,7 +66,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
     tasks.remove(task);
-    journal.addEntry(new TaskManagerJournalEntry(name, TaskManagerActionType.DELETE));
+    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.DELETE));
   }
 
   /**
@@ -99,7 +98,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
     task.setState(state);
-    journal.addEntry(new TaskManagerJournalEntry(name, TaskManagerActionType.SET_STATE));
+    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.SET_STATE));
   }
 
   /**
@@ -157,7 +156,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
   }
 
   @Override
-  public Journal getJournal() {
+  public Journal<TaskManagerJournalEntry> getJournal() {
     return journal;
   }
 
@@ -169,7 +168,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>, MultiJour
    *     the provided name
    */
   @Override
-  public Journal getJournal(String key) {
-    return (findTask(key) == null ? null : cache.get(key));
+  public Journal<TaskManagerJournalEntry> getJournal(String key) {
+    return journal.filter(key);
   }
 }

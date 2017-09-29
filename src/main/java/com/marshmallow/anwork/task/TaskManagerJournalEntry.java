@@ -1,7 +1,8 @@
 package com.marshmallow.anwork.task;
 
-import com.marshmallow.anwork.journal.BaseJournalEntry;
 import com.marshmallow.anwork.journal.JournalEntry;
+
+import java.util.Date;
 
 /**
  * This is a {@link JournalEntry} that records actions by the {@link TaskManager}.
@@ -12,35 +13,61 @@ import com.marshmallow.anwork.journal.JournalEntry;
  *
  * @author Andrew
  */
-public class TaskManagerJournalEntry extends BaseJournalEntry {
+public class TaskManagerJournalEntry implements JournalEntry {
 
-  private static String makeTitle(String taskName, TaskManagerActionType action) {
-    return action.name() + ":" + taskName;
-  }
-
-  private static String makeDescription(String taskName, TaskManagerActionType action) {
-    return makeTitle(taskName, action);
-  }
-
-  private final String taskName;
+  private final Task task;
   private final TaskManagerActionType actionType;
+  private final Date date;
 
   /**
-   * Create a journal entry related to an action on a task.
+   * Create a journal entry related to a {@link TaskManagerActionType} of action on a {@link Task}.
    *
-   * @param taskName The name of the task on which the action is taken
-   * @param actionType The type of action that was taken on the task
+   * @param task The {@link Task} on which the action of type {@link TaskManagerActionType} is
+   *     taken
+   * @param actionType The {@link TaskManagerActionType} of action that was taken on the
+   *     {@link Task}
    */
-  public TaskManagerJournalEntry(String taskName, TaskManagerActionType actionType) {
-    super(makeTitle(taskName, actionType), makeDescription(taskName, actionType));
-    this.taskName = taskName;
+  public TaskManagerJournalEntry(Task task, TaskManagerActionType actionType) {
+    this.task = task;
     this.actionType = actionType;
+    this.date = new Date();
   }
 
-  public String getTaskName() {
-    return taskName;
+  @Override
+  public String getTitle() {
+    return String.format("%s:%s:%s", date, task.getName(), actionType.name());
   }
 
+  @Override
+  public String getDescription() {
+    return getTitle();
+  }
+
+  @Override
+  public Date getDate() {
+    return date;
+  }
+
+  @Override
+  public String toString() {
+    return getTitle();
+  }
+
+  /**
+   * Get the {@link Task} associated with this {@link TaskManagerJournalEntry}.
+   *
+   * @return The {@link Task} associated with this {@link TaskManagerJournalEntry}
+   */
+  public Task getTask() {
+    return task;
+  }
+
+  /**
+   * Get the {@link TaskManagerActionType} associated with this {@link TaskManagerJournalEntry}.
+   *
+   * @return The {@link TaskManagerActionType} associated with this
+   *     {@link TaskManagerJournalEntry}.
+   */
   public TaskManagerActionType getActionType() {
     return actionType;
   }

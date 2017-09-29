@@ -141,7 +141,19 @@ public class TaskManagerTest {
 
     manager.createTask("Task1", "This is task 1, again.", 2);
     assertJournalEntriesEqual("Task1", "Task1", "Task1", "Task1", "Task1");
-    assertJournalEntrySize("Task1", 5);
+    assertJournalEntrySize("Task1", 1);
+  }
+
+  @Test
+  public void testAddSimilarlyNamedTasks() {
+    manager.createTask("Task1", "This is task 1.", 1);
+    manager.createTask("ask", "This is ask.", 2);
+    manager.setState("ask", TaskState.RUNNING);
+    manager.setState("Task1", TaskState.BLOCKED);
+    manager.setState("ask", TaskState.BLOCKED);
+    assertJournalEntriesEqual("Task1", "ask", "ask", "Task1", "ask");
+    assertJournalEntrySize("Task1", 2);
+    assertJournalEntrySize("ask", 3);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -176,7 +188,7 @@ public class TaskManagerTest {
   // This method asserts that the journal for the provided key is of length size.
   // You can pass null for size to indicate that there is no journal for this key.
   private void assertJournalEntrySize(String key, Integer size) {
-    Journal journal = manager.getJournal(key);
+    Journal<?> journal = manager.getJournal(key);
     if (size == null) {
       assertNull(journal);
     } else {

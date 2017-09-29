@@ -9,12 +9,12 @@ package com.marshmallow.anwork.journal;
  *
  * @author Andrew
  */
-public interface Journaled {
+public interface Journaled<EntryT extends JournalEntry> {
 
   /**
    * Get the journal associated with this object.
    *
    * @return The journal associated with this object
    */
-  public Journal getJournal();
+  public Journal<EntryT> getJournal();
 }

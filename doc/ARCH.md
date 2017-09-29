@@ -57,12 +57,6 @@ that they occured. Here are the major interfaces.
 - A **MultiJournaled** is a Journaled that has multiple Journal instances that can be acquired based
   on a key. This key type is implementation specific in order to support all types as a key.
 
-There are some simple objects provided as base classes for these types. These objects are trivial to
-understand. See **BaseJournalEvent** and **BaseJournal**.
-
-The most complicated type in this package is the **FilteredJournal**. It is a Journal that can
-make itself yield different events depending on a filter applied to another Journal.
-
 ## Test
 
 All tests must go in the src/test source set. Here are naming conventions for tests.

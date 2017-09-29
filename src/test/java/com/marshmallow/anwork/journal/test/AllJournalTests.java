@@ -6,7 +6,6 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-    FilteredJournalTest.class,
   })
 /**
  * This class is a wrapper around all of the unit tests for

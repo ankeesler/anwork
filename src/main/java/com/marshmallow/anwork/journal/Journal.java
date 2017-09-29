@@ -9,14 +9,14 @@ package com.marshmallow.anwork.journal;
  *
  * @author Andrew
  */
-public interface Journal {
+public interface Journal<EntryT extends JournalEntry> {
 
   /**
    * Add an entry to this journal.
    *
    * @param entry The entry to add to this journal
    */
-  public void addEntry(JournalEntry entry);
+  public void addEntry(EntryT entry);
 
   /**
    * Get the entries in this journal in the order in which they were added.
@@ -24,5 +24,5 @@ public interface Journal {
    * @return The entries in this journal in the order in which they were added; this will
    *     <b>never</b> return <code>null</code>
    */
-  public JournalEntry[] getEntries();
+  public EntryT[] getEntries();
 }
