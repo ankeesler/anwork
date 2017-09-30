@@ -3,6 +3,7 @@ package com.marshmallow.anwork.task.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.core.test.BaseSerializerTest;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
@@ -14,16 +15,23 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+/**
+ * A {@link BaseSerializerTest} for {@link TaskManagerJournalEntry} objects.
+ *
+ * <p>
+ * Created Sep 30, 2017
+ * </p>
+ *
+ * @author Andrew
+ */
 public class TaskManagerJournalEntrySerializerTest
              extends BaseSerializerTest<TaskManagerJournalEntry> {
 
   private final TaskManager manager = new TaskManager();
 
-  /**
-   * Initialize a {@link TaskManagerJournalEntrySerializerTest} as a {@link BaseSerializerTest}.
-   */
-  public TaskManagerJournalEntrySerializerTest() {
-    super(TaskManagerJournalEntry.SERIALIZER);
+  @Override
+  protected Serializer<TaskManagerJournalEntry> getSerializer() {
+    return TaskManagerJournalEntry.SERIALIZER;
   }
 
   @Test

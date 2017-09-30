@@ -23,18 +23,14 @@ import java.io.InputStream;
  *
  * @author Andrew
  */
-public class BaseSerializerTest<T extends Serializable<?>> {
-
-  private final Serializer<T> serializer;
+public abstract class BaseSerializerTest<T extends Serializable<?>> {
 
   /**
-   * Initialize this instance with a {@link Serializer} to test.
+   * Get the {@link Serializer} to use in {@link #runSerialization(Serializable)}.
    *
-   * @param serializer The serializer that is under test
+   * @return The {@link Serializer} to use in {@link #runSerialization(Serializable)}
    */
-  public BaseSerializerTest(Serializer<T> serializer) {
-    this.serializer = serializer;
-  }
+  protected abstract Serializer<T> getSerializer();
 
   /**
    * Serialize an object and then unserialize it.
@@ -45,9 +41,9 @@ public class BaseSerializerTest<T extends Serializable<?>> {
    */
   protected T runSerialization(T t) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    serializer.serialize(t, outputStream);
+    getSerializer().serialize(t, outputStream);
     InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-    T unserialized = serializer.unserialize(inputStream);
+    T unserialized = getSerializer().unserialize(inputStream);
     assertNotNull(unserialized);
     return unserialized;
   }

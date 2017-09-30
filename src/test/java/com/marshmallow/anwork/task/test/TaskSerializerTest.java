@@ -2,6 +2,7 @@ package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
 
+import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.core.test.BaseSerializerTest;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskState;
@@ -23,8 +24,8 @@ public class TaskSerializerTest extends BaseSerializerTest<Task> {
   /**
    * Instantiate this test as a {@link BaseSerializerTest}.
    */
-  public TaskSerializerTest() {
-    super(Task.SERIALIZER);
+  protected Serializer<Task> getSerializer() {
+    return Task.SERIALIZER;
   }
 
   @Test

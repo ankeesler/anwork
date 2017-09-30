@@ -2,6 +2,7 @@ package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
 
+import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.core.test.BaseSerializerTest;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
@@ -57,11 +58,9 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
 
   private TaskManager manager = new TaskManager();
 
-  /**
-   * Instantiate this test as a {@link BaseSerializerTest}.
-   */
-  public TaskManagerSerializerTest() {
-    super(TaskManager.SERIALIZER);
+  @Override
+  protected Serializer<TaskManager> getSerializer() {
+    return TaskManager.SERIALIZER;
   }
 
   @Test
