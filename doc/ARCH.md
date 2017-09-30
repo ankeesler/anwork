@@ -57,6 +57,30 @@ that they occured. Here are the major interfaces.
 - A **MultiJournaled** is a Journaled that has multiple Journal instances that can be acquired based
   on a key. This key type is implementation specific in order to support all types as a key.
 
+## CLI
+
+The CLI framework is a (large) add-on to the application layer. It is a general framework for
+interacting with a Java application at the command line. Here are the main public concepts.
+- A com.marshmallow.anwork.app.cli.Cli is the entry point object for creating a CLI for an
+  application.
+- A com.marshmallow.anwork.app.cli.CliCommand is some action that may have some flags associated
+  with it.
+- A com.marshmallow.anwork.app.cli.CliList contains a number of
+  com.marshmallow.anwork.app.cli.CliCommand's under some list title. For example, the list title
+  may be "git" and the com.marshmallow.anwork.app.cli.CliCommand's in the lists may be "status,"
+  "log," "commit," etc.
+- A com.marshmallow.anwork.app.CliAction is some action that runs in response to a
+  com.marshmallow.anwork.app.cli.CliCommand.
+
+This CLI implementation uses a tree to store com.marshmallow.anwork.app.cli.CliList's and
+com.marshmallow.anwork.app.cli.CliCommand's. Here are the package-scope implementation concepts.
+- A com.marshmallow.anwork.app.cli.CliFlag is a flag that is passed to a
+  com.marshmallow.anwork.app.cli.CliList or com.marshmallow.anwork.app.cli.CliCommand. A flag can
+  be short (i.e., -f) or long (--file).
+- A com.marshmallow.anwork.app.cli.CliNode is the common base interface for
+  com.marshmallow.anwork.app.cli.CliList and com.marshmallow.anwork.app.cli.CliCommand. A node can
+  have com.marshmallow.anwork.app.cli.CliFlag's added to it.
+
 ## Test
 
 All tests must go in the src/test source set. Here are naming conventions for tests.
