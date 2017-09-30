@@ -2,6 +2,7 @@ package com.marshmallow.anwork.app.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import com.marshmallow.anwork.app.AnworkApp;
 import com.marshmallow.anwork.core.FilePersister;
@@ -56,6 +57,10 @@ public class AppTest {
 
     TaskManager taskManager = readTaskManager();
     assertEquals(3, taskManager.getTasks().length);
+    assertEquals(3, taskManager.getJournal().getEntries().length);
+    assertEquals(1, taskManager.getJournal("task-a").getEntries().length);
+    assertEquals(1, taskManager.getJournal("task-b").getEntries().length);
+    assertEquals(1, taskManager.getJournal("task-c").getEntries().length);
   }
 
   @Test
@@ -69,6 +74,9 @@ public class AppTest {
     assertEquals(2, manager.getTasks().length);
     assertEquals(TaskState.RUNNING, manager.getState("task-a"));
     assertEquals(TaskState.BLOCKED, manager.getState("task-b"));
+    assertEquals(4, manager.getJournal().getEntries().length);
+    assertEquals(2, manager.getJournal("task-a").getEntries().length);
+    assertEquals(2, manager.getJournal("task-b").getEntries().length);
 
     run("task", "set-finished", "task-a");
 
@@ -76,6 +84,9 @@ public class AppTest {
     assertEquals(2, manager.getTasks().length);
     assertEquals(TaskState.FINISHED, manager.getState("task-a"));
     assertEquals(TaskState.BLOCKED, manager.getState("task-b"));
+    assertEquals(5, manager.getJournal().getEntries().length);
+    assertEquals(3, manager.getJournal("task-a").getEntries().length);
+    assertEquals(2, manager.getJournal("task-b").getEntries().length);
 
     run("task", "set-running", "task-b");
 
@@ -83,6 +94,9 @@ public class AppTest {
     assertEquals(2, manager.getTasks().length);
     assertEquals(TaskState.FINISHED, manager.getState("task-a"));
     assertEquals(TaskState.RUNNING, manager.getState("task-b"));
+    assertEquals(6, manager.getJournal().getEntries().length);
+    assertEquals(3, manager.getJournal("task-a").getEntries().length);
+    assertEquals(3, manager.getJournal("task-b").getEntries().length);
   }
 
   @Test
@@ -93,11 +107,17 @@ public class AppTest {
 
     TaskManager taskManager = readTaskManager();
     assertEquals(1, taskManager.getTasks().length);
+    assertEquals(3, taskManager.getJournal().getEntries().length);
+    assertNull(taskManager.getJournal("task-a"));
+    assertEquals(1, taskManager.getJournal("task-b").getEntries().length);
 
     run("task", "delete", "task-b");
 
     taskManager = readTaskManager();
     assertEquals(0, taskManager.getTasks().length);
+    assertEquals(4, taskManager.getJournal().getEntries().length);
+    assertNull(taskManager.getJournal("task-a"));
+    assertNull(taskManager.getJournal("task-b"));
   }
 
   @Test

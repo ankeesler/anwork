@@ -19,7 +19,6 @@ into sections below.
 - We need to figure out what the installed "thing" is above and make sure it has the right classes with it.
 
 ## Journaling
-- Add serialization to the journal object model.
 
 ## Persistence
 

@@ -166,8 +166,8 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    * Get the {@link Journal} associated with a {@link Task}.
    *
    * @param key The name of the {@link Task} for which to get the {@link Journal}
-   * @return The journal associated with a {@link Task}, or null if there is no {@link Task} with
-   *     the provided name
+   * @return The journal associated with a {@link Task}, or <code>null</code> if there is no
+   *     {@link Task} with the provided name
    */
   @Override
   public Journal<TaskManagerJournalEntry> getJournal(String key) {
