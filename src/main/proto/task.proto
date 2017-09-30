@@ -31,6 +31,10 @@ message TaskManagerJournalEntryProtobuf {
   int64 date = 3;
 }
 
+message TaskManagerJournalProtobuf {
+  repeated TaskManagerJournalEntryProtobuf entries = 1;
+}
+
 message TaskManagerProtobuf {
   repeated TaskProtobuf tasks = 1;
 }

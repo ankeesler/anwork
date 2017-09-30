@@ -1,7 +1,13 @@
 package com.marshmallow.anwork.task;
 
+import com.marshmallow.anwork.core.ProtobufSerializer;
+import com.marshmallow.anwork.core.Serializable;
+import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.journal.Journal;
+import com.marshmallow.anwork.task.protobuf.TaskManagerJournalEntryProtobuf;
+import com.marshmallow.anwork.task.protobuf.TaskManagerJournalProtobuf;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +20,13 @@ import java.util.List;
  *
  * @author Andrew
  */
-public class TaskManagerJournal implements Journal<TaskManagerJournalEntry> {
+public class TaskManagerJournal implements Journal<TaskManagerJournalEntry>,
+                                           Serializable<TaskManagerJournalProtobuf> {
+
+  public static final Serializer<TaskManagerJournal> SERIALIZER
+      = new ProtobufSerializer<TaskManagerJournalProtobuf,
+                               TaskManagerJournal>(() -> new TaskManagerJournal(),
+                                                   TaskManagerJournalProtobuf.parser());
 
   private List<TaskManagerJournalEntry> entries = new ArrayList<TaskManagerJournalEntry>();
 
@@ -56,5 +68,24 @@ public class TaskManagerJournal implements Journal<TaskManagerJournalEntry> {
       }
     }
     return (journal.entries.size() == 0 ? null : journal);
+  }
+
+  @Override
+  public TaskManagerJournalProtobuf marshall() throws IOException {
+    TaskManagerJournalProtobuf.Builder builder = TaskManagerJournalProtobuf.newBuilder();
+    for (TaskManagerJournalEntry entry : entries) {
+      builder.addEntries(entry.marshall());
+    }
+    return builder.build();
+  }
+
+  @Override
+  public void unmarshall(TaskManagerJournalProtobuf t) throws IOException {
+    for (int i = 0; i < t.getEntriesCount(); i++) {
+      TaskManagerJournalEntryProtobuf entryProtobuf = t.getEntries(i);
+      TaskManagerJournalEntry entry = new TaskManagerJournalEntry();
+      entry.unmarshall(entryProtobuf);
+      entries.add(entry);
+    }
   }
 }

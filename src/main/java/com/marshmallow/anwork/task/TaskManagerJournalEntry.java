@@ -32,8 +32,8 @@ public class TaskManagerJournalEntry implements JournalEntry,
   private TaskManagerActionType actionType;
   private Date date;
 
-  // Default constructor for the factory in SERIALIZER.
-  private TaskManagerJournalEntry() {
+  // Default constructor for the factory in SERIALIZER and use in TaskManagerJournal.
+  TaskManagerJournalEntry() {
   }
 
   /**
