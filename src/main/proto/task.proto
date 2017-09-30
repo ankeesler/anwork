@@ -19,6 +19,18 @@ message TaskProtobuf {
   TaskStateProtobuf state = 6;
 }
 
+enum TaskManagerActionTypeProtobuf {
+  CREATE = 0;
+  DELETE = 1;
+  SET_STATE = 2;
+}
+
+message TaskManagerJournalEntryProtobuf {
+  TaskProtobuf task = 1;
+  TaskManagerActionTypeProtobuf actionType = 2;
+  int64 date = 3;
+}
+
 message TaskManagerProtobuf {
   repeated TaskProtobuf tasks = 1;
 }

@@ -1,7 +1,14 @@
 package com.marshmallow.anwork.task;
 
+import com.marshmallow.anwork.core.ProtobufSerializer;
+import com.marshmallow.anwork.core.Serializable;
+import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.journal.JournalEntry;
+import com.marshmallow.anwork.task.protobuf.TaskManagerActionTypeProtobuf;
+import com.marshmallow.anwork.task.protobuf.TaskManagerJournalEntryProtobuf;
+import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -13,11 +20,21 @@ import java.util.Date;
  *
  * @author Andrew
  */
-public class TaskManagerJournalEntry implements JournalEntry {
+public class TaskManagerJournalEntry implements JournalEntry,
+                                                Serializable<TaskManagerJournalEntryProtobuf> {
 
-  private final Task task;
-  private final TaskManagerActionType actionType;
-  private final Date date;
+  public static final Serializer<TaskManagerJournalEntry> SERIALIZER
+      = new ProtobufSerializer<TaskManagerJournalEntryProtobuf,
+                               TaskManagerJournalEntry>(() -> new TaskManagerJournalEntry(),
+                                                        TaskManagerJournalEntryProtobuf.parser());
+
+  private Task task;
+  private TaskManagerActionType actionType;
+  private Date date;
+
+  // Default constructor for the factory in SERIALIZER.
+  private TaskManagerJournalEntry() {
+  }
 
   /**
    * Create a journal entry related to a {@link TaskManagerActionType} of action on a {@link Task}.
@@ -70,5 +87,25 @@ public class TaskManagerJournalEntry implements JournalEntry {
    */
   public TaskManagerActionType getActionType() {
     return actionType;
+  }
+
+  @Override
+  public TaskManagerJournalEntryProtobuf marshall() throws IOException {
+    TaskProtobuf taskProtobuf = task.marshall();
+    TaskManagerJournalEntryProtobuf.Builder builder = TaskManagerJournalEntryProtobuf.newBuilder();
+    builder.setTask(taskProtobuf);
+    builder.setActionType(TaskManagerActionTypeProtobuf.forNumber(actionType.ordinal()));
+    builder.setDate(date.getTime());
+    return builder.build();
+  }
+
+  @Override
+  public void unmarshall(TaskManagerJournalEntryProtobuf t) throws IOException {
+    task = Task.FACTORY.makeBlankInstance();
+    task.unmarshall(t.getTask());
+
+    actionType = TaskManagerActionType.values()[t.getActionType().ordinal()];
+
+    date = new Date(t.getDate());
   }
 }
