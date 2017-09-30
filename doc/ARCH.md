@@ -72,6 +72,10 @@ interacting with a Java application at the command line. Here are the main publi
 - A com.marshmallow.anwork.app.CliAction is some action that runs in response to a
   com.marshmallow.anwork.app.cli.CliCommand.
 
+CLI com.marshmallow.anwork.app.cli.CliList's and com.marshmallow.anwork.app.cli.CliCommand's are
+created using the com.marshmallow.anwork.app.cli.CliList#addList and
+com.marshmallow.anwork.app.cli.CliList#addCommand methods.
+
 This CLI implementation uses a tree to store com.marshmallow.anwork.app.cli.CliList's and
 com.marshmallow.anwork.app.cli.CliCommand's. Here are the package-scope implementation concepts.
 - A com.marshmallow.anwork.app.cli.CliFlag is a flag that is passed to a
