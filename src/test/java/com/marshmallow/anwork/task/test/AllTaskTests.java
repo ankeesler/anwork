@@ -9,6 +9,8 @@ import org.junit.runners.Suite.SuiteClasses;
     TaskManagerSerializerTest.class,
     TaskManagerTest.class,
     TaskSerializerTest.class,
+    TaskManagerJournalEntrySerializerTest.class,
+    TaskManagerJournalSerializerTest.class,
   })
 /**
  * This class is a wrapper around all of the task-related tests.
