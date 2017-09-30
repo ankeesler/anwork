@@ -8,6 +8,7 @@ import com.marshmallow.anwork.journal.MultiJournaled;
 import com.marshmallow.anwork.task.protobuf.TaskManagerProtobuf;
 import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.stream.Stream;
@@ -32,7 +33,6 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
                                                                  TaskManagerProtobuf.parser());
 
   private PriorityQueue<Task> tasks = new PriorityQueue<Task>();
-
   private TaskManagerJournal journal = new TaskManagerJournal();
 
   /**
@@ -136,23 +136,25 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
   }
 
   @Override
-  public TaskManagerProtobuf marshall() {
+  public TaskManagerProtobuf marshall() throws IOException {
     TaskManagerProtobuf.Builder builder = TaskManagerProtobuf.newBuilder();
     Task[] taskArray = tasks.toArray(new Task[0]);
     for (Task task : taskArray) {
       builder.addTasks(task.marshall());
     }
+    builder.setJournal(journal.marshall());
     return builder.build();
   }
 
   @Override
-  public void unmarshall(TaskManagerProtobuf protobuf) {
+  public void unmarshall(TaskManagerProtobuf protobuf) throws IOException {
     for (int i = 0; i < protobuf.getTasksCount(); i++) {
       TaskProtobuf taskProtobuf = protobuf.getTasks(i);
       Task task = Task.FACTORY.makeBlankInstance();
       task.unmarshall(taskProtobuf);
       tasks.add(task);
     }
+    journal.unmarshall(protobuf.getJournal());
   }
 
   @Override

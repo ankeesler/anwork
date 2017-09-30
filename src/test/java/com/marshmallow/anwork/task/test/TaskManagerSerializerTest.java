@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.core.test.BaseSerializerTest;
+import com.marshmallow.anwork.journal.JournalEntry;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 
@@ -22,37 +23,23 @@ import org.junit.Test;
  */
 public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
 
-  private static class TaskInfo {
-    private final String name;
-    private final String description;
-    private final int priority;
-
-    public TaskInfo(String name, String description, int priority) {
-      this.name = name;
-      this.description = description;
-      this.priority = priority;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public String getDescription() {
-      return description;
-    }
-
-    public int getPriority() {
-      return priority;
-    }
-  }
-
-  private static void assertTaskManagerEquals(TaskManager manager, TaskInfo...infos) {
+  private static void assertTaskManagerEquals(TaskManager manager,
+                                              Task[] expectedTasks,
+                                              JournalEntry[] expectedEntries) {
     Task[] tasks = manager.getTasks();
-    assertEquals(infos.length, tasks.length);
-    for (int i = 0; i < infos.length; i++) {
-      assertEquals(infos[i].getName(), tasks[i].getName());
-      assertEquals(infos[i].getDescription(), tasks[i].getDescription());
-      assertEquals(infos[i].getPriority(), tasks[i].getPriority());
+    assertEquals(expectedTasks.length, tasks.length);
+    for (int i = 0; i < expectedTasks.length; i++) {
+      assertEquals(expectedTasks[i].getName(), tasks[i].getName());
+      assertEquals(expectedTasks[i].getDescription(), tasks[i].getDescription());
+      assertEquals(expectedTasks[i].getPriority(), tasks[i].getPriority());
+    }
+
+    JournalEntry[] entries = manager.getJournal().getEntries();
+    assertEquals(expectedEntries.length, entries.length);
+    for (int i = 0; i < expectedEntries.length; i++) {
+      assertEquals(expectedEntries[i].getTitle(), entries[i].getTitle());
+      assertEquals(expectedEntries[i].getDescription(), entries[i].getDescription());
+      assertEquals(expectedEntries[i].getDate(), entries[i].getDate());
     }
   }
 
@@ -66,17 +53,20 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
   @Test
   public void testNoTasks() throws IOException {
     manager = runSerialization(manager);
-    assertTaskManagerEquals(manager);
+    assertTaskManagerEquals(manager, new Task[0], new JournalEntry[0]);
   }
 
   @Test
   public void testSingleTask() throws IOException {
     manager.createTask("task-a", "This is task a", 1);
-    manager = runSerialization(manager);
 
-    assertTaskManagerEquals(manager, new TaskInfo[] {
-        new TaskInfo("task-a", "This is task a", 1),
-    });
+    Task[] tasks = manager.getTasks();
+    assertEquals(1, tasks.length);
+    JournalEntry[] entries = manager.getJournal().getEntries();
+    assertEquals(1, entries.length);
+
+    manager = runSerialization(manager);
+    assertTaskManagerEquals(manager, tasks, entries);
   }
 
   @Test
@@ -84,36 +74,26 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
     manager.createTask("task-a", "This is task a", 1);
     manager.createTask("task-b", "This is task b", 2);
     manager.createTask("task-c", "This is task c", 0);
-    manager = runSerialization(manager);
+    Task[] tasks = manager.getTasks();
+    assertEquals(3, tasks.length);
+    JournalEntry[] entries = manager.getJournal().getEntries();
+    assertEquals(3, entries.length);
 
-    assertTaskManagerEquals(manager, new TaskInfo[] {
-        new TaskInfo("task-c", "This is task c", 0),
-        new TaskInfo("task-a", "This is task a", 1),
-        new TaskInfo("task-b", "This is task b", 2),
-    });
+    manager = runSerialization(manager);
+    assertTaskManagerEquals(manager, tasks, entries);
   }
 
   @Test
   public void testTasksWithSpaces() throws IOException {
     manager.createTask("task a", "this is task a", 1);
     manager.createTask("t a s k   b", "this is task b", 2);
-    manager = runSerialization(manager);
-
     Task[] tasks = manager.getTasks();
     assertEquals(2, tasks.length);
+    JournalEntry[] entries = manager.getJournal().getEntries();
+    assertEquals(2, entries.length);
 
-    assertEquals("task a", tasks[0].getName());
-    assertEquals("this is task a", tasks[0].getDescription());
-    assertEquals(1, tasks[0].getPriority());
-
-    assertEquals("t a s k   b", tasks[1].getName());
-    assertEquals("this is task b", tasks[1].getDescription());
-    assertEquals(2, tasks[1].getPriority());
-
-    assertTaskManagerEquals(manager, new TaskInfo[] {
-        new TaskInfo("task a", "this is task a", 1),
-        new TaskInfo("t a s k   b", "this is task b", 2),
-    });
+    manager = runSerialization(manager);
+    assertTaskManagerEquals(manager, tasks, entries);
   }
 
   @Test
@@ -121,16 +101,13 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
     for (int i = 0; i < 100; i++) {
       manager.createTask("task-" + i, "this is task " + i, i);
     }
-
-    manager = runSerialization(manager);
-
     Task[] tasks = manager.getTasks();
     assertEquals(100, tasks.length);
-    for (int i = 0; i < 100; i++) {
-      assertEquals("task-" + i, tasks[i].getName());
-      assertEquals("this is task " + i, tasks[i].getDescription());
-      assertEquals(i, tasks[i].getPriority());
-    }
+    JournalEntry[] entries = manager.getJournal().getEntries();
+    assertEquals(100, entries.length);
+
+    manager = runSerialization(manager);
+    assertTaskManagerEquals(manager, tasks, entries);
   }
 
   @Test
@@ -149,13 +126,12 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
     manager.createTask("this is task 1", message, 1);
     manager.createTask("this is task 2", message, 2);
     manager.createTask("this is task 3", message, 3);
+    Task[] tasks = manager.getTasks();
+    assertEquals(3, tasks.length);
+    JournalEntry[] entries = manager.getJournal().getEntries();
+    assertEquals(3, entries.length);
 
     manager = runSerialization(manager);
-
-    assertTaskManagerEquals(manager, new TaskInfo[] {
-        new TaskInfo("this is task 1", message, 1),
-        new TaskInfo("this is task 2", message, 2),
-        new TaskInfo("this is task 3", message, 3),
-    });
+    assertTaskManagerEquals(manager, tasks, entries);
   }
 }

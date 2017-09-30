@@ -37,4 +37,5 @@ message TaskManagerJournalProtobuf {
 
 message TaskManagerProtobuf {
   repeated TaskProtobuf tasks = 1;
+  TaskManagerJournalProtobuf journal = 2;
 }
