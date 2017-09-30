@@ -5,7 +5,6 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
-- Implement "anwork journal" CLI commands.
 
 ## CLI
 - Add CLI documentation generator.

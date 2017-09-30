@@ -131,11 +131,28 @@ public class AppTest {
 
   @Test
   public void showAllJournalTest() throws IOException {
+    run("journal", "show-all");
     run("task", "create", "task-a", "This is the description for task A", "1");
     run("task", "create", "task-b", "This is the description for task B", "2");
     run("journal", "show-all");
     run("task", "delete", "task-a");
     run("journal", "show-all");
+  }
+
+  @Test
+  public void showJournalTest() throws IOException {
+    run("journal", "show", "task-a");
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("journal", "show", "task-a");
+    run("journal", "show", "task-b");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("journal", "show", "task-a");
+    run("journal", "show", "task-b");
+    run("task", "delete", "task-a");
+    run("journal", "show", "task-a");
+    run("journal", "show", "task-b");
+    run("task", "set-finished", "task-b");
+    run("journal", "show", "task-b");
   }
 
   @Test

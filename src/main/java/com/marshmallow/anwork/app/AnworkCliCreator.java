@@ -3,8 +3,10 @@ package com.marshmallow.anwork.app;
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliAction;
 import com.marshmallow.anwork.app.cli.CliList;
+import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
+import com.marshmallow.anwork.task.TaskManagerJournalEntry;
 import com.marshmallow.anwork.task.TaskState;
 
 import java.io.File;
@@ -124,5 +126,20 @@ public class AnworkCliCreator {
     journalCommandList.addCommand("show-all",
                                   "Show all of the entries in the journal",
                                   showAllAction);
+
+    CliAction showAction = new TaskManagerCliAction(config) {
+      @Override
+      public void run(String[] args, TaskManager manager) {
+        Journal<TaskManagerJournalEntry> journal = manager.getJournal(args[0]);
+        if (journal == null) {
+          System.out.println("No entries for task named " + args[0]);
+        } else {
+          System.out.println(Arrays.toString(journal.getEntries()));
+        }
+      }
+    };
+    journalCommandList.addCommand("show",
+                                  "Show the entries in the journal for a task",
+                                  showAction);
   }
 }
