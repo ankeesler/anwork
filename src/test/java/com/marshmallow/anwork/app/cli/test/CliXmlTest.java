@@ -21,7 +21,7 @@ import org.junit.Test;
  */
 public class CliXmlTest {
 
-  private final static File TEST_RESOURCE_ROOT
+  private static final File TEST_RESOURCE_ROOT
       = new File(TestUtilities.TEST_RESOURCES_ROOT, "cli-xml-test");
 
   private Cli cli;

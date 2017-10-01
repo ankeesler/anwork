@@ -1,12 +1,11 @@
 package com.marshmallow.anwork.app.cli;
 
-import org.xml.sax.helpers.DefaultHandler;
-
 import java.util.Stack;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * This class is a {@link DefaultHandler} for use by the {@link CliXmlReader}.
@@ -74,28 +73,31 @@ class CliXmlParser extends DefaultHandler {
   }
 
   @Override
-  public void startElement(String uri, String localName, String qName, Attributes attributes) {
+  public void startElement(String uri,
+                           String localName,
+                           String elementName,
+                           Attributes attributes) {
     debug("startElement(uri=" + uri
                      + ", localName=" + localName
-                     + ", qName=" + qName
+                     + ", elementName=" + elementName
                      + ", attributes=" + attributes + ")");
-    if (qName.equals(CLI)) {
+    if (elementName.equals(CLI)) {
       String name = attributes.getValue(CLI_NAME);
       String description = attributes.getValue(CLI_DESCRIPTION);
       makeCli(name, description);
-    } else if (qName.equals(FLAG)) {
+    } else if (elementName.equals(FLAG)) {
       String shortFlag = attributes.getValue(FLAG_SHORTFLAG);
       String longFlag = attributes.getValue(FLAG_LONGFLAG);
       String parameterName = attributes.getValue(FLAG_PARAMETERNAME);
       String description = attributes.getValue(FLAG_DESCRIPTION);
       String actionCreator = attributes.getValue(FLAG_ACTIONCREATOR);
       makeFlag(shortFlag, longFlag, parameterName, description, actionCreator);
-    } else if (qName.equals(COMMAND)) {
+    } else if (elementName.equals(COMMAND)) {
       String name = attributes.getValue(COMMAND_NAME);
       String description = attributes.getValue(COMMAND_DESCRIPTION);
       String actionCreator = attributes.getValue(COMMAND_ACTIONCREATOR);
       makeCommand(name, description, actionCreator);
-    } else if (qName.equals(LIST)) {
+    } else if (elementName.equals(LIST)) {
       String name = attributes.getValue(LIST_NAME);
       String description = attributes.getValue(LIST_DESCRIPTION);
       makeList(name, description);
@@ -103,11 +105,11 @@ class CliXmlParser extends DefaultHandler {
   }
 
   @Override
-  public void endElement(String uri, String localName, String qName) {
+  public void endElement(String uri, String localName, String elementName) {
     debug("endElement(uri=" + uri
                    + ", localName=" + localName
-                   + ", qName=" + qName + ")");
-    if (qName.equals(LIST)) {
+                   + ", elementName=" + elementName + ")");
+    if (elementName.equals(LIST)) {
       listStack.pop();
     }
   }
@@ -144,13 +146,20 @@ class CliXmlParser extends DefaultHandler {
       if (parameterName == null) {
         listStack.peek().addShortFlag(shortFlag, description, realAction);
       } else {
-        listStack.peek().addShortFlagWithParameter(shortFlag, description, parameterName, realAction);
+        listStack.peek().addShortFlagWithParameter(shortFlag,
+                                                   description,
+                                                   parameterName,
+                                                   realAction);
       }
     } else {
       if (parameterName == null) {
         listStack.peek().addLongFlag(shortFlag, longFlag, description, realAction);
       } else {
-        listStack.peek().addLongFlagWithParameter(shortFlag, longFlag, description, parameterName, realAction);
+        listStack.peek().addLongFlagWithParameter(shortFlag,
+                                                  longFlag,
+                                                  description,
+                                                  parameterName,
+                                                  realAction);
       }
     }
   }
