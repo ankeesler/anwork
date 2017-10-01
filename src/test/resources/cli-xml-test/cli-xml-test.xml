@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cli name="tuna" description="This is the tuna CLI">
+  <flag shortFlag="a"
+        description="This is the short a flag"
+        actionCreator="foo" />
+  <flag shortFlag="b"
+        longFlag="bacon"
+        description="This is the long b flag"
+        actionCreator="bar" />
+  <flag shortFlag="c"
+        parameterName="name"
+        description="This is the short c flag with a parameter"
+        actionCreator="bat" />
+  <flag shortFlag="d"
+        longFlag="dog"
+        parameterName="name"
+        description="This is the long d flag with a parameter"
+        actionCreator="whatever" />
+
+  <command name="fish" description="This is the tuna fish command" actionCreator="hooplah!" />
+  <command name="marlin" description="This is the tuna marlin command" actionCreator="hooplah!!!" />
+
+  <list name="list-a" description="This is list A!">
+    <flag shortFlag="m"
+          longFlag="mom"
+          description="This is the mom flag"
+          actionCreator="momActionCreator" />
+    <flag shortFlag="d"
+          longFlag="dad"
+          parameterName="activity"
+          description="This is the data flag"
+          actionCreator="dadActionCreator" />
+    <command name="bring-home-bacon" description="This command brings home the bacon" actionCreator="yeah" />
+  </list>
+
+  <list name="list-b" description="This is list B!">
+    <command name="shake-it-up" description="This command shakes it up" actionCreator="ohYeah" />
+  </list>
+</cli>

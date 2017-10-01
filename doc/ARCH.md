@@ -73,8 +73,12 @@ interacting with a Java application at the command line. Here are the main publi
   com.marshmallow.anwork.app.cli.CliCommand.
 
 CLI com.marshmallow.anwork.app.cli.CliList's and com.marshmallow.anwork.app.cli.CliCommand's are
-created using the com.marshmallow.anwork.app.cli.CliList#addList and
+created in code using the com.marshmallow.anwork.app.cli.CliList#addList and
 com.marshmallow.anwork.app.cli.CliList#addCommand methods.
+
+CLI commands can also be created via an XML document. The XML document is read using a
+com.marshmallow.anwork.app.cli.CliXmlReader which returns a com.marshmallow.anwork.app.cli.Cli
+object.
 
 This CLI implementation uses a tree to store com.marshmallow.anwork.app.cli.CliList's and
 com.marshmallow.anwork.app.cli.CliCommand's. Here are the package-scope implementation concepts.
