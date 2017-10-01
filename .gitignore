@@ -10,10 +10,10 @@ build
 untracked/
 
 # Unit test stuffs.
-src/test/resource/file-persister-test/default-context
-src/test/resource/file-persister-test/context-a
-src/test/resource/file-persister-test/context-b
-src/test/resource/app-test/
+src/test/resources/file-persister-test/default-context
+src/test/resources/file-persister-test/context-a
+src/test/resources/file-persister-test/context-b
+src/test/resources/app-test/
 
 # Generated Protocol Buffer files
 **/protobuf/*.java

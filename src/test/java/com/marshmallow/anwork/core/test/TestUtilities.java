@@ -12,5 +12,5 @@ import java.io.File;
  * @author Andrew
  */
 public final class TestUtilities {
-  public static final File TEST_RESOURCES_ROOT = new File("src/test/resource");
+  public static final File TEST_RESOURCES_ROOT = new File("src/test/resources");
 }
