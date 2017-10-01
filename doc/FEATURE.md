@@ -13,7 +13,7 @@ into sections below.
 - The CLI usage printing is ugly. Write a real test for this.
 - Create a framework where a CLI can be supplied by an XML file and turned into
   source creation of CLI, tests, and documentation.
-- Use a common BaseCliTest for both the CliTest and the CliXmlTest.
+- Add a CliActionCreator interface.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
