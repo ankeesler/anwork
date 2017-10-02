@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class AnworkCliDocumentationGenerator implements CliVisitor {
 
-  private static final String FILENAME = "CLI.md";
+  private static final String FILENAME = "doc/CLI.md";
 
   private static enum State {
     NONE,
