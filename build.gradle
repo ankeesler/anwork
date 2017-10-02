@@ -19,10 +19,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.google.protobuf'
 
 // Set the default task
-defaultTasks 'all'
-
-task all(dependsOn: [check, javadoc]) {
-}
+defaultTasks 'check', 'javadoc', 'generateCliDocumentation'
 
 // Declare some dependencies for this build.gradle file
 buildscript {
@@ -89,4 +86,10 @@ jar {
     manifest {
         attributes("Main-Class": "com.marshmallow.anwork.app.AnworkApp")
     }
+}
+
+// Run the AnworkCliDocumentationGenerator to regenerate the CLI.md file
+task generateCliDocumentation(type: JavaExec) {
+  classpath sourceSets.main.runtimeClasspath
+  main = 'com.marshmallow.anwork.app.AnworkCliDocumentationGenerator'
 }
