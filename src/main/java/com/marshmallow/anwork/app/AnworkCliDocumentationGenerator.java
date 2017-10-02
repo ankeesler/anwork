@@ -130,9 +130,9 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
   @Override
   public void visitList(String name, String description) {
     checkListState();
+    String prefix = listStack.stream().collect(Collectors.joining(" "));
+    writer.println(String.format("# %s *%s*: %s", prefix, name, description));
     listStack.push(name);
-    name = listStack.stream().collect(Collectors.joining(" "));
-    writer.println(String.format("# %s: %s", name, description));
   }
 
   @Override
