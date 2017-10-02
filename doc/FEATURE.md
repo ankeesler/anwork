@@ -14,6 +14,7 @@ into sections below.
 - Create a framework where a CLI can be supplied by an XML file and turned into
   source creation of CLI, tests, and documentation.
 - Add a CliActionCreator interface.
+- Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
