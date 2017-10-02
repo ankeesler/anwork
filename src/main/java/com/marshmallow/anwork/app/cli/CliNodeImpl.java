@@ -294,6 +294,9 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
             .filter(node -> node.isList())
             .sorted()
             .forEach(list -> list.visit(visitor));
+    if (isList()) {
+      visitor.leaveList(name);
+    }
   }
 
   private void visit(CliVisitor visitor, CliFlag flag) {

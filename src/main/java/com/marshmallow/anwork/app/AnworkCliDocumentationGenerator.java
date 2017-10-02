@@ -1,10 +1,12 @@
 package com.marshmallow.anwork.app;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliVisitor;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Stack;
+import java.util.stream.Collectors;
 
 /**
  * This is an app that generates the documentation for the ANWORK CLI from the
@@ -46,10 +48,12 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
 
   private PrintWriter writer;
   private State state;
+  private Stack<String> listStack;
 
   private AnworkCliDocumentationGenerator(PrintWriter writer) {
     this.writer = writer;
     this.state = State.NONE;
+    this.listStack = new Stack<String>();
 
     writer.println("This documentation is generated from " + this.getClass().getName());
     writer.println();
@@ -126,12 +130,21 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
   @Override
   public void visitList(String name, String description) {
     checkListState();
+    listStack.push(name);
+    name = listStack.stream().collect(Collectors.joining(" "));
     writer.println(String.format("# %s: %s", name, description));
+  }
+
+  @Override
+  public void leaveList(String name) {
+    checkListState();
+    listStack.pop();
   }
 
   @Override
   public void visitCommand(String name, String description) {
     checkCommandState();
-    writer.println(String.format("- *%s*: %s", name, description));
+    String prefix = listStack.stream().collect(Collectors.joining(" "));
+    writer.println(String.format("- %s *%s*: %s", prefix, name, description));
   }
 }

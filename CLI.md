@@ -6,16 +6,16 @@ This documentation is generated from com.marshmallow.anwork.app.AnworkCliDocumen
 - -d|--debug: Turn on debug printing
 - -n|--no-persist: Do not persist any task information
 - -o|--output (directory): Set persistence output directory
-# journal: Journal commands...
+# anwork journal: Journal commands...
 ## Commands
-- *show*: Show the entries in the journal for a task
-- *show-all*: Show all of the entries in the journal
-# task: Task commands...
+- anwork journal *show*: Show the entries in the journal for a task
+- anwork journal *show-all*: Show all of the entries in the journal
+# anwork task: Task commands...
 ## Commands
-- *create*: Create a task
-- *delete*: Delete a task
-- *set-blocked*: Set a task as blocked
-- *set-finished*: Set a task as finished
-- *set-running*: Set a task as running
-- *set-waiting*: Set a task as waiting
-- *show*: Show all tasks
+- anwork task *create*: Create a task
+- anwork task *delete*: Delete a task
+- anwork task *set-blocked*: Set a task as blocked
+- anwork task *set-finished*: Set a task as finished
+- anwork task *set-running*: Set a task as running
+- anwork task *set-waiting*: Set a task as waiting
+- anwork task *show*: Show all tasks

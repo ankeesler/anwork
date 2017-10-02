@@ -64,6 +64,17 @@ public interface CliVisitor {
   public void visitList(String name, String description);
 
   /**
+   * Leave a CLI list.
+   *
+   * <p>
+   * This is a helpful utility function to determine where a list starts and ends.
+   * </p>
+   *
+   * @param name The name of the list
+   */
+  public void leaveList(String name);
+
+  /**
    * Visit a CLI command.
    *
    * @param name The name of the command

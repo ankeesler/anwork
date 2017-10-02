@@ -286,6 +286,7 @@ public class CliTest {
     assertVisited(visitor.getVisitedLongFlagsWithParameters(), "d", "a");
     assertVisited(visitor.getVisitedCommands(), "mayo", "marlin");
     assertVisited(visitor.getVisitedLists(), "cli-test", "tuna");
+    assertVisited(visitor.getLeftLists(), "cli-test", "tuna");
   }
 
   private void assertVisited(List<String> flags, String...expecteds) {

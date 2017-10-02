@@ -22,6 +22,7 @@ public class TestCliVisitor implements CliVisitor {
   private List<String> visitedLongFlagsWithParameters = new ArrayList<String>();
   private List<String> visitedCommands = new ArrayList<String>();
   private List<String> visitedLists = new ArrayList<String>();
+  private List<String> leftLists = new ArrayList<String>();
 
   /**
    * Get the short flags that were visited by this {@link CliVisitor}.
@@ -95,6 +96,16 @@ public class TestCliVisitor implements CliVisitor {
     return visitedLists;
   }
 
+  /**
+   * Get the lists that were left by this {@link CliVisitor}. Note that the order of the lists
+   * may not match the order in which they were added to a list!
+   *
+   * @return The lists that were left by this {@link CliVisitor}
+   */
+  public List<String> getLeftLists() {
+    return leftLists;
+  }
+
   @Override
   public void visitShortFlag(String shortFlag,
                              String description) {
@@ -127,6 +138,11 @@ public class TestCliVisitor implements CliVisitor {
   public void visitList(String name,
                         String description) {
     visitedLists.add(name);
+  }
+
+  @Override
+  public void leaveList(String name) {
+    leftLists.add(name);
   }
 
   @Override
