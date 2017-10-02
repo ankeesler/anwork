@@ -75,10 +75,27 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
     }
   }
 
+  private void writeFlagLine(String shortFlag,
+                             String longFlag,
+                             String parameterName,
+                             String description) {
+    StringBuilder lineBuilder = new StringBuilder();
+    lineBuilder.append("- -").append(shortFlag);
+    if (longFlag != null) {
+      lineBuilder.append("|--" + longFlag);
+    }
+    if (parameterName != null) {
+      lineBuilder.append(' ');
+      lineBuilder.append('(').append(parameterName).append(')');
+    }
+    lineBuilder.append(": ").append(description);
+    writer.println(lineBuilder.toString());
+  }
+
   @Override
   public void visitShortFlag(String shortFlag, String description) {
     checkFlagState();
-    writer.println(String.format("- %s: %s", shortFlag, description));
+    writeFlagLine(shortFlag, null, null, description);
   }
 
   @Override
@@ -86,7 +103,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
                                           String parameterName,
                                           String description) {
     checkFlagState();
-    writer.println(String.format("- -%s <%s>: %s", shortFlag, parameterName, description));
+    writeFlagLine(shortFlag, null, parameterName, description);
   }
 
   @Override
@@ -94,7 +111,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
                             String longFlag,
                             String description) {
     checkFlagState();
-    writer.println(String.format("- -%s|--%s: %s", shortFlag, longFlag, description));
+    writeFlagLine(shortFlag, longFlag, null, description);
   }
 
   @Override
@@ -103,11 +120,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
                                          String parameterName,
                                          String description) {
     checkFlagState();
-    writer.println(String.format("- -%s|--%s <%s>: %s",
-                                 shortFlag,
-                                 longFlag,
-                                 parameterName,
-                                 description));
+    writeFlagLine(shortFlag, longFlag, parameterName, description);
   }
 
   @Override
@@ -119,6 +132,6 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
   @Override
   public void visitCommand(String name, String description) {
     checkCommandState();
-    writer.println(String.format("- %s: %s", name, description));
+    writer.println(String.format("- *%s*: %s", name, description));
   }
 }
