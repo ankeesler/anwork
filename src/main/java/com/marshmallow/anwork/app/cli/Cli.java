@@ -5,7 +5,7 @@ package com.marshmallow.anwork.app.cli;
  *
  * <p>The class is meant to be used in the following way.
  * <pre>
- *   Cli cli = new Cli();
+ *   Cli cli = new Cli("cli-app", "This is the CLI for my app.");
  *   CliNode root = cli.getRoot();
  *   root.addShortFlag("f",
  *                     "This is a description", new CliAction() { ... });
@@ -89,8 +89,7 @@ public class Cli {
   /**
    * Visit the CLI tree with a {@link CliVisitor}.
    *
-   * <p>
-   * Per CLI-node, the visitation will happen in this order.
+   * <p>Per CLI-node, the visitation will happen in this order.
    *   <ol>
    *     <li>Flags    (see {@link CliNode})</li>
    *     <li>Commands (see {@link CliCommand})</li>
@@ -98,7 +97,6 @@ public class Cli {
    *   </ol>
    * Each of the groups above will be sorted so that each visitation sequence is deterministic.
    * When lists are visited, they are visited in a depth-first manner.
-   * </p>
    *
    * @param visitor The {@link CliVisitor} with which to visit the CLI tree nodes
    */
