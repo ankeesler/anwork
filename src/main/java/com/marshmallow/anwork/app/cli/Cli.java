@@ -85,4 +85,24 @@ public class Cli {
   public String getUsage() {
     return root.getUsage();
   }
+
+  /**
+   * Visit the CLI tree with a {@link CliVisitor}.
+   *
+   * <p>
+   * Per CLI-node, the visitation will happen in this order.
+   *   <ol>
+   *     <li>Flags    (see {@link CliNode})</li>
+   *     <li>Commands (see {@link CliCommand})</li>
+   *     <li>Lists    (see {@link CliList})</li>
+   *   </ol>
+   * Each of the groups above will be sorted so that each visitation sequence is deterministic.
+   * When lists are visited, they are visited in a depth-first manner.
+   * </p>
+   *
+   * @param visitor The {@link CliVisitor} with which to visit the CLI tree nodes
+   */
+  public void visit(CliVisitor visitor) {
+    root.visit(visitor);
+  }
 }

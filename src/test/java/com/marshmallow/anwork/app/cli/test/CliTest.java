@@ -1,8 +1,13 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliCommand;
 import com.marshmallow.anwork.app.cli.CliList;
+
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -265,5 +270,28 @@ public class CliTest {
   @Test
   public void usageTest() {
     System.out.println(cli.getUsage());
+  }
+
+  /*
+   * Section - Visitor
+   */
+  @Test
+  public void testVisitorPattern() {
+    TestCliVisitor visitor = new TestCliVisitor();
+    cli.visit(visitor);
+
+    assertVisited(visitor.getVisitedShortFlags(), "a", "f", "z");
+    assertVisited(visitor.getVisitedShortFlagsWithParameters(), "c");
+    assertVisited(visitor.getVisitedLongFlags(), "b");
+    assertVisited(visitor.getVisitedLongFlagsWithParameters(), "d", "a");
+    assertVisited(visitor.getVisitedCommands(), "mayo", "marlin");
+    assertVisited(visitor.getVisitedLists(), "cli-test", "tuna");
+  }
+
+  private void assertVisited(List<String> flags, String...expecteds) {
+    assertEquals(flags.size(), expecteds.length);
+    for (String expected : expecteds) {
+      assertTrue(flags.contains(expected));
+    }
   }
 }

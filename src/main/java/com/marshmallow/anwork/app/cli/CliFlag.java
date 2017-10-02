@@ -26,7 +26,7 @@ package com.marshmallow.anwork.app.cli;
  *
  * @author Andrew
  */
-class CliFlag {
+class CliFlag implements Comparable<CliFlag> {
 
   public static final char FLAG_START = '-';
 
@@ -103,5 +103,10 @@ class CliFlag {
 
   CliAction getAction() {
     return action;
+  }
+
+  @Override
+  public int compareTo(CliFlag other) {
+    return shortFlag.compareTo(other.shortFlag);
   }
 }

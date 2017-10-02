@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * @author Andrew
  */
-class CliNodeImpl implements CliList, CliCommand {
+class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
 
   private static final int LIST_PARAM_COUNT = -1;
 
@@ -264,5 +264,64 @@ class CliNodeImpl implements CliList, CliCommand {
     CliNodeImpl activeNode = context.getActiveNode();
     String[] parameters = context.getParameters();
     activeNode.action.run(parameters);
+  }
+
+  /*
+   * Section - Visitor
+   */
+
+  void visit(CliVisitor visitor) {
+    // First, we visit ourselves.
+    if (isList()) {
+      visitor.visitList(name, description);
+    } else {
+      visitor.visitCommand(name, description);
+    }
+    // Second, we visit our flags.
+    shortFlagInfo.values()
+                 .stream()
+                 .sorted()
+                 .forEach(flag -> visit(visitor, flag));
+    // Third, we visit our commands.
+    children.values()
+            .stream()
+            .filter(node -> !node.isList())
+            .sorted()
+            .forEach(command -> command.visit(visitor));
+    // Fourth, we visit our lists.
+    children.values()
+            .stream()
+            .filter(node -> node.isList())
+            .sorted()
+            .forEach(list -> list.visit(visitor));
+  }
+
+  private void visit(CliVisitor visitor, CliFlag flag) {
+    if (flag.hasLongFlag()) {
+      if (flag.hasParameter()) {
+        visitor.visitLongFlagWithParameter(flag.getShortFlag(),
+                                           flag.getLongFlag(),
+                                           flag.getParameterName(),
+                                           flag.getDescription());
+      } else {
+        visitor.visitLongFlag(flag.getShortFlag(),
+                              flag.getLongFlag(),
+                              flag.getDescription());
+      }
+    } else { // short flag
+      if (flag.hasParameter()) {
+        visitor.visitShortFlagWithParameter(flag.getShortFlag(),
+                                            flag.getParameterName(),
+                                            flag.getDescription());
+      } else {
+        visitor.visitShortFlag(flag.getShortFlag(),
+                               flag.getDescription());
+      }
+    }
+  }
+
+  @Override
+  public int compareTo(CliNodeImpl other) {
+    return name.compareTo(other.name);
   }
 }

@@ -71,6 +71,9 @@ interacting with a Java application at the command line. Here are the main publi
   "log," "commit," etc.
 - A com.marshmallow.anwork.app.CliAction is some action that runs in response to a
   com.marshmallow.anwork.app.cli.CliCommand.
+- A com.marshmallow.anwork.app.cli.CliVisitor is some object that reacts to visiting each CLI node.
+  One can visit a CLI tree using the com.marshmallow.anwork.app.cli.Cli#visit method. This may be
+  useful for tasks such as documentation and test generation.
 
 CLI com.marshmallow.anwork.app.cli.CliList's and com.marshmallow.anwork.app.cli.CliCommand's are
 created in code using the com.marshmallow.anwork.app.cli.CliList#addList and
