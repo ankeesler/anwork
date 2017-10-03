@@ -1,9 +1,7 @@
 package com.marshmallow.anwork.app.cli;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,24 +55,28 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
    */
 
   @Override
-  public void addShortFlag(String shortFlag, String description, CliAction action) {
-    addFlag(CliFlag.makeShortFlag(shortFlag, description, action));
+  public void addShortFlag(String shortFlag, String description) {
+    addFlag(CliFlag.makeShortFlag(shortFlag, description));
   }
 
   @Override
   public void addShortFlagWithParameter(String shortFlag,
                                         String description,
                                         String parameterName,
-                                        CliAction action) {
-    addFlag(CliFlag.makeShortFlagWithParameter(shortFlag, description, parameterName, action));
+                                        String parameterDescription,
+                                        CliArgumentType parameterType) {
+    addFlag(CliFlag.makeShortFlagWithParameter(shortFlag,
+                                               description,
+                                               parameterName,
+                                               parameterDescription,
+                                               parameterType));
   }
 
   @Override
   public void addLongFlag(String shortFlag,
                           String longFlag,
-                          String description,
-                          CliAction action) {
-    addFlag(CliFlag.makeLongFlag(shortFlag, longFlag, description, action));
+                          String description) {
+    addFlag(CliFlag.makeLongFlag(shortFlag, longFlag, description));
   }
 
   @Override
@@ -82,12 +84,14 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
                                        String longFlag,
                                        String description,
                                        String parameterName,
-                                       CliAction action) {
+                                       String parameterDescription,
+                                       CliArgumentType parameterType) {
     addFlag(CliFlag.makeLongFlagWithParameter(shortFlag,
                                               longFlag,
                                               description,
                                               parameterName,
-                                              action));
+                                              parameterDescription,
+                                              parameterType));
   }
 
   private void addFlag(CliFlag flag) {
@@ -185,7 +189,7 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
     String arg = args[index];
     int nextIndex;
     if (isFlag(arg)) {
-      nextIndex = parseFlag(args, index);
+      nextIndex = parseFlag(args, index, context);
     } else if (isChild(arg) && context.getParameters().length == 0) {
       CliNodeImpl child = getChild(arg);
       nextIndex = child.parse(args, index + 1, context);
@@ -200,7 +204,7 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
     return (arg.charAt(0) == CliFlag.FLAG_START);
   }
   
-  private int parseFlag(String[] args, int index) {
+  private int parseFlag(String[] args, int index, CliParseContext context) {
     String arg = args[index];
 
     // Is it valid flag syntax?
@@ -224,16 +228,18 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
     CliFlag flag = shortFlagInfo.get(shortFlag);
 
     // Does it have an argument?
-    List<String> arguments = new ArrayList<String>();
     if (flag.hasParameter()) {
       if (index == args.length - 1) {
         throwBadArgException("Expected argument for flag '" + flag + "'", args, index);
       }
       index += 1;
-      arguments.add(args[index]);
+      String argument = args[index];
+      Object argumentValue = flag.getParameterType().getConverter().convert(argument);
+      context.getFlags().addShortFlagValue(shortFlag, argumentValue);
+    } else {
+      // By default, flags with no argument are set to Boolean.TRUE.
+      context.getFlags().addShortFlagValue(shortFlag, Boolean.TRUE);
     }
-
-    flag.getAction().run(arguments.toArray(new String[0]));
 
     return index + 1;
   }
@@ -263,7 +269,7 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
   private void runActiveNodeFromContext(CliParseContext context) {
     CliNodeImpl activeNode = context.getActiveNode();
     String[] parameters = context.getParameters();
-    activeNode.action.run(parameters);
+    activeNode.action.run(context.getFlags(), parameters);
   }
 
   /*
@@ -304,8 +310,10 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
       if (flag.hasParameter()) {
         visitor.visitLongFlagWithParameter(flag.getShortFlag(),
                                            flag.getLongFlag(),
+                                           flag.getDescription(),
                                            flag.getParameterName(),
-                                           flag.getDescription());
+                                           flag.getParameterDescription(),
+                                           flag.getParameterType());
       } else {
         visitor.visitLongFlag(flag.getShortFlag(),
                               flag.getLongFlag(),
@@ -314,8 +322,10 @@ class CliNodeImpl implements CliList, CliCommand, Comparable<CliNodeImpl> {
     } else { // short flag
       if (flag.hasParameter()) {
         visitor.visitShortFlagWithParameter(flag.getShortFlag(),
+                                            flag.getDescription(),
                                             flag.getParameterName(),
-                                            flag.getDescription());
+                                            flag.getParameterDescription(),
+                                            flag.getParameterType());
       } else {
         visitor.visitShortFlag(flag.getShortFlag(),
                                flag.getDescription());

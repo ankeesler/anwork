@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cli name="whatever" description="This is used in a test that makes sure we don't allow invalid argument types">
+  <flag shortFlag="a" description="This is short flag a; it is good" />
+  <flag shortFlag="b" description="This is short flag b; it is bad because it uses an invalid parameter type">
+    <parameter name="badParameter" description="This parameter has a bad type!" type="TUNA" />
+  </flag>
+</cli>

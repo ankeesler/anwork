@@ -6,12 +6,32 @@
     </xs:documentation>
   </xs:annotation>
 
+  <xs:simpleType name="argumentType">
+    <xs:annotation>
+      <xs:documentation>
+        Note that this simple type should be kept up to date with the com.marshmallow.anwork.app.cli.CliArgumentType type!
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="BOOLEAN" />
+      <xs:enumeration value="STRING" />
+      <xs:enumeration value="INTEGER" />
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:complexType name="flagType">
+    <xs:sequence>
+      <xs:element name="parameter" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required" />
+          <xs:attribute name="description" type="xs:string" use="required" />
+          <xs:attribute name="type" type="argumentType" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
     <xs:attribute name="shortFlag" type="xs:string" use="required" />
     <xs:attribute name="longFlag" type="xs:string" use="optional" />
-    <xs:attribute name="parameterName" type="xs:string" use="optional" />
     <xs:attribute name="description" type="xs:string" use="required" />
-    <xs:attribute name="actionCreator" type="xs:string" use="required" />
   </xs:complexType>
 
   <xs:complexType name="commandType">

@@ -31,50 +31,63 @@ class CliFlag implements Comparable<CliFlag> {
   public static final char FLAG_START = '-';
 
   static CliFlag makeShortFlag(String shortFlag,
-                               String description,
-                               CliAction action) {
-    return new CliFlag(shortFlag, null, description, null, action);
+                               String description) {
+    return new CliFlag(shortFlag, null, description, null, null, null);
   }
 
   static CliFlag makeShortFlagWithParameter(String shortFlag,
                                             String description,
                                             String parameterName,
-                                            CliAction action) {
-    return new CliFlag(shortFlag, null, description, parameterName, action);
+                                            String parameterDescription,
+                                            CliArgumentType parameterType) {
+    return new CliFlag(shortFlag,
+                       null, // longFlag
+                       description,
+                       parameterName,
+                       parameterDescription,
+                       parameterType);
   }
 
   static CliFlag makeLongFlag(String shortFlag,
                               String longFlag,
-                              String description,
-                              CliAction action) {
-    return new CliFlag(shortFlag, longFlag, description, null, action);
+                              String description) {
+    return new CliFlag(shortFlag, longFlag, description, null, null, null);
   }
 
   static CliFlag makeLongFlagWithParameter(String shortFlag,
                                            String longFlag,
                                            String description,
                                            String parameterName,
-                                           CliAction action) {
-    return new CliFlag(shortFlag, longFlag, description, parameterName, action);
+                                           String parameterDescription,
+                                           CliArgumentType parameterType) {
+    return new CliFlag(shortFlag,
+                       longFlag,
+                       description,
+                       parameterName,
+                       parameterDescription,
+                       parameterType);
   }
 
   private final String shortFlag;
   private final String longFlag;
   private final String description;
   private final String parameterName;
-  private final CliAction action;
+  private final String parameterDescription;
+  private final CliArgumentType parameterType;
 
   // See static "make" methods above.
   private CliFlag(String shortFlag,
                   String longFlag,
                   String description,
                   String parameterName,
-                  CliAction action) {
+                  String parameterDescription,
+                  CliArgumentType parameterType) {
     this.shortFlag = shortFlag;
     this.longFlag = longFlag;
     this.description = description;
     this.parameterName = parameterName;
-    this.action = action;
+    this.parameterDescription = parameterDescription;
+    this.parameterType = parameterType;
   }
 
   String getShortFlag() {
@@ -101,8 +114,12 @@ class CliFlag implements Comparable<CliFlag> {
     return parameterName;
   }
 
-  CliAction getAction() {
-    return action;
+  String getParameterDescription() {
+    return parameterDescription;
+  }
+
+  CliArgumentType getParameterType() {
+    return parameterType;
   }
 
   @Override

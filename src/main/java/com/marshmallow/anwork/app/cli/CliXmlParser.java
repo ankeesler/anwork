@@ -22,9 +22,11 @@ class CliXmlParser extends DefaultHandler {
   private static final String FLAG = "flag";
   private static final String FLAG_SHORTFLAG = "shortFlag";
   private static final String FLAG_LONGFLAG = "longFlag";
-  private static final String FLAG_PARAMETERNAME = "parameterName";
   private static final String FLAG_DESCRIPTION = "description";
-  private static final String FLAG_ACTIONCREATOR = "actionCreator";
+  private static final String FLAG_PARAMETER = "parameter";
+  private static final String FLAG_PARAMETER_NAME = "name";
+  private static final String FLAG_PARAMETER_DESCRIPTION = "description";
+  private static final String FLAG_PARAMETER_TYPE = "type";
 
   // <command>
   private static final String COMMAND = "command";
@@ -52,6 +54,14 @@ class CliXmlParser extends DefaultHandler {
 
   private Cli cli;
   private Stack<CliList> listStack = new Stack<CliList>();
+
+  // TODO: make this less field-driven and use a builder paradigm!
+  private String flagShortFlagName;
+  private String flagLongFlagName;
+  private String flagDescription;
+  private String flagParameterName;
+  private String flagParameterDescription;
+  private String flagParameterType;
 
   /**
    * Get the parsed {@link Cli} object. This method is only valid once the parsing has taken place!
@@ -86,12 +96,13 @@ class CliXmlParser extends DefaultHandler {
       String description = attributes.getValue(CLI_DESCRIPTION);
       makeCli(name, description);
     } else if (elementName.equals(FLAG)) {
-      String shortFlag = attributes.getValue(FLAG_SHORTFLAG);
-      String longFlag = attributes.getValue(FLAG_LONGFLAG);
-      String parameterName = attributes.getValue(FLAG_PARAMETERNAME);
-      String description = attributes.getValue(FLAG_DESCRIPTION);
-      String actionCreator = attributes.getValue(FLAG_ACTIONCREATOR);
-      makeFlag(shortFlag, longFlag, parameterName, description, actionCreator);
+      flagShortFlagName = attributes.getValue(FLAG_SHORTFLAG);
+      flagLongFlagName = attributes.getValue(FLAG_LONGFLAG);
+      flagDescription = attributes.getValue(FLAG_DESCRIPTION);
+    } else if (elementName.equals(FLAG_PARAMETER)) {
+      flagParameterName = attributes.getValue(FLAG_PARAMETER_NAME);
+      flagParameterDescription = attributes.getValue(FLAG_PARAMETER_DESCRIPTION);
+      flagParameterType = attributes.getValue(FLAG_PARAMETER_TYPE);
     } else if (elementName.equals(COMMAND)) {
       String name = attributes.getValue(COMMAND_NAME);
       String description = attributes.getValue(COMMAND_DESCRIPTION);
@@ -111,6 +122,8 @@ class CliXmlParser extends DefaultHandler {
                    + ", elementName=" + elementName + ")");
     if (elementName.equals(LIST)) {
       listStack.pop();
+    } else if (elementName.equals(FLAG)) {
+      makeFlag();
     }
   }
 
@@ -136,32 +149,41 @@ class CliXmlParser extends DefaultHandler {
     listStack.push(cli.getRoot());
   }
 
-  private void makeFlag(String shortFlag,
-                        String longFlag,
-                        String parameterName,
-                        String description,
-                        String actionCreator) {
-    CliAction realAction = new CliUsageAction((CliNodeImpl)cli.getRoot()); // TODO!
-    if (longFlag == null) {
-      if (parameterName == null) {
-        listStack.peek().addShortFlag(shortFlag, description, realAction);
+  private void makeFlag() {
+    // See note in cli.xsd - it should be mandated by the schema that these values stay up to date
+    // with the CliArgumentType enum!
+    boolean hasParameter = (flagParameterName != null);
+    CliArgumentType parameterType = (hasParameter
+                                     ? CliArgumentType.valueOf(flagParameterType)
+                                     : null);
+    if (flagLongFlagName == null) {
+      if (!hasParameter) {
+        listStack.peek().addShortFlag(flagShortFlagName, flagDescription);
       } else {
-        listStack.peek().addShortFlagWithParameter(shortFlag,
-                                                   description,
-                                                   parameterName,
-                                                   realAction);
+        listStack.peek().addShortFlagWithParameter(flagShortFlagName,
+                                                   flagDescription,
+                                                   flagParameterName,
+                                                   flagParameterDescription,
+                                                   parameterType);
       }
     } else {
-      if (parameterName == null) {
-        listStack.peek().addLongFlag(shortFlag, longFlag, description, realAction);
+      if (!hasParameter) {
+        listStack.peek().addLongFlag(flagShortFlagName, flagLongFlagName, flagDescription);
       } else {
-        listStack.peek().addLongFlagWithParameter(shortFlag,
-                                                  longFlag,
-                                                  description,
-                                                  parameterName,
-                                                  realAction);
+        listStack.peek().addLongFlagWithParameter(flagShortFlagName,
+                                                  flagLongFlagName,
+                                                  flagDescription,
+                                                  flagParameterName,
+                                                  flagParameterDescription,
+                                                  parameterType);
       }
     }
+    flagShortFlagName = null;
+    flagLongFlagName = null;
+    flagDescription = null;
+    flagParameterName = null;
+    flagDescription = null;
+    flagParameterType = null;
   }
 
   private void makeCommand(String name,

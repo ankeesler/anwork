@@ -16,6 +16,7 @@ class CliParseContext {
 
   private CliNodeImpl activeNode;
   private List<String> parameters = new ArrayList<String>();
+  private CliFlags flags = new CliFlags();
 
   CliNodeImpl getActiveNode() {
     return activeNode;
@@ -31,5 +32,9 @@ class CliParseContext {
 
   void addParameter(String parameter) {
     parameters.add(parameter);
+  }
+
+  CliFlags getFlags() {
+    return flags;
   }
 }

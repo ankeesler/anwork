@@ -14,8 +14,8 @@ public interface CliVisitor {
   /**
    * Visit a short flag.
    *
-   * @param shortFlag The name of the short flag
-   * @param description The description of the short flag
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param description The description of the flag
    */
   public void visitShortFlag(String shortFlag,
                              String description);
@@ -23,20 +23,26 @@ public interface CliVisitor {
   /**
    * Visit a short flag that has a parameter.
    *
-   * @param shortFlag The name of the short flag
-   * @param parameterName The name of the parameter
-   * @param description The description of the short flag
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param description The description of the flag
+   * @param parameterName The name of the parameter that the flag takes, e.g., "file path,"
+   *     "directory," ...
+   * @param parameterDescription The description of the parameter
+   * @param parameterType The {@link CliArgumentType} of the parameter
    */
   public void visitShortFlagWithParameter(String shortFlag,
+                                          String description,
                                           String parameterName,
-                                          String description);
+                                          String parameterDescription,
+                                          CliArgumentType parameterType);
 
   /**
    * Visit a long flag.
    *
-   * @param shortFlag The name of the short flag
-   * @param longFlag The name of the long flag
-   * @param description The description of the long flag
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param longFlag The name of the long flag, i.e., "debug", "verbose",
+   *     "output", etc.
+   * @param description The description of the flag
    */
   public void visitLongFlag(String shortFlag,
                             String longFlag,
@@ -45,15 +51,21 @@ public interface CliVisitor {
   /**
    * Visit a long flag that has a parameter.
    *
-   * @param shortFlag The name of the short flag
-   * @param longFlag The name of the long flag
-   * @param parameterName The name of the parameter
-   * @param description The description of the long flag
+   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param longFlag The name of the long flag, i.e., "debug", "verbose",
+   *     "output", etc.
+   * @param description The description of the flag
+   * @param parameterName The name of the parameter that the flag takes, e.g., "file path,"
+   *     "directory," ...
+   * @param parameterDescription The description of the parameter
+   * @param parameterType The {@link CliArgumentType} of the parameter
    */
   public void visitLongFlagWithParameter(String shortFlag,
                                          String longFlag,
+                                         String description,
                                          String parameterName,
-                                         String description);
+                                         String parameterDescription,
+                                         CliArgumentType parameterType);
 
   /**
    * Visit a CLI list.

@@ -34,33 +34,39 @@ public class CliXmlTest {
     assertNotNull(cli);
 
     // Test flags.
-    run("-a", "--bacon", "-c", "fish", "--dog", "marlin");
-    run("-a", "-b", "-c", "fish", "-d", "marlin");
+    run("-a", "--bacon", "-c", "fish", "--dog", "97");
+    run("-a", "-b", "-c", "fish", "-d", "34");
 
     // Test commands.
     run("fish");
     run("marlin");
 
     // Test commands and flags.
-    run("-a", "--bacon", "-c", "fish", "--dog", "marlin", "fish");
-    run("-a", "-b", "-c", "fish", "-d", "marlin", "fish");
-    run("-a", "--bacon", "-c", "fish", "--dog", "marlin", "marlin");
-    run("-a", "-b", "-c", "fish", "-d", "marlin", "marlin");
+    run("-a", "--bacon", "-c", "fish", "--dog", "25", "fish");
+    run("-a", "-b", "-c", "fish", "-d", "5", "fish");
+    run("-a", "--bacon", "-c", "fish", "--dog", "15", "marlin");
+    run("-a", "-b", "-c", "fish", "-d", "35", "marlin");
 
     // Test lists.
     run("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon");
     run("list-b", "shake-it-up");
 
     // Test lists and flags.
-    run("-a", "--bacon", "-c", "fish", "--dog", "marlin", "list-a");
-    run("-a", "-b", "-c", "fish", "-d", "marlin", "list-a");
-    run("-a", "--bacon", "-c", "fish", "--dog", "marlin", "list-b");
-    run("-a", "-b", "-c", "fish", "-d", "marlin", "list-b");
+    run("-a", "--bacon", "-c", "fish", "--dog", "1", "list-a");
+    run("-a", "-b", "-c", "fish", "-d", "2", "list-a");
+    run("-a", "--bacon", "-c", "fish", "--dog", "3", "list-b");
+    run("-a", "-b", "-c", "fish", "-d", "4", "list-b");
   }
 
   @Test(expected = Exception.class)
-  public void testBad() throws Exception {
+  public void testMissingCliTag() throws Exception {
     File file = new File(TEST_RESOURCE_ROOT, "missing-cli-tag.xml");
+    new CliXmlReader(file).read();
+  }
+
+  @Test(expected = Exception.class)
+  public void testUnknownParameterType() throws Exception {
+    File file = new File(TEST_RESOURCE_ROOT, "bad-parameter-type.xml");
     new CliXmlReader(file).read();
   }
 

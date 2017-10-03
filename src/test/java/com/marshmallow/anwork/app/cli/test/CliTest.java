@@ -1,10 +1,15 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.marshmallow.anwork.app.cli.Cli;
+import com.marshmallow.anwork.app.cli.CliArgumentType;
 import com.marshmallow.anwork.app.cli.CliCommand;
+import com.marshmallow.anwork.app.cli.CliFlags;
 import com.marshmallow.anwork.app.cli.CliList;
 
 import java.util.List;
@@ -24,16 +29,8 @@ import org.junit.Test;
 public class CliTest {
 
   private Cli cli = new Cli("cli-test",  "The are commands for the CLI unit test");
-  private TestCliAction aShortFlagAction = new TestCliAction();
-  private TestCliAction bLongFlagAction = new TestCliAction();
-  private TestCliAction cShortParameterAction = new TestCliAction();
-  private TestCliAction dLongParameterAction = new TestCliAction();
-
-  private TestCliAction tunaAndrewParameterAction = new TestCliAction();
-  private TestCliAction tunaFShortFlagAction = new TestCliAction();
 
   private TestCliAction tunaMarlinAction = new TestCliAction();
-  private TestCliAction tunaMarlinZShortFlagAction = new TestCliAction();
 
   private TestCliAction mayoAction = new TestCliAction();
 
@@ -44,39 +41,43 @@ public class CliTest {
   public void setupCli() {
     CliList root = cli.getRoot();
     root.addShortFlag("a",
-                      "Description for a flag",
-                      aShortFlagAction);
+                      "Description for a flag");
     root.addLongFlag("b",
                      "bob",
-                     "Description for flag b|bob flag",
-                     bLongFlagAction);
+                     "Description for flag b|bob flag");
     root.addShortFlagWithParameter("c",
                                    "Description for c flag",
                                    "word",
-                                   cShortParameterAction);
+                                   "Some word, whatever you want",
+                                   CliArgumentType.STRING);
     root.addLongFlagWithParameter("d",
                                   "dog",
                                   "Description for d|dog",
                                   "name",
-                                  dLongParameterAction);
+                                  "The name of the dog",
+                                  CliArgumentType.STRING);
+    root.addShortFlagWithParameter("e",
+                                   "This is the e short flag",
+                                   "number",
+                                   "This is your favorite number",
+                                   CliArgumentType.INTEGER);
 
     CliList tunaList = root.addList("tuna",
                                     "This is the tuna command list");
     tunaList.addLongFlagWithParameter("a",
                                       "andrew",
                                       "Description for andrew flag",
-                                      "whatever",
-                                      tunaAndrewParameterAction);
+                                      "age",
+                                      "The age you think I am",
+                                      CliArgumentType.INTEGER);
     tunaList.addShortFlag("f",
-                          "The f flag, ya know",
-                          tunaFShortFlagAction);
+                          "The f flag, ya know");
 
     CliCommand tunaMarlinCommand = tunaList.addCommand("marlin",
                                                       "This is the marlin command",
                                                       tunaMarlinAction);
     tunaMarlinCommand.addShortFlag("z",
-                                   "The z flag, ya know",
-                                   tunaMarlinZShortFlagAction);
+                                   "The z flag, ya know");
 
     root.addCommand("mayo", "This is the mayo command", mayoAction);
   }
@@ -138,6 +139,23 @@ public class CliTest {
     runTest("-a", "tuna", "this-command-does-not-exist");
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testBadFlagTypeAtEnd() throws IllegalArgumentException {
+    runTest("-a", "--dog", "rover", "-e", "this is not a number");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBadFlagTypeAtBeginning() throws IllegalArgumentException {
+    runTest("-e", "moooo", "-a", "--dog", "rover");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBadGetFlagValue() throws IllegalArgumentException {
+    runTest("-e", "15", "tuna", "marlin");
+    assertTrue(tunaMarlinAction.getRan());
+    tunaMarlinAction.getFlags().getValue("e", CliArgumentType.STRING);
+  }
+
   /*
    * Subsection - Positive Flag Tests
    */
@@ -145,46 +163,26 @@ public class CliTest {
   @Test
   public void shortFlagOnlyTest() throws IllegalArgumentException {
     runTest("-a");
-    CliTestUtilities.assertActionRan(aShortFlagAction);
-    CliTestUtilities.assertActionDidNotRun(bLongFlagAction);
-    CliTestUtilities.assertActionDidNotRun(cShortParameterAction);
-    CliTestUtilities.assertActionDidNotRun(dLongParameterAction);
   }
 
   @Test
   public void longFlagShortFlagTest() throws IllegalArgumentException {
     runTest("--bob", "-a");
-    CliTestUtilities.assertActionRan(aShortFlagAction);
-    CliTestUtilities.assertActionRan(bLongFlagAction);
-    CliTestUtilities.assertActionDidNotRun(cShortParameterAction);
-    CliTestUtilities.assertActionDidNotRun(dLongParameterAction);
   }
 
   @Test
   public void testShortArgumentShortFlag() throws IllegalArgumentException {
     runTest("-c", "hello", "-a");
-    CliTestUtilities.assertActionRan(aShortFlagAction);
-    CliTestUtilities.assertActionDidNotRun(bLongFlagAction);
-    CliTestUtilities.assertActionRan(cShortParameterAction, "hello");
-    CliTestUtilities.assertActionDidNotRun(dLongParameterAction);
   }
 
   @Test
   public void testEverything() throws IllegalArgumentException {
     runTest("-c", "hello", "--bob", "-a", "--dog", "world");
-    CliTestUtilities.assertActionRan(aShortFlagAction);
-    CliTestUtilities.assertActionRan(bLongFlagAction);
-    CliTestUtilities.assertActionRan(cShortParameterAction, "hello");
-    CliTestUtilities.assertActionRan(dLongParameterAction, "world");
   }
 
   @Test
   public void testEmptyArgs() {
     runTest();
-    CliTestUtilities.assertActionDidNotRun(aShortFlagAction);
-    CliTestUtilities.assertActionDidNotRun(bLongFlagAction);
-    CliTestUtilities.assertActionDidNotRun(cShortParameterAction);
-    CliTestUtilities.assertActionDidNotRun(dLongParameterAction);
   }
 
   /*
@@ -212,56 +210,70 @@ public class CliTest {
   @Test
   public void testTunaListWithoutPreFlags() {
     runTest("tuna");
-    CliTestUtilities.assertActionDidNotRun(aShortFlagAction);
-    CliTestUtilities.assertActionDidNotRun(cShortParameterAction);
+    assertFalse(tunaMarlinAction.getRan());
   }
 
   @Test
   public void testTunaListWithPreFlags() {
     runTest("-a", "-c", "hello", "tuna");
-    CliTestUtilities.assertActionRan(aShortFlagAction);
-    CliTestUtilities.assertActionRan(cShortParameterAction, "hello");
+    assertFalse(tunaMarlinAction.getRan());
   }
 
   @Test
   public void testMarlinCommandWithoutArgument() {
     runTest("tuna", "marlin");
-    CliTestUtilities.assertActionRan(tunaMarlinAction);
+    assertTrue(tunaMarlinAction.getRan());
+    CliFlags flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(new String[0], flags.getAllShortFlags());
+    assertNull(flags.getValue("z", CliArgumentType.BOOLEAN));
+    assertEquals(0, tunaMarlinAction.getArguments().length);
   }
 
   @Test
   public void testMarlinCommandWithFlag() {
     runTest("tuna", "marlin", "-z");
-    CliTestUtilities.assertActionRan(tunaMarlinAction);
-    CliTestUtilities.assertActionRan(tunaMarlinZShortFlagAction);
+    assertTrue(tunaMarlinAction.getRan());
+    CliFlags flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(new String[] { "z" }, flags.getAllShortFlags());
+    assertEquals(Boolean.TRUE, flags.getValue("z", CliArgumentType.BOOLEAN));
+    assertArrayEquals(tunaMarlinAction.getArguments(), new String[0]);
   }
 
   @Test
   public void testMarlinCommandWithArguments() {
     runTest("tuna", "marlin", "hello", "world");
-    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello", "world");
-    CliTestUtilities.assertActionDidNotRun(tunaMarlinZShortFlagAction);
+    assertTrue(tunaMarlinAction.getRan());
+    CliFlags flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(flags.getAllShortFlags(), new String[0]);
+    assertNull(flags.getValue("z", CliArgumentType.BOOLEAN));
+    assertArrayEquals(new String[] { "hello", "world" }, tunaMarlinAction.getArguments());
   }
 
   @Test
   public void testMarlinCommandWithArgumentsAndFlag() {
     runTest("tuna", "marlin", "-z", "hello", "world");
-    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello", "world");
-    CliTestUtilities.assertActionRan(tunaMarlinZShortFlagAction);
+    CliFlags flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(flags.getAllShortFlags(), new String[] { "z" });
+    assertEquals(Boolean.TRUE, flags.getValue("z", CliArgumentType.BOOLEAN));
+    assertArrayEquals(new String[] { "hello", "world" }, tunaMarlinAction.getArguments());
   }
 
   @Test
   public void testMarlinCommandWitPreFlagsAndArguments() {
-    runTest("tuna", "-a", "andrew", "-f", "marlin", "hello", "world");
-    CliTestUtilities.assertActionRan(tunaAndrewParameterAction, "andrew");
-    CliTestUtilities.assertActionRan(tunaFShortFlagAction);
-    CliTestUtilities.assertActionRan(tunaMarlinAction, "hello", "world");
+    runTest("tuna", "-a", "15", "-f", "marlin", "hello", "world");
+    assertTrue(tunaMarlinAction.getRan());
+    CliFlags flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(new String[] { "a", "f" }, flags.getAllShortFlags());
+    assertEquals(15, flags.getValue("a", CliArgumentType.INTEGER));
   }
 
   @Test
   public void testMayoCommand() {
     runTest("mayo", "a", "b", "c");
-    CliTestUtilities.assertActionRan(mayoAction, "a", "b", "c");
+    assertTrue(mayoAction.getRan());
+    CliFlags flags = mayoAction.getFlags();
+    assertArrayEquals(new String[0], flags.getAllShortFlags());
+    assertArrayEquals(new String[] { "a", "b", "c" }, mayoAction.getArguments());
   }
 
   /*
@@ -281,7 +293,7 @@ public class CliTest {
     cli.visit(visitor);
 
     assertVisited(visitor.getVisitedShortFlags(), "a", "f", "z");
-    assertVisited(visitor.getVisitedShortFlagsWithParameters(), "c");
+    assertVisited(visitor.getVisitedShortFlagsWithParameters(), "c", "e");
     assertVisited(visitor.getVisitedLongFlags(), "b");
     assertVisited(visitor.getVisitedLongFlagsWithParameters(), "d", "a");
     assertVisited(visitor.getVisitedCommands(), "mayo", "marlin");

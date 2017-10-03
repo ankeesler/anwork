@@ -18,7 +18,7 @@ public class CliUsageAction implements CliAction {
   }
 
   @Override
-  public void run(String[] arguments) {
+  public void run(CliFlags flags, String[] arguments) {
     System.out.println(node.getUsage());
   }
 }

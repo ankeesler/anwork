@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import com.marshmallow.anwork.app.cli.CliArgumentType;
 import com.marshmallow.anwork.app.cli.CliVisitor;
 
 import java.util.ArrayList;
@@ -114,8 +115,10 @@ public class TestCliVisitor implements CliVisitor {
 
   @Override
   public void visitShortFlagWithParameter(String shortFlag,
+                                          String description,
                                           String parameterName,
-                                          String description) {
+                                          String parameterDescription,
+                                          CliArgumentType parameterType) {
     visitedShortFlagsWithParameters.add(shortFlag);
   }
 
@@ -129,8 +132,10 @@ public class TestCliVisitor implements CliVisitor {
   @Override
   public void visitLongFlagWithParameter(String shortFlag,
                                          String longFlag,
+                                         String description,
                                          String parameterName,
-                                         String description) {
+                                         String parameterDescription,
+                                         CliArgumentType parameterType) {
     visitedLongFlagsWithParameters.add(shortFlag);
   }
 

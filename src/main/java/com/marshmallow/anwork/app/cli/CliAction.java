@@ -14,14 +14,10 @@ public interface CliAction {
   /**
    * Run the CLI action.
    *
-   * @param parameters The parameters to the action; this parameter is never
-   * <code>null</code>
-   * @see CliNodeImpl#addShortFlag(String, String, CliAction)
-   * @see CliNodeImpl#addShortFlagWithParameter(String, String, String, CliAction)
-   * @see CliNodeImpl#addLongFlag(String, String, String, CliAction)
-   * @see CliNodeImpl#addLongFlagWithParameter(String, String, String, String, CliAction)
+   * @param parameters The parameters to the action; this parameter is never <code>null</code>
+   * @param flags The {@link CliFlags} passed to this CLI command
    * @see CliNodeImpl#addCommand(String, String, CliAction)
    */
-  public void run(String[] parameters);
+  public void run(CliFlags flags, String[] parameters);
 
 }

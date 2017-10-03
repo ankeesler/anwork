@@ -1,35 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cli name="tuna" description="This is the tuna CLI">
-  <flag shortFlag="a"
-        description="This is the short a flag"
-        actionCreator="foo" />
-  <flag shortFlag="b"
-        longFlag="bacon"
-        description="This is the long b flag"
-        actionCreator="bar" />
-  <flag shortFlag="c"
-        parameterName="name"
-        description="This is the short c flag with a parameter"
-        actionCreator="bat" />
-  <flag shortFlag="d"
-        longFlag="dog"
-        parameterName="name"
-        description="This is the long d flag with a parameter"
-        actionCreator="whatever" />
+  <flag shortFlag="a" description="This is the short a flag" />
+  <flag shortFlag="b" longFlag="bacon" description="This is the long b flag" />
+  <flag shortFlag="c" description="This is the short c flag with a parameter">
+    <parameter name="name" description="This is the name of something" type="STRING" />
+  </flag>
+  <flag shortFlag="d" longFlag="dog" description="This is the long d flag with a parameter">
+    <parameter name="age" description="This is the age of the dog" type="INTEGER" />
+  </flag>
+  <flag shortFlag="e" description="This is a boolean flag">
+    <parameter name="yesOrNo" description="This is a boolean flag" type="BOOLEAN" />
+  </flag>
 
   <command name="fish" description="This is the tuna fish command" actionCreator="hooplah!" />
   <command name="marlin" description="This is the tuna marlin command" actionCreator="hooplah!!!" />
 
   <list name="list-a" description="This is list A!">
-    <flag shortFlag="m"
-          longFlag="mom"
-          description="This is the mom flag"
-          actionCreator="momActionCreator" />
-    <flag shortFlag="d"
-          longFlag="dad"
-          parameterName="activity"
-          description="This is the data flag"
-          actionCreator="dadActionCreator" />
+    <flag shortFlag="m" longFlag="mom" description="This is the mom flag" />
+    <flag shortFlag="d" longFlag="dad" description="This is the data flag">
+      <parameter name="activity" description="This is the activity that dad is doing" type="STRING" />
+    </flag>
     <command name="bring-home-bacon" description="This command brings home the bacon" actionCreator="yeah" />
   </list>
 
