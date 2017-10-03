@@ -79,6 +79,9 @@ checkstyle {
 // Generate the Protocol Buffer code into the source directory so that we can pull it into the Eclipse build.
 protobuf {
     generatedFilesBaseDir = 'src'
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0'
+    }
 }
 
 // Create a jar with the correct so that users can easily run this app
