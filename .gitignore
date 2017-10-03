@@ -17,3 +17,6 @@ src/test/resources/app-test/
 
 # Generated Protocol Buffer files
 **/protobuf/*.java
+
+# Eclipse Oxygen added this...
+/bin/
