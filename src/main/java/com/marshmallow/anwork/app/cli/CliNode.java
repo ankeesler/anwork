@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.app.cli;
 
 /**
- * This is the base interface for how to work with a node in a CLI tree. 
+ * This is the base interface for how to work with a node in a CLI tree.
  *
  * <p>
  * This interface is to be used within this package. We may expose this in the future, if we
@@ -27,7 +27,7 @@ interface CliNode {
    * {@link CliArgumentType#BOOLEAN}.
    * </p>
    *
-   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param shortFlag The name of the short flag, e.g., "d", "v", "o", etc.
    * @param description The description of the flag
    */
   public void addShortFlag(String shortFlag, String description);
@@ -35,7 +35,7 @@ interface CliNode {
   /**
    * Make a short flag that takes a parameter.
    *
-   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
+   * @param shortFlag The name of the short flag, e.g., "d", "v", "o", etc.
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes, e.g., "file path,"
    *     "directory," ...
@@ -56,8 +56,8 @@ interface CliNode {
    * {@link CliArgumentType#BOOLEAN}.
    * </p>
    *
-   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
-   * @param longFlag The name of the long flag, i.e., "debug", "verbose",
+   * @param shortFlag The name of the short flag, e.g., "d", "v", "o", etc.
+   * @param longFlag The name of the long flag, e.g., "debug", "verbose",
    *     "output", etc.
    * @param description The description of the flag
    */
@@ -68,8 +68,8 @@ interface CliNode {
   /**
    * Make a long flag that takes a parameter.
    *
-   * @param shortFlag The name of the short flag, i.e., "d", "v", "o", etc.
-   * @param longFlag The name of the long flag, i.e., "debug", "verbose",
+   * @param shortFlag The name of the short flag, e.g., "d", "v", "o", etc.
+   * @param longFlag The name of the long flag, e.g., "debug", "verbose",
    *     "output", etc.
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes, e.g., "file path,"
