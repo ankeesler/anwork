@@ -59,6 +59,8 @@ that they occured. Here are the major interfaces.
 
 ## CLI
 
+### Public Interface
+
 The CLI framework is a (large) add-on to the application layer. It is a general framework for
 interacting with a Java application at the command line. Here are the main public concepts.
 - A com.marshmallow.anwork.app.cli.Cli is the entry point object for creating a CLI for an
@@ -81,7 +83,17 @@ com.marshmallow.anwork.app.cli.CliList#addCommand methods.
 
 CLI commands can also be created via an XML document. The XML document is read using a
 com.marshmallow.anwork.app.cli.CliXmlReader which returns a com.marshmallow.anwork.app.cli.Cli
-object.
+object. There is a schema associated with this XML format: com.marshmallow.anwork.app.cli.cli.xsd.
+
+CLI flags (which can be applied to com.marshmallow.anwork.app.cli.CliList's and
+com.marshmallow.anwork.app.cli.CliCommand's) can have a parameter passed to them. These flag values
+can be accessed by com.marshmallow.anwork.app.cli.CliAction's through
+com.marshmallow.anwork.app.cli.CliFlags instances, which are roughly a map from the flag to the
+value of the flag. Each flag value has some sort of type associated with it. If there is no
+parameter, then a BOOLEAN type is assumed. These types are defined in the
+com.marshmallow.anwork.app.cli.CliArgumentTypes enum.
+
+### Internal Implementation
 
 This CLI implementation uses a tree to store com.marshmallow.anwork.app.cli.CliList's and
 com.marshmallow.anwork.app.cli.CliCommand's. Here are the package-scope implementation concepts.
@@ -91,6 +103,13 @@ com.marshmallow.anwork.app.cli.CliCommand's. Here are the package-scope implemen
 - A com.marshmallow.anwork.app.cli.CliNode is the common base interface for
   com.marshmallow.anwork.app.cli.CliList and com.marshmallow.anwork.app.cli.CliCommand. A node can
   have com.marshmallow.anwork.app.cli.CliFlag's added to it.
+
+Each com.marshmallow.anwork.app.cli.CliArgumentTypes value has a
+com.marshmallow.anwork.app.cli.CliArgumentConverter associated with it. This object takes the
+string values that are passed to the CLI system over the command line and turns them into some
+instance of some Java object type. Currently, there are instance
+com.marshmallow.anwork.app.cli.CliArgumentConverter types that can be accessed via
+com.marshmallow.anwork.app.cli.CliArgumentConverters.
 
 ## Test
 

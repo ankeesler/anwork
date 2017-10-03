@@ -6,6 +6,7 @@ into sections below.
 ## Application
 - Add note command for adding a note to a task.
 - Create Anwork's CLI XML document.
+- Update app with new CLI flag interface.
 
 ## CLI
 - Add CLI documentation generator.
@@ -15,6 +16,9 @@ into sections below.
   source creation of CLI, tests, and documentation.
 - Add a CliActionCreator interface.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
+- Use a builder flass for flags and reuse it in the XML parser!
+- Provide the CLI schema through a Java binary class, not a file!
+- Add more negative test cases for the XML schema!
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
@@ -28,3 +32,7 @@ into sections below.
 
 ## Serialization
 - We need a more defined way to get a class' Serializer.
+
+# Tasks
+- Write our own heap so that we can easily get the tasks in their sorted order.
+- Cache the TaskManagerJournal per-task instances so we don't keep creating new objects.
