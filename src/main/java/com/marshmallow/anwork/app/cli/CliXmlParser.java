@@ -34,6 +34,8 @@ class CliXmlParser extends DefaultHandler {
   private static final String COMMAND_DESCRIPTION = "description";
   private static final String COMMAND_ACTION = "action";
   private static final String COMMAND_ACTION_CLASS = "class";
+  private static final String COMMAND_ACTIONCREATOR = "actionCreator";
+  private static final String COMMAND_ACTIONCREATOR_CLASS = "class";
 
   // <list>
   private static final String LIST = "list";
@@ -68,7 +70,8 @@ class CliXmlParser extends DefaultHandler {
   // <command>
   private String commandName;
   private String commandDescription;
-  private String commandClass;
+  private String commandActionClass;
+  private String commandActionCreatorClass;
 
   /**
    * Get the parsed {@link Cli} object. This method is only valid once the parsing has taken place!
@@ -114,7 +117,9 @@ class CliXmlParser extends DefaultHandler {
       commandName = attributes.getValue(COMMAND_NAME);
       commandDescription = attributes.getValue(COMMAND_DESCRIPTION);
     } else if (elementName.equals(COMMAND_ACTION)) {
-      commandClass = attributes.getValue(COMMAND_ACTION_CLASS);
+      commandActionClass = attributes.getValue(COMMAND_ACTION_CLASS);
+    } else if (elementName.equals(COMMAND_ACTIONCREATOR)) {
+      commandActionCreatorClass = attributes.getValue(COMMAND_ACTIONCREATOR_CLASS);
     } else if (elementName.equals(LIST)) {
       String name = attributes.getValue(LIST_NAME);
       String description = attributes.getValue(LIST_DESCRIPTION);
@@ -202,16 +207,24 @@ class CliXmlParser extends DefaultHandler {
   private void makeCommand() throws Exception {
     CliAction action = makeCommandAction();
     listStack.peek().addCommand(commandName, commandDescription, action);
+    commandName = null;
+    commandDescription = null;
+    commandActionClass = null;
+    commandActionCreatorClass = null;
   }
 
   private CliAction makeCommandAction() throws Exception {
+    boolean isActionCreator = (commandActionCreatorClass != null);
+    String commandClass = (isActionCreator ? commandActionCreatorClass : commandActionClass);
     Class<?> clazz = Class.forName(commandClass);
-    if (!CliAction.class.isAssignableFrom(clazz)) {
+    if ((isActionCreator && !CliActionCreator.class.isAssignableFrom(clazz))
+        || (!isActionCreator && !CliAction.class.isAssignableFrom(clazz))) {
       throw new Exception("Class " + clazz.getName() + " for command " + commandName
                           + " is not an instance of " + CliAction.class.getName());
     }
-    CliAction action = (CliAction)clazz.newInstance();
-    return action;
+    return (isActionCreator
+            ? ((CliActionCreator)clazz.newInstance()).createAction(commandName)
+            : (CliAction)clazz.newInstance());
   }
 
   private void makeList(String name,

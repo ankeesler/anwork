@@ -34,20 +34,23 @@
     <xs:attribute name="description" type="xs:string" use="required" />
   </xs:complexType>
 
-  <xs:simpleType name="classType">
-    <xs:restriction base="xs:string">
-      <xs:pattern value="([a-z]+.)*[A-Za-z]+" />
-    </xs:restriction>
-  </xs:simpleType>
-
-  <xs:complexType name="actionType">
-    <xs:attribute name="class" type="classType"/>
+  <xs:complexType name="classType">
+    <xs:attribute name="class">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="([a-z]+.)*[A-Za-z]+" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
   </xs:complexType>
 
   <xs:complexType name="commandType">
     <xs:sequence>
       <xs:element name="flag" type="flagType" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="action" type="actionType" />
+      <xs:choice>
+        <xs:element name="action" type="classType" />
+        <xs:element name="actionCreator" type="classType" />
+      </xs:choice>
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="description" type="xs:string" use="required" />

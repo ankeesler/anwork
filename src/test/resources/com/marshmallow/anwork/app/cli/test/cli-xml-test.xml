@@ -13,10 +13,10 @@
   </flag>
 
   <command name="fish" description="This is the tuna fish command">
-    <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
+    <actionCreator class="com.marshmallow.anwork.app.cli.test.TestCliActionCreator" />
   </command>
   <command name="marlin" description="This is the tuna marlin command">
-    <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
+    <actionCreator class="com.marshmallow.anwork.app.cli.test.TestCliActionCreator" />
   </command>
 
   <list name="list-a" description="This is list A!">

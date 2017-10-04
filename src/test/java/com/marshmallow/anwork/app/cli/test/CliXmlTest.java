@@ -2,7 +2,9 @@ package com.marshmallow.anwork.app.cli.test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliXmlReader;
@@ -27,21 +29,34 @@ public class CliXmlTest {
 
   @Test
   public void testGood() throws Exception {
+    // Reset the run count on the test actions.
+    BringHomeBaconTestCliAction.resetRunCount();
+    TestCliActionCreator.resetCreatedActions();
+
     cli = read("cli-xml-test.xml");
     assertNotNull(cli);
-
-    // Reset the run count on the test action.
-    BringHomeBaconTestCliAction.resetRunCount();
 
     // Test flags.
     run("-a", "--bacon", "-c", "fish", "--dog", "97");
     run("-a", "-b", "-c", "fish", "-d", "34");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
+    TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
+    assertNotNull(fishAction);
+    assertFalse(fishAction.getRan());
+    TestCliAction marlinAction = TestCliActionCreator.getCreatedAction("marlin");
+    assertNotNull(marlinAction);
+    assertFalse(marlinAction.getRan());
 
     // Test commands.
     run("fish");
     run("marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
+    fishAction = TestCliActionCreator.getCreatedAction("fish");
+    assertNotNull(fishAction);
+    assertTrue(fishAction.getRan());
+    marlinAction = TestCliActionCreator.getCreatedAction("marlin");
+    assertNotNull(marlinAction);
+    assertTrue(marlinAction.getRan());
 
     // Test commands and flags.
     run("-a", "--bacon", "-c", "fish", "--dog", "25", "fish");
@@ -93,6 +108,16 @@ public class CliXmlTest {
   @Test(expected = Exception.class)
   public void testBadClassType() throws Exception {
     read("bad-class-type.xml");
+  }
+
+  @Test(expected = Exception.class)
+  public void testNoActionOrActionCreator() throws Exception {
+    read("no-action-or-action-creator.xml");
+  }
+
+  @Test(expected = Exception.class)
+  public void testBothActionAndActionCreator() throws Exception {
+    read("both-action-and-action-creator.xml");
   }
 
   private Cli read(String filename) throws Exception {
