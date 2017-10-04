@@ -21,15 +21,12 @@ import org.junit.Test;
  */
 public class CliXmlTest {
 
-  private static final File TEST_RESOURCE_ROOT
-      = new File(TestUtilities.TEST_RESOURCES_ROOT, "cli-xml-test");
-
   private Cli cli;
 
   @Test
   public void testGood() throws Exception {
-    File file = new File(TEST_RESOURCE_ROOT, "cli-xml-test.xml");
-    CliXmlReader reader = new CliXmlReader(file);
+    File xmlFile = TestUtilities.getFile("cli-xml-test.xml", getClass());
+    CliXmlReader reader = new CliXmlReader(xmlFile);
     cli = reader.read();
     assertNotNull(cli);
 
@@ -60,13 +57,13 @@ public class CliXmlTest {
 
   @Test(expected = Exception.class)
   public void testMissingCliTag() throws Exception {
-    File file = new File(TEST_RESOURCE_ROOT, "missing-cli-tag.xml");
+    File file = TestUtilities.getFile("missing-cli-tag.xml", getClass());
     new CliXmlReader(file).read();
   }
 
   @Test(expected = Exception.class)
   public void testUnknownParameterType() throws Exception {
-    File file = new File(TEST_RESOURCE_ROOT, "bad-parameter-type.xml");
+    File file = TestUtilities.getFile("bad-parameter-type.xml", getClass());
     new CliXmlReader(file).read();
   }
 

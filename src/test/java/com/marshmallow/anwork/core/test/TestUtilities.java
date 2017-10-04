@@ -1,6 +1,9 @@
 package com.marshmallow.anwork.core.test;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
+import java.net.URL;
 
 /**
  * A class that holds test utilties.
@@ -12,5 +15,27 @@ import java.io.File;
  * @author Andrew
  */
 public final class TestUtilities {
-  public static final File TEST_RESOURCES_ROOT = new File("src/test/resources");
+
+  /**
+   * Get a {@link File} with the passed name in the same package as the passed {@link Class}.
+   *
+   * <p>
+   * Note: this method will call {@link Assert#fail(String)} if the file cannot be found.
+   * </p>
+   *
+   * @param name The name of the file
+   * @param clazz The {@link Class} to use to get the file
+   * @return A {@link File} with the passed name in the same package as the passed {@link Class}
+   */
+  public static File getFile(String name, Class<?> clazz) {
+    URL url = clazz.getResource(name);
+    try {
+      File file = new File(url.toURI());
+      System.out.println("Loaded file with name " + name + " and class " + clazz + ": " + file);
+      return file;
+    } catch (Exception e) {
+      fail("Cannot convert " + name + " to file for class " + clazz + ": " + e);
+      return null;
+    }
+  }
 }

@@ -10,10 +10,10 @@ build
 untracked/
 
 # Unit test stuffs.
-src/test/resources/file-persister-test/default-context
-src/test/resources/file-persister-test/context-a
-src/test/resources/file-persister-test/context-b
-src/test/resources/app-test/
+src/test/resources/com/marshmallow/anwork/core/test/default-context
+src/test/resources/com/marshmallow/anwork/core/test/context-a
+src/test/resources/com/marshmallow/anwork/core/test/context-b
+src/test/resources/com/marshmallow/anwork/app/test/*
 
 # Generated Protocol Buffer files
 **/protobuf/*.java

@@ -30,8 +30,7 @@ import org.junit.Test;
 public class AppTest {
 
   private static final String CONTEXT = "app-test-context";
-  private static final File PERSISTENCE_ROOT
-      = new File(TestUtilities.TEST_RESOURCES_ROOT, "app-test");
+  private static final File PERSISTENCE_ROOT = TestUtilities.getFile(".", AppTest.class);
 
   /**
    * Hack-ish-ly clean up any existing context so we run our test cases fresh.
