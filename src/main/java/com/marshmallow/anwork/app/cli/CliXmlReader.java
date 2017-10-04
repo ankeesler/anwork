@@ -23,7 +23,7 @@ import org.xml.sax.SAXException;
  */
 public class CliXmlReader {
 
-  private static final String SCHEMA_RESOURCE = "/com/marshmallow/anwork/app/cli/cli.xsd";
+  private static final String SCHEMA_RESOURCE = "cli.xsd";
 
   // Use #getSchema to access me!!!
   private static Schema SCHEMA = null;
