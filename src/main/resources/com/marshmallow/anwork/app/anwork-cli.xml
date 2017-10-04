@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cli name="anwork" description="ANWORK CLI commands">
+  <flag shortFlag="d" description="Turn on debug printing" />
+  <flag shortFlag="c" longFlag="context" description="Set the persistence context">
+    <parameter name="name" description="The name of the persistence context" type="STRING" />
+  </flag>
+  <flag shortFlag="o" longFlag="output" description="The persistence output directory">
+    <parameter name="directory" description="Output directory" type="STRING" />
+  </flag>
+  <flag shortFlag="n" longFlag="no-persist" description="Do not persist any task information" />
+
+  <list name="task" description="Task commands...">
+    <command name="create" description="Create a task">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+    <command name="set-waiting" description="Set a task as waiting">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+    <command name="set-blocked" description="Set a task as blocked">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+    <command name="set-running" description="Set a task as running">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+    <command name="set-finished" description="Set a task as finished">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+    <command name="delete" description="Delete a task">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+    <command name="show" description="Show all tasks">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
+  </list>
+
+  <list name="journal" description="Journal commands...">
+    <command name="show-all" description="Show all of the entries in the journal">
+      <actionCreator class="com.marshmallow.anwork.app.JournalCliActionCreator" />
+    </command>
+    <command name="show" description="Show the entries in the journal for a task">
+      <actionCreator class="com.marshmallow.anwork.app.JournalCliActionCreator" />
+    </command>
+  </list>
+</cli>

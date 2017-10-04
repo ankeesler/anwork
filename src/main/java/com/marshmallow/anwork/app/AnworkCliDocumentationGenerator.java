@@ -4,7 +4,6 @@ import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliArgumentType;
 import com.marshmallow.anwork.app.cli.CliVisitor;
 
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -41,7 +40,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
       Cli cli = new AnworkCliCreator().makeCli();
       CliVisitor visitor = new AnworkCliDocumentationGenerator(writer);
       cli.visit(visitor);
-    } catch (FileNotFoundException e) {
+    } catch (Exception e) {
       System.out.println("Error: " + e);
     }
   }
