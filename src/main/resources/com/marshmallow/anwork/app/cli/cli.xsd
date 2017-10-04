@@ -34,13 +34,23 @@
     <xs:attribute name="description" type="xs:string" use="required" />
   </xs:complexType>
 
+  <xs:simpleType name="classNameType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([a-z]+.)*[A-Za-z]+" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="actionType">
+    <xs:attribute name="className" type="classNameType"/>
+  </xs:complexType>
+
   <xs:complexType name="commandType">
     <xs:sequence>
       <xs:element name="flag" type="flagType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="action" type="actionType" />
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="description" type="xs:string" use="required" />
-    <xs:attribute name="actionCreator" type="xs:string" use="required" />
   </xs:complexType>
 
   <xs:complexType name="listType">

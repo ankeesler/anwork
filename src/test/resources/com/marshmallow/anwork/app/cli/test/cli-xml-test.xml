@@ -12,18 +12,26 @@
     <parameter name="yesOrNo" description="This is a boolean flag" type="BOOLEAN" />
   </flag>
 
-  <command name="fish" description="This is the tuna fish command" actionCreator="hooplah!" />
-  <command name="marlin" description="This is the tuna marlin command" actionCreator="hooplah!!!" />
+  <command name="fish" description="This is the tuna fish command">
+    <action className="com.hooplah.Hooplah" />
+  </command>
+  <command name="marlin" description="This is the tuna marlin command">
+    <action className="com.hooplah.Hooplah" />
+  </command>
 
   <list name="list-a" description="This is list A!">
     <flag shortFlag="m" longFlag="mom" description="This is the mom flag" />
     <flag shortFlag="d" longFlag="dad" description="This is the data flag">
       <parameter name="activity" description="This is the activity that dad is doing" type="STRING" />
     </flag>
-    <command name="bring-home-bacon" description="This command brings home the bacon" actionCreator="yeah" />
+    <command name="bring-home-bacon" description="This command brings home the bacon">
+      <action className="bacon.action.Name" />
+    </command>
   </list>
 
   <list name="list-b" description="This is list B!">
-    <command name="shake-it-up" description="This command shakes it up" actionCreator="ohYeah" />
+    <command name="shake-it-up" description="This command shakes it up">
+      <action className="com.shake.it.Up" />
+    </command>
   </list>
 </cli>

@@ -67,6 +67,12 @@ public class CliXmlTest {
     new CliXmlReader(file).read();
   }
 
+  @Test(expected = Exception.class)
+  public void testBadClassName() throws Exception {
+    File file = TestUtilities.getFile("bad-class-name.xml", getClass());
+    new CliXmlReader(file).read();
+  }
+
   private void run(String...args) {
     cli.parse(args);
   }
