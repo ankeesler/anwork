@@ -101,3 +101,24 @@ task generateCliDocumentation(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
   main = 'com.marshmallow.anwork.app.AnworkCliDocumentationGenerator'
 }
+
+// Add the CLI.md file into the distribution package
+distZip {
+  into(project.name) {
+    from '.'
+    include 'doc/CLI.md'
+  }
+}
+
+def smoketestDir = "$buildDir/smoketest"
+
+// Run smoketest on a distribution of the ANWORK app
+task stageSmoketest(dependsOn: [check, doc, installDist], type: Sync) {
+  from "$buildDir/install"
+  into smoketestDir
+}
+
+task smoketest(dependsOn: stageSmoketest, type: Exec) {
+  workingDir smoketestDir
+  commandLine 'anwork/bin/anwork', '-d'
+}
