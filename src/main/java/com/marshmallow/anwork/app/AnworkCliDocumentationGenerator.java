@@ -37,7 +37,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
    */
   public static void main(String[] args) {
     try (PrintWriter writer = new PrintWriter(FILENAME)) {
-      Cli cli = new AnworkCliCreator().makeCli();
+      Cli cli = AnworkApp.createCli();
       CliVisitor visitor = new AnworkCliDocumentationGenerator(writer);
       cli.visit(visitor);
     } catch (Exception e) {

@@ -17,6 +17,22 @@ import com.marshmallow.anwork.task.TaskState;
  */
 public class TaskCliActionCreator implements CliActionCreator {
 
+  private static class SetStateCliAction extends TaskManagerCliAction implements CliAction {
+
+    private TaskState taskState;
+
+    public SetStateCliAction(TaskState taskState) {
+      super();
+      this.taskState = taskState;
+    }
+
+    @Override
+    public void run(AnworkAppConfig config, String[] args, TaskManager manager) {
+      String taskName = args[0];
+      manager.setState(taskName, taskState);
+    }
+  }
+
   @Override
   public CliAction createAction(String commandName) {
     switch (commandName) {
@@ -29,13 +45,13 @@ public class TaskCliActionCreator implements CliActionCreator {
           }
         };
       case "set-waiting":
-        return new TaskManagerSetStateCliAction(TaskState.WAITING);
+        return new SetStateCliAction(TaskState.WAITING);
       case "set-blocked":
-        return new TaskManagerSetStateCliAction(TaskState.BLOCKED);
+        return new SetStateCliAction(TaskState.BLOCKED);
       case "set-running":
-        return new TaskManagerSetStateCliAction(TaskState.RUNNING);
+        return new SetStateCliAction(TaskState.RUNNING);
       case "set-finished":
-        return new TaskManagerSetStateCliAction(TaskState.FINISHED);
+        return new SetStateCliAction(TaskState.FINISHED);
       case "delete":
         return new TaskManagerCliAction() {
           @Override
