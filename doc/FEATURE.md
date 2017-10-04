@@ -6,7 +6,7 @@ into sections below.
 ## Application
 - Add note command for adding a note to a task.
 - Create Anwork's CLI XML document.
-- Update app with new CLI flag interface.
+- Don't double-hardcode the app's CLI flags in both the CLI creator and the Config class.
 
 ## CLI
 - Add CLI documentation generator.
@@ -14,10 +14,8 @@ into sections below.
 - The CLI usage printing is ugly. Write a real test for this.
 - Create a framework where a CLI can be supplied by an XML file and turned into
   source creation of CLI, tests, and documentation.
-- Add a CliActionCreator interface.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Use a builder flass for flags and reuse it in the XML parser!
-- Add more negative test cases for the XML schema!
 - Add support for CliArgumentType.FILE.
 
 ## Infrastructure
@@ -33,6 +31,6 @@ into sections below.
 ## Serialization
 - We need a more defined way to get a class' Serializer.
 
-# Tasks
+## Tasks
 - Write our own heap so that we can easily get the tasks in their sorted order.
 - Cache the TaskManagerJournal per-task instances so we don't keep creating new objects.
