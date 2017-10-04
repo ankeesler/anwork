@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cli name="tuna" description="This is the tuna CLI">
+  <command name="fish" description="The fish command">
+    <action class="this.class.does.not.Exist" />
+  </command>
+</cli>

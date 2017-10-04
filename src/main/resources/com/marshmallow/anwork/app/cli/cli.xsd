@@ -34,14 +34,14 @@
     <xs:attribute name="description" type="xs:string" use="required" />
   </xs:complexType>
 
-  <xs:simpleType name="classNameType">
+  <xs:simpleType name="classType">
     <xs:restriction base="xs:string">
       <xs:pattern value="([a-z]+.)*[A-Za-z]+" />
     </xs:restriction>
   </xs:simpleType>
 
   <xs:complexType name="actionType">
-    <xs:attribute name="className" type="classNameType"/>
+    <xs:attribute name="class" type="classType"/>
   </xs:complexType>
 
   <xs:complexType name="commandType">

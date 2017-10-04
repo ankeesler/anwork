@@ -13,10 +13,10 @@
   </flag>
 
   <command name="fish" description="This is the tuna fish command">
-    <action className="com.hooplah.Hooplah" />
+    <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
   </command>
   <command name="marlin" description="This is the tuna marlin command">
-    <action className="com.hooplah.Hooplah" />
+    <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
   </command>
 
   <list name="list-a" description="This is list A!">
@@ -25,13 +25,13 @@
       <parameter name="activity" description="This is the activity that dad is doing" type="STRING" />
     </flag>
     <command name="bring-home-bacon" description="This command brings home the bacon">
-      <action className="bacon.action.Name" />
+      <action class="com.marshmallow.anwork.app.cli.test.BringHomeBaconTestCliAction" />
     </command>
   </list>
 
   <list name="list-b" description="This is list B!">
     <command name="shake-it-up" description="This command shakes it up">
-      <action className="com.shake.it.Up" />
+      <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
     </command>
   </list>
 </cli>

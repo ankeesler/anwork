@@ -32,7 +32,8 @@ class CliXmlParser extends DefaultHandler {
   private static final String COMMAND = "command";
   private static final String COMMAND_NAME = "name";
   private static final String COMMAND_DESCRIPTION = "description";
-  private static final String COMMAND_ACTIONCREATOR = "actionCreator";
+  private static final String COMMAND_ACTION = "action";
+  private static final String COMMAND_ACTION_CLASS = "class";
 
   // <list>
   private static final String LIST = "list";
@@ -56,12 +57,18 @@ class CliXmlParser extends DefaultHandler {
   private Stack<CliList> listStack = new Stack<CliList>();
 
   // TODO: make this less field-driven and use a builder paradigm!
+  // <flag>
   private String flagShortFlagName;
   private String flagLongFlagName;
   private String flagDescription;
   private String flagParameterName;
   private String flagParameterDescription;
   private String flagParameterType;
+
+  // <command>
+  private String commandName;
+  private String commandDescription;
+  private String commandClass;
 
   /**
    * Get the parsed {@link Cli} object. This method is only valid once the parsing has taken place!
@@ -104,10 +111,10 @@ class CliXmlParser extends DefaultHandler {
       flagParameterDescription = attributes.getValue(FLAG_PARAMETER_DESCRIPTION);
       flagParameterType = attributes.getValue(FLAG_PARAMETER_TYPE);
     } else if (elementName.equals(COMMAND)) {
-      String name = attributes.getValue(COMMAND_NAME);
-      String description = attributes.getValue(COMMAND_DESCRIPTION);
-      String actionCreator = attributes.getValue(COMMAND_ACTIONCREATOR);
-      makeCommand(name, description, actionCreator);
+      commandName = attributes.getValue(COMMAND_NAME);
+      commandDescription = attributes.getValue(COMMAND_DESCRIPTION);
+    } else if (elementName.equals(COMMAND_ACTION)) {
+      commandClass = attributes.getValue(COMMAND_ACTION_CLASS);
     } else if (elementName.equals(LIST)) {
       String name = attributes.getValue(LIST_NAME);
       String description = attributes.getValue(LIST_DESCRIPTION);
@@ -116,7 +123,7 @@ class CliXmlParser extends DefaultHandler {
   }
 
   @Override
-  public void endElement(String uri, String localName, String elementName) {
+  public void endElement(String uri, String localName, String elementName) throws SAXException {
     debug("endElement(uri=" + uri
                    + ", localName=" + localName
                    + ", elementName=" + elementName + ")");
@@ -124,6 +131,12 @@ class CliXmlParser extends DefaultHandler {
       listStack.pop();
     } else if (elementName.equals(FLAG)) {
       makeFlag();
+    } else if (elementName.equals(COMMAND)) {
+      try {
+        makeCommand();
+      } catch (Exception e) {
+        throw new SAXException(e);
+      }
     }
   }
 
@@ -186,11 +199,19 @@ class CliXmlParser extends DefaultHandler {
     flagParameterType = null;
   }
 
-  private void makeCommand(String name,
-                           String description,
-                           String action) {
-    CliAction realAction = new CliUsageAction((CliNodeImpl)cli.getRoot()); // TODO!
-    listStack.peek().addCommand(name, description, realAction);
+  private void makeCommand() throws Exception {
+    CliAction action = makeCommandAction();
+    listStack.peek().addCommand(commandName, commandDescription, action);
+  }
+
+  private CliAction makeCommandAction() throws Exception {
+    Class<?> clazz = Class.forName(commandClass);
+    if (!CliAction.class.isAssignableFrom(clazz)) {
+      throw new Exception("Class " + clazz.getName() + " for command " + commandName
+                          + " is not an instance of " + CliAction.class.getName());
+    }
+    CliAction action = (CliAction)clazz.newInstance();
+    return action;
   }
 
   private void makeList(String name,
