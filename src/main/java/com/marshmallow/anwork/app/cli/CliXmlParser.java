@@ -47,7 +47,7 @@ class CliXmlParser extends DefaultHandler {
   private static final String CLI_NAME = LIST_NAME;
   private static final String CLI_DESCRIPTION = LIST_DESCRIPTION;
 
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
 
   private static void debug(String string) {
     if (DEBUG) {
