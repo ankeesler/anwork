@@ -1,9 +1,10 @@
 package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.CliArgumentType;
+import com.marshmallow.anwork.app.cli.CliFlags;
 
 /**
- * These are the {@link CliFlag}'s that exist in the ANWORK CLI API. Each flag has a short flag
+ * These are the {@link CliFlags} that exist in the ANWORK CLI API. Each flag has a short flag
  * associated with it and maybe a {@link CliArgumentType} if it takes a parameter.
  *
  * <p>

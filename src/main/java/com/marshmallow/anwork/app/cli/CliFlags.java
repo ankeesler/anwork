@@ -17,6 +17,9 @@ public class CliFlags {
 
   private final Map<String, Object> values = new HashMap<String, Object>();
 
+  // Only allow this object to be created in the package.
+  CliFlags() { }
+
   // This method is package-private and is meant to be used during parsing.
   void addShortFlagValue(String shortFlag, Object value) {
     values.put(shortFlag, value);
