@@ -2,7 +2,6 @@ package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliAction;
-import com.marshmallow.anwork.app.cli.CliArgumentType;
 import com.marshmallow.anwork.app.cli.CliList;
 import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.task.Task;
@@ -38,22 +37,22 @@ public class AnworkCliCreator {
   }
 
   private void makeRootFlags(CliList root) {
-    root.addLongFlag("d",
+    root.addLongFlag(AnworkAppCliFlag.DEBUG.getShortFlag(),
                      "debug",
                      "Turn on debug printing");
-    root.addLongFlagWithParameter("c",
+    root.addLongFlagWithParameter(AnworkAppCliFlag.CONTEXT.getShortFlag(),
                                   "context",
                                   "Set the persistence context",
                                   "name",
                                   "The name of the persistence context",
-                                  CliArgumentType.STRING);
-    root.addLongFlagWithParameter("o",
+                                  AnworkAppCliFlag.CONTEXT.getParameterType());
+    root.addLongFlagWithParameter(AnworkAppCliFlag.PERSISTENCE_ROOT.getShortFlag(),
                                   "output",
                                   "Set persistence output directory",
                                   "directory",
                                   "The directory at which to output the persistence data",
-                                  CliArgumentType.STRING);
-    root.addLongFlag("n",
+                                  AnworkAppCliFlag.PERSISTENCE_ROOT.getParameterType());
+    root.addLongFlag(AnworkAppCliFlag.DONT_PERSIST.getShortFlag(),
                      "no-persist",
                      "Do not persist any task information");
   }

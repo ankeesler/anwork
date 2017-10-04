@@ -6,7 +6,6 @@ into sections below.
 ## Application
 - Add note command for adding a note to a task.
 - Create Anwork's CLI XML document.
-- Don't double-hardcode the app's CLI flags in both the CLI creator and the Config class.
 
 ## CLI
 - Add CLI documentation generator.

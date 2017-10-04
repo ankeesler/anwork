@@ -1,6 +1,5 @@
 package com.marshmallow.anwork.app;
 
-import com.marshmallow.anwork.app.cli.CliArgumentType;
 import com.marshmallow.anwork.app.cli.CliFlags;
 
 import java.io.File;
@@ -39,22 +38,22 @@ public class AnworkAppConfig {
    * @param flags The {@link CliFlags} with which to initialize this object
    */
   public AnworkAppConfig(CliFlags flags) {
-    String context = (String)flags.getValue("c", CliArgumentType.STRING);
+    String context = (String)getFlagValue(flags, AnworkAppCliFlag.CONTEXT);
     if (context != null) {
       this.context = context;
     }
 
-    String persistenceRoot = (String)flags.getValue("o", CliArgumentType.STRING);
+    String persistenceRoot = (String)getFlagValue(flags, AnworkAppCliFlag.PERSISTENCE_ROOT);
     if (persistenceRoot != null) {
       this.persistenceRoot = new File(persistenceRoot);
     }
 
-    Boolean noPersist = (Boolean)flags.getValue("n", CliArgumentType.BOOLEAN);
+    Boolean noPersist = (Boolean)getFlagValue(flags, AnworkAppCliFlag.DONT_PERSIST);
     if (noPersist != null) {
       doPersist = false;
     }
 
-    Boolean debug = (Boolean)flags.getValue("d", CliArgumentType.BOOLEAN);
+    Boolean debug = (Boolean)getFlagValue(flags, AnworkAppCliFlag.DEBUG);
     if (debug != null && debug.equals(Boolean.TRUE)) {
       debug = true;
     }
@@ -78,5 +77,9 @@ public class AnworkAppConfig {
 
   public Consumer<String> getDebugPrinter() {
     return debugPrinter;
+  }
+
+  private Object getFlagValue(CliFlags flags, AnworkAppCliFlag cliFlag) {
+    return flags.getValue(cliFlag.getShortFlag(), cliFlag.getParameterType());
   }
 }
