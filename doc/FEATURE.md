@@ -5,14 +5,11 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
-- Create Anwork's CLI XML document.
 
 ## CLI
 - Add CLI documentation generator.
 - Add CLI argument stuff.
 - The CLI usage printing is ugly. Write a real test for this.
-- Create a framework where a CLI can be supplied by an XML file and turned into
-  source creation of CLI, tests, and documentation.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Use a builder flass for flags and reuse it in the XML parser!
 - Add support for CliArgumentType.FILE.
