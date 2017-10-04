@@ -20,7 +20,6 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- We need to figure out what the installed "thing" is above and make sure it has the right classes with it.
 
 ## Journaling
 
