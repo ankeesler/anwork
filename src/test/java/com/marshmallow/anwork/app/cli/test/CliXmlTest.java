@@ -23,22 +23,23 @@ import org.junit.Test;
  *
  * @author Andrew
  */
-public class CliXmlTest {
+public class CliXmlTest extends BaseCliTest {
 
-  private Cli cli;
-
-  @Test
-  public void testGood() throws Exception {
-    // Reset the run count on the test actions.
+  @Override
+  protected Cli createCli() throws Exception {
     BringHomeBaconTestCliAction.resetRunCount();
     TestCliActionCreator.resetCreatedActions();
+    return read("cli-xml-test.xml");
+  }
 
-    cli = read("cli-xml-test.xml");
-    assertNotNull(cli);
+  /*
+   * Section - Positive Tests
+   */
 
-    // Test flags.
-    run("-a", "--bacon", "-c", "fish", "--dog", "97");
-    run("-a", "-b", "-c", "fish", "-d", "34");
+  @Test
+  public void testFlags() {
+    parse("-a", "--bacon", "-c", "fish", "--dog", "97");
+    parse("-a", "-b", "-c", "fish", "-d", "34");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
     TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
     assertNotNull(fishAction);
@@ -46,44 +47,58 @@ public class CliXmlTest {
     TestCliAction marlinAction = TestCliActionCreator.getCreatedAction("marlin");
     assertNotNull(marlinAction);
     assertFalse(marlinAction.getRan());
+  }
 
-    // Test commands.
-    run("fish");
-    run("marlin");
+  @Test
+  public void testCommands() {
+    parse("fish");
+    parse("marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
-    fishAction = TestCliActionCreator.getCreatedAction("fish");
+    TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
     assertNotNull(fishAction);
     assertTrue(fishAction.getRan());
-    marlinAction = TestCliActionCreator.getCreatedAction("marlin");
+    TestCliAction marlinAction = TestCliActionCreator.getCreatedAction("marlin");
     assertNotNull(marlinAction);
     assertTrue(marlinAction.getRan());
+  }
 
-    // Test commands and flags.
-    run("-a", "--bacon", "-c", "fish", "--dog", "25", "fish");
-    run("-a", "-b", "-c", "fish", "-d", "5", "fish");
-    run("-a", "--bacon", "-c", "fish", "--dog", "15", "marlin");
-    run("-a", "-b", "-c", "fish", "-d", "35", "marlin");
+  @Test
+  public void testCommandsAndFlags() {
+    parse("-a", "--bacon", "-c", "fish", "--dog", "25", "fish");
+    parse("-a", "-b", "-c", "fish", "-d", "5", "fish");
+    parse("-a", "--bacon", "-c", "fish", "--dog", "15", "marlin");
+    parse("-a", "-b", "-c", "fish", "-d", "35", "marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
+  }
 
-    // Test lists.
-    run("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon");
-    run("list-b", "shake-it-up");
+  @Test
+  public void testLists() {
+    parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon");
+    parse("list-b", "shake-it-up");
     assertEquals(1, BringHomeBaconTestCliAction.getRunCount());
     assertArrayEquals(new String[0], BringHomeBaconTestCliAction.getRunArguments(0));
-
-    // Test list commands with arguments.
-    run("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon", "hey", "ho");
-    assertEquals(2, BringHomeBaconTestCliAction.getRunCount());
-    assertArrayEquals(new String[] { "hey", "ho" },
-                      BringHomeBaconTestCliAction.getRunArguments(1));
-
-    // Test lists and flags.
-    run("-a", "--bacon", "-c", "fish", "--dog", "1", "list-a");
-    run("-a", "-b", "-c", "fish", "-d", "2", "list-a");
-    run("-a", "--bacon", "-c", "fish", "--dog", "3", "list-b");
-    run("-a", "-b", "-c", "fish", "-d", "4", "list-b");
-    assertEquals(2, BringHomeBaconTestCliAction.getRunCount());
   }
+
+  @Test
+  public void testListCommandsWithArguments() {
+    parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon", "hey", "ho");
+    assertEquals(1, BringHomeBaconTestCliAction.getRunCount());
+    assertArrayEquals(new String[] { "hey", "ho" },
+                      BringHomeBaconTestCliAction.getRunArguments(0));
+  }
+
+  @Test
+  public void testListsAndFlags() {
+    parse("-a", "--bacon", "-c", "fish", "--dog", "1", "list-a");
+    parse("-a", "-b", "-c", "fish", "-d", "2", "list-a");
+    parse("-a", "--bacon", "-c", "fish", "--dog", "3", "list-b");
+    parse("-a", "-b", "-c", "fish", "-d", "4", "list-b");
+    assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
+  }
+
+  /*
+   * Section - Negative Tests
+   */
 
   @Test(expected = Exception.class)
   public void testMissingCliTag() throws Exception {
@@ -123,9 +138,5 @@ public class CliXmlTest {
   private Cli read(String filename) throws Exception {
     File file = TestUtilities.getFile(filename, getClass());
     return new CliXmlReader(file).read();
-  }
-
-  private void run(String...args) {
-    cli.parse(args);
   }
 }

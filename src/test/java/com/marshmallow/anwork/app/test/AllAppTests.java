@@ -1,6 +1,6 @@
 package com.marshmallow.anwork.app.test;
 
-import com.marshmallow.anwork.app.cli.test.CliTest;
+import com.marshmallow.anwork.app.cli.test.BasicCliTest;
 import com.marshmallow.anwork.app.cli.test.CliXmlTest;
 
 import org.junit.runner.RunWith;
@@ -9,7 +9,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-    CliTest.class,
+    BasicCliTest.class,
     CliXmlTest.class,
     AppTest.class,
   })

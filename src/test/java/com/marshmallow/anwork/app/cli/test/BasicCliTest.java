@@ -14,11 +14,11 @@ import com.marshmallow.anwork.app.cli.CliList;
 
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 
 /**
- * This is a test for the CLI.
+ * This is a {@link BaseCliTest} that tests basic CLI functionality on a {@link Cli} created via
+ * Java code.
  *
  * <p>
  * Created Sep 9, 2017
@@ -26,19 +26,15 @@ import org.junit.Test;
  *
  * @author Andrew
  */
-public class CliTest {
-
-  private Cli cli = new Cli("cli-test",  "The are commands for the CLI unit test");
+public class BasicCliTest extends BaseCliTest {
 
   private TestCliAction tunaMarlinAction = new TestCliAction();
 
   private TestCliAction mayoAction = new TestCliAction();
 
-  /**
-   * Setup the CLI tree for these test cases.
-   */
-  @Before
-  public void setupCli() {
+  @Override
+  protected Cli createCli() {
+    Cli cli = new Cli("cli-test",  "The are commands for the CLI unit test");
     CliList root = cli.getRoot();
     root.addShortFlag("a",
                       "Description for a flag");
@@ -80,10 +76,7 @@ public class CliTest {
                                    "The z flag, ya know");
 
     root.addCommand("mayo", "This is the mayo command", mayoAction);
-  }
-
-  private void runTest(String...args) {
-    cli.parse(args);
+    return cli;
   }
 
   /*
@@ -96,62 +89,62 @@ public class CliTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadFlagSyntaxStart() throws IllegalArgumentException {
-    runTest("---a", "-b");
+    parse("---a", "-b");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadFlagSyntaxEnd() throws IllegalArgumentException {
-    runTest("-b", "---a");
+    parse("-b", "---a");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testUnknownShortFlag() throws IllegalArgumentException {
-    runTest("-b", "-z");
+    parse("-b", "-z");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testUnknownLongFlag() throws IllegalArgumentException {
-    runTest("-b", "--zebra");
+    parse("-b", "--zebra");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testNoShortArgument() throws IllegalArgumentException {
-    runTest("-b", "-c");
+    parse("-b", "-c");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testNoLongArgument() throws IllegalArgumentException {
-    runTest("-b", "--dog");
+    parse("-b", "--dog");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testLongFlagShortSyntax() throws IllegalArgumentException {
-    runTest("-b", "-bob");
+    parse("-b", "-bob");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadCommand() throws IllegalArgumentException {
-    runTest("-a", "this-command-does-not-exist");
+    parse("-a", "this-command-does-not-exist");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadNestedCommand() throws IllegalArgumentException {
-    runTest("-a", "tuna", "this-command-does-not-exist");
+    parse("-a", "tuna", "this-command-does-not-exist");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadFlagTypeAtEnd() throws IllegalArgumentException {
-    runTest("-a", "--dog", "rover", "-e", "this is not a number");
+    parse("-a", "--dog", "rover", "-e", "this is not a number");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadFlagTypeAtBeginning() throws IllegalArgumentException {
-    runTest("-e", "moooo", "-a", "--dog", "rover");
+    parse("-e", "moooo", "-a", "--dog", "rover");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadGetFlagValue() throws IllegalArgumentException {
-    runTest("-e", "15", "tuna", "marlin");
+    parse("-e", "15", "tuna", "marlin");
     assertTrue(tunaMarlinAction.getRan());
     tunaMarlinAction.getFlags().getValue("e", CliArgumentType.STRING);
   }
@@ -162,27 +155,27 @@ public class CliTest {
 
   @Test
   public void shortFlagOnlyTest() throws IllegalArgumentException {
-    runTest("-a");
+    parse("-a");
   }
 
   @Test
   public void longFlagShortFlagTest() throws IllegalArgumentException {
-    runTest("--bob", "-a");
+    parse("--bob", "-a");
   }
 
   @Test
   public void testShortArgumentShortFlag() throws IllegalArgumentException {
-    runTest("-c", "hello", "-a");
+    parse("-c", "hello", "-a");
   }
 
   @Test
   public void testEverything() throws IllegalArgumentException {
-    runTest("-c", "hello", "--bob", "-a", "--dog", "world");
+    parse("-c", "hello", "--bob", "-a", "--dog", "world");
   }
 
   @Test
   public void testEmptyArgs() {
-    runTest();
+    parse();
   }
 
   /*
@@ -195,12 +188,12 @@ public class CliTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testTunaListWithArguments() {
-    runTest("tuna", "hello", "world");
+    parse("tuna", "hello", "world");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testTunaListWithParameterBeforeCommand() {
-    runTest("tuna", "hello", "marlin");
+    parse("tuna", "hello", "marlin");
   }
 
   /*
@@ -209,19 +202,19 @@ public class CliTest {
 
   @Test
   public void testTunaListWithoutPreFlags() {
-    runTest("tuna");
+    parse("tuna");
     assertFalse(tunaMarlinAction.getRan());
   }
 
   @Test
   public void testTunaListWithPreFlags() {
-    runTest("-a", "-c", "hello", "tuna");
+    parse("-a", "-c", "hello", "tuna");
     assertFalse(tunaMarlinAction.getRan());
   }
 
   @Test
   public void testMarlinCommandWithoutArgument() {
-    runTest("tuna", "marlin");
+    parse("tuna", "marlin");
     assertTrue(tunaMarlinAction.getRan());
     CliFlags flags = tunaMarlinAction.getFlags();
     assertArrayEquals(new String[0], flags.getAllShortFlags());
@@ -231,7 +224,7 @@ public class CliTest {
 
   @Test
   public void testMarlinCommandWithFlag() {
-    runTest("tuna", "marlin", "-z");
+    parse("tuna", "marlin", "-z");
     assertTrue(tunaMarlinAction.getRan());
     CliFlags flags = tunaMarlinAction.getFlags();
     assertArrayEquals(new String[] { "z" }, flags.getAllShortFlags());
@@ -241,7 +234,7 @@ public class CliTest {
 
   @Test
   public void testMarlinCommandWithArguments() {
-    runTest("tuna", "marlin", "hello", "world");
+    parse("tuna", "marlin", "hello", "world");
     assertTrue(tunaMarlinAction.getRan());
     CliFlags flags = tunaMarlinAction.getFlags();
     assertArrayEquals(flags.getAllShortFlags(), new String[0]);
@@ -251,7 +244,7 @@ public class CliTest {
 
   @Test
   public void testMarlinCommandWithArgumentsAndFlag() {
-    runTest("tuna", "marlin", "-z", "hello", "world");
+    parse("tuna", "marlin", "-z", "hello", "world");
     CliFlags flags = tunaMarlinAction.getFlags();
     assertArrayEquals(flags.getAllShortFlags(), new String[] { "z" });
     assertEquals(Boolean.TRUE, flags.getValue("z", CliArgumentType.BOOLEAN));
@@ -260,7 +253,7 @@ public class CliTest {
 
   @Test
   public void testMarlinCommandWitPreFlagsAndArguments() {
-    runTest("tuna", "-a", "15", "-f", "marlin", "hello", "world");
+    parse("tuna", "-a", "15", "-f", "marlin", "hello", "world");
     assertTrue(tunaMarlinAction.getRan());
     CliFlags flags = tunaMarlinAction.getFlags();
     assertArrayEquals(new String[] { "a", "f" }, flags.getAllShortFlags());
@@ -269,19 +262,11 @@ public class CliTest {
 
   @Test
   public void testMayoCommand() {
-    runTest("mayo", "a", "b", "c");
+    parse("mayo", "a", "b", "c");
     assertTrue(mayoAction.getRan());
     CliFlags flags = mayoAction.getFlags();
     assertArrayEquals(new String[0], flags.getAllShortFlags());
     assertArrayEquals(new String[] { "a", "b", "c" }, mayoAction.getArguments());
-  }
-
-  /*
-   * Section - Usage
-   */
-  @Test
-  public void usageTest() {
-    System.out.println(cli.getUsage());
   }
 
   /*
@@ -290,7 +275,7 @@ public class CliTest {
   @Test
   public void testVisitorPattern() {
     TestCliVisitor visitor = new TestCliVisitor();
-    cli.visit(visitor);
+    visit(visitor);
 
     assertVisited(visitor.getVisitedShortFlags(), "a", "f", "z");
     assertVisited(visitor.getVisitedShortFlagsWithParameters(), "c", "e");
