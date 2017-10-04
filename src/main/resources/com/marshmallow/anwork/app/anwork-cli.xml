@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cli name="anwork" description="ANWORK CLI commands">
-  <flag shortFlag="d" description="Turn on debug printing" />
+  <flag shortFlag="d" longFlag="debug" description="Turn on debug printing" />
   <flag shortFlag="c" longFlag="context" description="Set the persistence context">
     <parameter name="name" description="The name of the persistence context" type="STRING" />
   </flag>
-  <flag shortFlag="o" longFlag="output" description="The persistence output directory">
-    <parameter name="directory" description="Output directory" type="STRING" />
+  <flag shortFlag="o" longFlag="output" description="Set persistence output directory">
+    <parameter name="directory" description="The directory at which to output the persistence data" type="STRING" />
   </flag>
   <flag shortFlag="n" longFlag="no-persist" description="Do not persist any task information" />
 
