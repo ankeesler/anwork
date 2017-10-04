@@ -96,6 +96,8 @@ jar {
 
 // Run the AnworkCliDocumentationGenerator to regenerate the CLI.md file
 task generateCliDocumentation(type: JavaExec) {
+  group 'Documentation'
+  description 'Generate the ANWORK CLI documentation markdown file.'
   classpath sourceSets.main.runtimeClasspath
   main = 'com.marshmallow.anwork.app.AnworkCliDocumentationGenerator'
 }
