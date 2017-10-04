@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.app.cli;
 
 import java.io.File;
+import java.net.URL;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,9 +23,7 @@ import org.xml.sax.SAXException;
  */
 public class CliXmlReader {
 
-  // TODO: how do I get this as "com.marshmallow.anwork.app.cli.cli.xsd"
-  private static final String SCHEMA_PATH
-      = "src/main/resources/com/marshmallow/anwork/app/cli/cli.xsd";
+  private static final String SCHEMA_RESOURCE = "/com/marshmallow/anwork/app/cli/cli.xsd";
 
   // Use #getSchema to access me!!!
   private static Schema SCHEMA = null;
@@ -33,8 +32,8 @@ public class CliXmlReader {
   private static Schema getSchema() throws SAXException {
     if (SCHEMA == null) {
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      File schemaFile = new File(SCHEMA_PATH);
-      SCHEMA = schemaFactory.newSchema(schemaFile);
+      URL url = CliXmlReader.class.getResource(SCHEMA_RESOURCE);
+      SCHEMA = schemaFactory.newSchema(url);
     }
     return SCHEMA;
   }

@@ -17,7 +17,6 @@ into sections below.
 - Add a CliActionCreator interface.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Use a builder flass for flags and reuse it in the XML parser!
-- Provide the CLI schema through a Java binary class, not a file!
 - Add more negative test cases for the XML schema!
 - Add support for CliArgumentType.FILE.
 
