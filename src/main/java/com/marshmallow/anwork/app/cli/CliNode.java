@@ -39,7 +39,7 @@ interface CliNode {
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes, e.g., "file path,"
    *     "directory," ...
-   * @param parameterName The description of the parameter that the flag takes
+   * @param parameterDescription The description of the parameter that the flag takes
    * @param parameterType The {@link CliArgumentType} of the parameter
    */
   public void addShortFlagWithParameter(String shortFlag,
@@ -74,6 +74,7 @@ interface CliNode {
    * @param description The description of the flag
    * @param parameterName The name of the parameter that the flag takes, e.g., "file path,"
    *     "directory," ...
+   * @param parameterDescription The description of the parameter that the flag takes
    * @param parameterType The {@link CliArgumentType} of the parameter
    */
   public void addLongFlagWithParameter(String shortFlag,

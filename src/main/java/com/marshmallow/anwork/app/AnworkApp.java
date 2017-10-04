@@ -18,7 +18,7 @@ public class AnworkApp {
    */
   public static void main(String[] args) {
     try {
-      new AnworkCliCreator(new AnworkAppConfig()).makeCli().parse(args);
+      new AnworkCliCreator().makeCli().parse(args);
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }

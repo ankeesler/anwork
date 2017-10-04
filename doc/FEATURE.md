@@ -19,6 +19,7 @@ into sections below.
 - Use a builder flass for flags and reuse it in the XML parser!
 - Provide the CLI schema through a Java binary class, not a file!
 - Add more negative test cases for the XML schema!
+- Add support for CliArgumentType.FILE.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?

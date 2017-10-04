@@ -1,5 +1,8 @@
 package com.marshmallow.anwork.app;
 
+import com.marshmallow.anwork.app.cli.CliArgumentType;
+import com.marshmallow.anwork.app.cli.CliFlags;
+
 import java.io.File;
 import java.util.function.Consumer;
 
@@ -17,7 +20,7 @@ public class AnworkAppConfig {
 
   // These fields are set to their defaults.
   private String context = "default-context";
-  private File persistenceRoot = new File(".");
+  private File persistenceRoot;
   private boolean doPersist = true;
   private boolean debug = false;
   private Consumer<String> debugPrinter = new Consumer<String>() {
@@ -29,43 +32,51 @@ public class AnworkAppConfig {
     }
   };
 
-  public String getContext() {
-    return context;
+  /**
+   * Create a configuration data object from the CLI flags to be used in the rest of the ANWORK
+   * app.
+   *
+   * @param flags The {@link CliFlags} with which to initialize this object
+   */
+  public AnworkAppConfig(CliFlags flags) {
+    String context = (String)flags.getValue("c", CliArgumentType.STRING);
+    if (context != null) {
+      this.context = context;
+    }
+
+    String persistenceRoot = (String)flags.getValue("o", CliArgumentType.STRING);
+    if (persistenceRoot != null) {
+      this.persistenceRoot = new File(persistenceRoot);
+    }
+
+    Boolean noPersist = (Boolean)flags.getValue("n", CliArgumentType.BOOLEAN);
+    if (noPersist != null) {
+      doPersist = false;
+    }
+
+    Boolean debug = (Boolean)flags.getValue("d", CliArgumentType.BOOLEAN);
+    if (debug != null && debug.equals(Boolean.TRUE)) {
+      debug = true;
+    }
   }
 
-  public void setContext(String context) {
-    this.context = context;
+  public String getContext() {
+    return context;
   }
 
   public File getPersistenceRoot() {
     return persistenceRoot;
   }
 
-  public void setPersistenceRoot(File persistenceRoot) {
-    this.persistenceRoot = persistenceRoot;
-  }
-
   public boolean getDoPersist() {
     return doPersist;
-  }
-
-  public void setDoPersist(boolean doPersist) {
-    this.doPersist = doPersist;
   }
 
   public boolean getDebug() {
     return debug;
   }
 
-  public void setDebug(boolean debug) {
-    this.debug = debug;
-  }
-
   public Consumer<String> getDebugPrinter() {
     return debugPrinter;
-  }
-
-  public void setDebugPrinter(Consumer<String> debugPrinter) {
-    this.debugPrinter = debugPrinter;
   }
 }

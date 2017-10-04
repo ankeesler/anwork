@@ -37,7 +37,7 @@ public class CliFlags {
    *
    * @param shortFlag The shortFlag (e.g., "d", "v", "o", etc.)
    * @param valueType The expected {@link CliArgumentType} of the flag's value
-   * @return The value for this short flag, or <code>null</null> if this flag was not passed to the
+   * @return The value for this short flag, or <code>null</code> if this flag was not passed to the
    *     command line
    * @throws IllegalArgumentException if this shortFlag is not associated with this
    *     expectedFlagType

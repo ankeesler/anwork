@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.CliAction;
+import com.marshmallow.anwork.app.cli.CliFlags;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.task.TaskManager;
@@ -21,18 +22,13 @@ import java.util.Collections;
  */
 public abstract class TaskManagerCliAction implements CliAction {
 
-  private AnworkAppConfig config;
-
-  public TaskManagerCliAction(AnworkAppConfig config) {
-    this.config = config;
-  }
-
   @Override
-  public void run(String[] args) {
+  public void run(CliFlags flags, String[] args) {
+    AnworkAppConfig config = new AnworkAppConfig(flags);
     try {
-      TaskManager manager = loadTaskManager();
-      run(args, manager);
-      saveTaskManager(manager);
+      TaskManager manager = loadTaskManager(config);
+      run(config, args, manager);
+      saveTaskManager(config, manager);
     } catch (Exception e) {
       System.out.println("Failed task manager action: " + e.getMessage());
     }
@@ -41,12 +37,13 @@ public abstract class TaskManagerCliAction implements CliAction {
   /**
    * Run the CLI action on a {@link TaskManager}.
    *
+   * @param config The {@link AnworkAppConfig} applied to this action
    * @param args The CLI arguments
    * @param manager The task manager
    */
-  public abstract void run(String[] args, TaskManager manager);
+  public abstract void run(AnworkAppConfig config, String[] args, TaskManager manager);
 
-  private TaskManager loadTaskManager() throws Exception {
+  private TaskManager loadTaskManager(AnworkAppConfig config) throws Exception {
     String context = config.getContext();
     File persistenceRoot = config.getPersistenceRoot();
     Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
@@ -70,7 +67,7 @@ public abstract class TaskManagerCliAction implements CliAction {
     return loadeds.toArray(new TaskManager[0])[0];
   }
 
-  private void saveTaskManager(TaskManager taskManager) throws Exception {
+  private void saveTaskManager(AnworkAppConfig config, TaskManager taskManager) throws Exception {
     Persister<TaskManager> persister = new FilePersister<TaskManager>(config.getPersistenceRoot());
     if (!config.getDoPersist()) {
       config.getDebugPrinter().accept("not saving task manager because"

@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.Cli;
+import com.marshmallow.anwork.app.cli.CliArgumentType;
 import com.marshmallow.anwork.app.cli.CliVisitor;
 
 import java.io.FileNotFoundException;
@@ -37,8 +38,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
    */
   public static void main(String[] args) {
     try (PrintWriter writer = new PrintWriter(FILENAME)) {
-      AnworkAppConfig config = new AnworkAppConfig();
-      Cli cli = new AnworkCliCreator(config).makeCli();
+      Cli cli = new AnworkCliCreator().makeCli();
       CliVisitor visitor = new AnworkCliDocumentationGenerator(writer);
       cli.visit(visitor);
     } catch (FileNotFoundException e) {
@@ -81,16 +81,23 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
 
   private void writeFlagLine(String shortFlag,
                              String longFlag,
+                             String description,
                              String parameterName,
-                             String description) {
+                             String parameterDescription,
+                             CliArgumentType parameterType) {
     StringBuilder lineBuilder = new StringBuilder();
     lineBuilder.append("- -").append(shortFlag);
     if (longFlag != null) {
       lineBuilder.append("|--" + longFlag);
     }
     if (parameterName != null) {
-      lineBuilder.append(' ');
-      lineBuilder.append('(').append(parameterName).append(')');
+      lineBuilder.append(" (")
+                 .append(parameterType.name())
+                 .append(" ")
+                 .append(parameterName)
+                 .append(": ")
+                 .append(parameterDescription)
+                 .append(")");
     }
     lineBuilder.append(": ").append(description);
     writer.println(lineBuilder.toString());
@@ -99,15 +106,22 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
   @Override
   public void visitShortFlag(String shortFlag, String description) {
     checkFlagState();
-    writeFlagLine(shortFlag, null, null, description);
+    writeFlagLine(shortFlag, null, description, null, null, null);
   }
 
   @Override
   public void visitShortFlagWithParameter(String shortFlag,
+                                          String description,
                                           String parameterName,
-                                          String description) {
+                                          String parameterDescription,
+                                          CliArgumentType parameterType) {
     checkFlagState();
-    writeFlagLine(shortFlag, null, parameterName, description);
+    writeFlagLine(shortFlag,
+                  null,
+                  description,
+                  parameterName,
+                  parameterDescription,
+                  parameterType);
   }
 
   @Override
@@ -115,16 +129,23 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
                             String longFlag,
                             String description) {
     checkFlagState();
-    writeFlagLine(shortFlag, longFlag, null, description);
+    writeFlagLine(shortFlag, longFlag, description, null, null, null);
   }
 
   @Override
   public void visitLongFlagWithParameter(String shortFlag,
                                          String longFlag,
+                                         String description,
                                          String parameterName,
-                                         String description) {
+                                         String parameterDescription,
+                                         CliArgumentType parameterType) {
     checkFlagState();
-    writeFlagLine(shortFlag, longFlag, parameterName, description);
+    writeFlagLine(shortFlag,
+                  longFlag,
+                  description,
+                  parameterName,
+                  parameterDescription,
+                  parameterType);
   }
 
   @Override
