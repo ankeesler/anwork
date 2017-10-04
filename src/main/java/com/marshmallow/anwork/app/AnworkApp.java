@@ -36,6 +36,7 @@ public class AnworkApp {
    * Create the CLI for the ANWORK app.
    *
    * @return The CLI for the ANWORK app.
+   * @throws Exception if something goes wrong with creating the CLI
    */
   public static Cli createCli() throws Exception {
     URL xmlUrl = AnworkApp.class.getResource(CLI_XML_RESOURCE);

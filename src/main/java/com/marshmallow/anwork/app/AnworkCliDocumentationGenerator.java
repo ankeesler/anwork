@@ -9,8 +9,7 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
- * This is an app that generates the documentation for the ANWORK CLI from the
- * {@link AnworkCliCreator}.
+ * This is an app that generates the documentation for the ANWORK CLI.
  *
  * <p>
  * Created Oct 1, 2017
