@@ -11,6 +11,8 @@ import com.marshmallow.anwork.app.cli.CliXmlReader;
 import com.marshmallow.anwork.core.test.TestUtilities;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -137,6 +139,7 @@ public class CliXmlTest extends BaseCliTest {
 
   private Cli read(String filename) throws Exception {
     File file = TestUtilities.getFile(filename, getClass());
-    return new CliXmlReader(file).read();
+    InputStream stream = new FileInputStream(file);
+    return new CliXmlReader(stream).read();
   }
 }

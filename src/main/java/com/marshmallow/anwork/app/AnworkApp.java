@@ -3,8 +3,7 @@ package com.marshmallow.anwork.app;
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliXmlReader;
 
-import java.io.File;
-import java.net.URL;
+import java.io.InputStream;
 
 /**
  * This is the main class for the anwork app.
@@ -29,6 +28,7 @@ public class AnworkApp {
       createCli().parse(args);
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -39,10 +39,8 @@ public class AnworkApp {
    * @throws Exception if something goes wrong with creating the CLI
    */
   public static Cli createCli() throws Exception {
-    URL xmlUrl = AnworkApp.class.getResource(CLI_XML_RESOURCE);
-    File xmlFile = new File(xmlUrl.toURI());
-    CliXmlReader xmlReader = new CliXmlReader(xmlFile);
-    return xmlReader.read();
-
+    try (InputStream xmlStream = AnworkApp.class.getResourceAsStream(CLI_XML_RESOURCE)) {
+      return new CliXmlReader(xmlStream).read();
+    }
   }
 }

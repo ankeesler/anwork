@@ -50,9 +50,9 @@ public class FilePersister<T extends Serializable<?>> implements Persister<T> {
   public Collection<T> load(String context, Serializer<T> serializer) throws IOException {
     File file = convertContextToFile(context);
     if (!file.exists()) {
-      throw new IOException("File for context " + context + " does not exist");
+      throw new IOException("File " + file + " for context " + context + " does not exist");
     } else if (!file.canRead()) {
-      throw new IOException("Cannot read file for context " + context);
+      throw new IOException("Cannot read file" + file + " for context " + context);
     }
 
     List<T> ts = new ArrayList<T>();

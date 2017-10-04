@@ -1,12 +1,14 @@
 package com.marshmallow.anwork.app.cli;
 
 import java.io.File;
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -29,24 +31,25 @@ public class CliXmlReader {
   private static Schema SCHEMA = null;
 
   // Accessor for static schema.
-  private static Schema getSchema() throws SAXException {
+  private static Schema getSchema() throws SAXException, IOException {
     if (SCHEMA == null) {
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      URL url = CliXmlReader.class.getResource(SCHEMA_RESOURCE);
-      SCHEMA = schemaFactory.newSchema(url);
+      try (InputStream schemaStream = CliXmlReader.class.getResourceAsStream(SCHEMA_RESOURCE)) {
+        SCHEMA = schemaFactory.newSchema(new StreamSource(schemaStream));
+      }
     }
     return SCHEMA;
   }
 
-  private File xmlFile;
+  private InputStream xmlStream;
 
   /**
-   * Create a {@link CliXmlReader} for an XML {@link File}.
+   * Create a {@link CliXmlReader} with a {@link InputStream} from which to parse the CLI XML data.
    *
-   * @param xmlFile The XML {@link File} to read
+   * @param xmlStream The {@link InputStream} which contains the CLI XML data
    */
-  public CliXmlReader(File xmlFile) {
-    this.xmlFile = xmlFile;
+  public CliXmlReader(InputStream xmlStream) {
+    this.xmlStream = xmlStream;
   }
 
   /**
@@ -58,11 +61,11 @@ public class CliXmlReader {
   public Cli read() throws Exception {
     SAXParser xmlParser = makeParser();
     CliXmlParser cliXmlParser = new CliXmlParser();
-    xmlParser.parse(xmlFile, cliXmlParser);
+    xmlParser.parse(xmlStream, cliXmlParser);
     return cliXmlParser.getCli();
   }
 
-  private SAXParser makeParser() throws ParserConfigurationException, SAXException {
+  private SAXParser makeParser() throws ParserConfigurationException, SAXException, IOException {
     SAXParserFactory parserFactory = SAXParserFactory.newInstance();
     parserFactory.setSchema(getSchema());
     return parserFactory.newSAXParser();
