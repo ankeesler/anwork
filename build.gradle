@@ -19,7 +19,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.google.protobuf'
 
 // Set the default task
-defaultTasks 'check', 'javadoc', 'generateCliDocumentation'
+defaultTasks 'check', 'doc'
 
 // Declare some dependencies for this build.gradle file
 buildscript {
@@ -56,6 +56,9 @@ mainClassName = 'com.marshmallow.anwork.app.AnworkApp'
 // Filter out test superclasses
 test {
     include 'com/marshmallow/anwork/core/test/AllTests**'
+}
+
+task doc(dependsOn: ['javadoc', 'generateCliDocumentation']) {
 }
 
 // Filter out Protocol Buffers generated classes in Javadoc
