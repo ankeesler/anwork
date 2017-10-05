@@ -39,6 +39,12 @@ repositories {
     mavenCentral()
 }
 
+// Define a smokeTest source set that contains the smoketest runner code
+sourceSets {
+    smokeTest {
+    }
+}
+
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
     compile 'com.google.guava:guava:21.0'
@@ -48,6 +54,7 @@ dependencies {
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
+    smokeTestCompile 'junit:junit:4.12'
 }
 
 // Define the main class for the application
@@ -112,13 +119,15 @@ distZip {
 
 def smoketestDir = "$buildDir/smoketest"
 
-// Run smoketest on a distribution of the ANWORK app
-task stageSmoketest(dependsOn: [check, doc, installDist], type: Sync) {
+// Creating a distribution package should depend on tests and documentation generation
+installDist.dependsOn([check, doc])
+
+task stageSmoke(dependsOn: installDist, type: Sync) {
   from "$buildDir/install"
   into smoketestDir
 }
 
-task smoketest(dependsOn: stageSmoketest, type: Exec) {
-  workingDir smoketestDir
-  commandLine 'anwork/bin/anwork', '-d'
+task smoke(dependsOn: stageSmoke, type: Test) {
+  testClassesDir = sourceSets.smokeTest.output.classesDir
+  classpath = sourceSets.smokeTest.runtimeClasspath
 }
