@@ -41,7 +41,9 @@ repositories {
 
 // Define a smokeTest source set that contains the smoketest runner code
 sourceSets {
-    smokeTest {
+    smokeTest
+    test {
+        output.resourcesDir = output.classesDir
     }
 }
 
@@ -130,4 +132,5 @@ task stageSmoke(dependsOn: installDist, type: Sync) {
 task smoke(dependsOn: stageSmoke, type: Test) {
   testClassesDir = sourceSets.smokeTest.output.classesDir
   classpath = sourceSets.smokeTest.runtimeClasspath
+  environment "ANWORK_SMOKETEST_DIR", smoketestDir
 }
