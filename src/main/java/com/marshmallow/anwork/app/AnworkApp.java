@@ -27,8 +27,9 @@ public class AnworkApp {
     try {
       createCli().parse(args);
     } catch (Exception e) {
-      System.out.println("Error: " + e.getMessage());
+      System.out.print("Error: ");
       e.printStackTrace();
+      System.exit(1);
     }
   }
 

@@ -141,4 +141,5 @@ task smoke(dependsOn: stageSmoke, type: Test) {
   testClassesDir = sourceSets.smokeTest.output.classesDir
   classpath = sourceSets.smokeTest.runtimeClasspath
   environment "ANWORK_SMOKETEST_DIR", smoketestDir
+  outputs.upToDateWhen { false }
 }
