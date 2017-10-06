@@ -111,12 +111,9 @@ task generateCliDocumentation(type: JavaExec) {
   main = 'com.marshmallow.anwork.app.AnworkCliDocumentationGenerator'
 }
 
-// Add the CLI.md file into the distribution package
-distZip {
-  into(project.name) {
-    from '.'
-    include 'doc/CLI.md'
-  }
+// Include the ANWORK CLI documentation file in distributions
+applicationDistribution.from('.') {
+  include 'doc/CLI.md'
 }
 
 def smoketestDir = "$buildDir/smoketest"
