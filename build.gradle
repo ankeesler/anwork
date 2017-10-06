@@ -19,7 +19,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.google.protobuf'
 
 // Set the default task
-defaultTasks 'check', 'doc'
+defaultTasks 'check'
 
 // Declare some dependencies for this build.gradle file
 buildscript {
