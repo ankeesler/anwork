@@ -21,6 +21,9 @@ apply plugin: 'com.google.protobuf'
 // Set the default task
 defaultTasks 'check'
 
+// Define the main class for the application
+mainClassName = 'com.marshmallow.anwork.app.AnworkApp'
+
 // Declare some dependencies for this build.gradle file
 buildscript {
     repositories {
@@ -39,10 +42,12 @@ repositories {
     mavenCentral()
 }
 
-// Define a smokeTest source set that contains the smoketest runner code
 sourceSets {
+    // Define a smokeTest source set that contains the smoketest runner code
     smokeTest
     test {
+        // Put the test resources into the same directory as classes so that our test run the same
+        // way as they do in Eclipse
         output.resourcesDir = output.classesDir
     }
 }
@@ -59,21 +64,55 @@ dependencies {
     smokeTestCompile 'junit:junit:4.12'
 }
 
-// Define the main class for the application
-mainClassName = 'com.marshmallow.anwork.app.AnworkApp'
-
-// Filter out test superclasses
-test {
-    include 'com/marshmallow/anwork/core/test/AllTests**'
+// Generate the Protocol Buffer code into the source directory so that we can pull it into the Eclipse build.
+protobuf {
+    generatedFilesBaseDir = 'src'
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0'
+    }
 }
 
-task doc(dependsOn: ['javadoc', 'generateCliDocumentation']) {
-}
+// ------------------------------------------------------------------------------------------------
+// Section - Documentation
 
 // Filter out Protocol Buffers generated classes in Javadoc
 javadoc {
     exclude 'com/marshmallow/anwork/**/protobuf/**.java'
 }
+
+// Run the AnworkCliDocumentationGenerator to regenerate the CLI.md file
+task generateCliDocumentation(type: JavaExec) {
+  group 'Documentation'
+  description 'Generate the ANWORK CLI documentation markdown file.'
+  classpath sourceSets.main.runtimeClasspath
+  main = 'com.marshmallow.anwork.app.AnworkCliDocumentationGenerator'
+}
+
+task doc(dependsOn: ['javadoc', 'generateCliDocumentation']) {
+}
+
+// ------------------------------------------------------------------------------------------------
+// Section - Packaging
+
+// Create a jar with the correct so that users can easily run this app
+jar {
+    manifest {
+        attributes("Main-Class": "com.marshmallow.anwork.app.AnworkApp")
+    }
+}
+
+// Include the ANWORK CLI documentation file in distributions
+applicationDistribution.from('.') {
+  include 'doc/CLI.md'
+}
+
+// Creating a distribution package should depend on tests and documentation generation
+installDist.dependsOn([check, doc])
+
+// ------------------------------------------------------------------------------------------------
+// Section - Testing
+
+def smoketestDir = "$buildDir/smoketest"
 
 // This is the checkstyle configuration
 checkstyle {
@@ -88,38 +127,10 @@ checkstyle {
     it.exclude 'com/marshmallow/anwork/**/protobuf/**.java'
 }
 
-// Generate the Protocol Buffer code into the source directory so that we can pull it into the Eclipse build.
-protobuf {
-    generatedFilesBaseDir = 'src'
-    protoc {
-        artifact = 'com.google.protobuf:protoc:3.0.0'
-    }
+// Filter out test superclasses
+test {
+    include 'com/marshmallow/anwork/core/test/AllTests**'
 }
-
-// Create a jar with the correct so that users can easily run this app
-jar {
-    manifest {
-        attributes("Main-Class": "com.marshmallow.anwork.app.AnworkApp")
-    }
-}
-
-// Run the AnworkCliDocumentationGenerator to regenerate the CLI.md file
-task generateCliDocumentation(type: JavaExec) {
-  group 'Documentation'
-  description 'Generate the ANWORK CLI documentation markdown file.'
-  classpath sourceSets.main.runtimeClasspath
-  main = 'com.marshmallow.anwork.app.AnworkCliDocumentationGenerator'
-}
-
-// Include the ANWORK CLI documentation file in distributions
-applicationDistribution.from('.') {
-  include 'doc/CLI.md'
-}
-
-def smoketestDir = "$buildDir/smoketest"
-
-// Creating a distribution package should depend on tests and documentation generation
-installDist.dependsOn([check, doc])
 
 task stageSmoke(dependsOn: installDist, type: Sync) {
   from "$buildDir/install"
