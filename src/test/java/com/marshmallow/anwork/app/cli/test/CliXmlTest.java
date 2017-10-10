@@ -76,7 +76,7 @@ public class CliXmlTest extends BaseCliTest {
   @Test
   public void testLists() {
     parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon");
-    parse("list-b", "shake-it-up");
+    parse("list-b", "shake-it-up", "--andrew", "-o", "foo");
     assertEquals(1, BringHomeBaconTestCliAction.getRunCount());
     assertArrayEquals(new String[0], BringHomeBaconTestCliAction.getRunArguments(0));
   }

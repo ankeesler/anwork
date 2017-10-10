@@ -31,6 +31,10 @@
 
   <list name="list-b" description="This is list B!">
     <command name="shake-it-up" description="This command shakes it up">
+      <flag shortFlag="a" longFlag="andrew" description="This is the andrew flag" />
+      <flag shortFlag="o" longFlag="output" description="This is the output flag">
+        <parameter name="directory" description="The output directory" type="STRING" />
+      </flag>
       <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
     </command>
   </list>
