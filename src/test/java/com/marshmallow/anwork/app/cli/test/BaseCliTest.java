@@ -88,14 +88,6 @@ public abstract class BaseCliTest {
   }
 
   /**
-   * This test validates that nothing bad happens when {@link Cli#getUsage()} is run...
-   */
-  @Test
-  public void usageTest() {
-    System.out.println(cli.getUsage());
-  }
-
-  /**
    * This test ensures that the {@link Cli} instance for this class can successfully have
    * documentation generated for it via a {@link DocumentationGenerator}.
    */

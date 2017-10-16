@@ -216,52 +216,16 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     children.add(child);
   }
 
-  protected ListOrCommandImpl[] getChildren(boolean lists) {
+  protected Command[] getCommands() {
     return children.stream()
-                   .filter(lists ? (node) -> node.isList() : (node) -> !node.isList())
-                   .toArray(ListOrCommandImpl[]::new);
+                   .filter((node) -> !node.isList())
+                   .toArray(Command[]::new);
   }
 
-  /*
-   * Section - Usage
-   */
-
-  String getUsage() {
-    return makeCommandUsage(makeFlagUsage());
-  }
-
-  private String makeFlagUsage() {
-    StringBuilder builder = new StringBuilder();
-    for (Flag flag : flags) {
-      builder.append('[');
-      builder.append(Flag.FLAG_START).append(flag.getShortFlag());
-      if (flag.hasLongFlag()) {
-        builder.append('|').append(Flag.FLAG_START).append(Flag.FLAG_START);
-        builder.append(flag.getLongFlag());
-      }
-      if (flag.hasArgument()) {
-        builder.append(' ').append('<').append(flag.getArgument().getName()).append('>');
-      }
-      builder.append(' ').append(flag.getDescription());
-      builder.append(']');
-      builder.append(' ');
-    }
-    return builder.toString();
-  }
-
-  private String makeCommandUsage(String flagUsage) {
-    if (children.size() == 0) {
-      return flagUsage;
-    }
-
-    StringBuilder builder = new StringBuilder();
-    for (ListOrCommandImpl child : children) {
-      builder.append(name).append(' ');
-      builder.append(flagUsage);
-      builder.append(child.name).append(" : ").append(child.description);
-      builder.append('\n');
-    }
-    return builder.toString();
+  protected com.marshmallow.anwork.app.cli.List[] getLists() {
+    return children.stream()
+                   .filter((node) -> node.isList())
+                   .toArray(com.marshmallow.anwork.app.cli.List[]::new);
   }
 
   /*

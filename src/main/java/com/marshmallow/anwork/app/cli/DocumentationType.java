@@ -10,6 +10,7 @@ package com.marshmallow.anwork.app.cli;
  * @author Andrew
  */
 public enum DocumentationType {
+  TEXT(TextDocumentationGenerator.class),
   GITHUB_MARKDOWN(GithubReadmeDocumentationGenerator.class),
   ;
 

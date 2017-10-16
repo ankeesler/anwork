@@ -70,15 +70,6 @@ public class Cli {
   }
 
   /**
-   * Get the usage information for this CLI node.
-   *
-   * @return The usage information for this CLI node
-   */
-  public String getUsage() {
-    return root.getUsage();
-  }
-
-  /**
    * Visit the CLI tree with a {@link Visitor}.
    *
    * <p>Per {@link List} in the {@link Cli}, the visitation will happen in this order.

@@ -9,7 +9,6 @@ into sections below.
 ## CLI
 - Add CLI argument stuff.
 - The CLI usage printing is ugly. Write a real test for this.
-- Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Add support for CliArgumentType.FILE.
 
 ## Infrastructure

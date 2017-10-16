@@ -69,6 +69,15 @@ public interface ArgumentType<T> {
   };
 
   /**
+   * Get the name of this {@link ArgumentType}.
+   *
+   * @return The name of this {@link ArgumentType}.
+   */
+  public default String getName() {
+    return getConversionClass().getSimpleName();
+  }
+
+  /**
    * Turn a {@link String} from the command line into an instance of the backing Java type for this
    * class.
    *

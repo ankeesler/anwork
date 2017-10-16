@@ -1,5 +1,7 @@
 package com.marshmallow.anwork.app.cli;
 
+import java.util.stream.Stream;
+
 /**
  * This is a {@link ListOrCommandImpl} that represents a {@link List}.
  *
@@ -11,14 +13,45 @@ package com.marshmallow.anwork.app.cli;
  */
 class ListImpl extends ListOrCommandImpl implements MutableList {
 
+  /**
+   * This is a simple {@link Action} that prints some usage information on a {@link List}.
+   *
+   * <p>
+   * Created Oct 16, 2017
+   * </p>
+   *
+   * @author Andrew
+   */
+  private static class ListAction implements Action {
+
+    private final List list;
+
+    public ListAction(List list) {
+      this.list = list;
+    }
+
+    @Override
+    public void run(ArgumentValues flags, String[] parameters) {
+      StringBuilder builder = new StringBuilder();
+      generateUsage(list, builder);
+      System.out.println(builder.toString());
+    }
+
+    private static void generateUsage(List list, StringBuilder builder) {
+      TextDocumentationGenerator.writeList(new List[] { list }, builder);
+      if (list.getFlags().length > 0) {
+        TextDocumentationGenerator.writeFlags(list.getFlags(), builder);
+      }
+      if (list.getCommands().length > 0) {
+        TextDocumentationGenerator.writeCommands(list.getCommands(), builder);
+      }
+      Stream.of(list.getLists()).forEach((l) -> generateUsage(l, builder));
+    }
+  }
+
   ListImpl(String name) {
     super(name, null);
-    setAction(new Action() {
-      @Override
-      public void run(ArgumentValues flags, String[] arguments) {
-        System.out.println(getUsage());
-      }
-    });
+    setAction(new ListAction(this));
   }
 
   @Override
@@ -47,7 +80,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
 
   @Override
   public List[] getLists() {
-    return (List[])getChildren(true);
+    return super.getLists();
   }
 
   @Override
@@ -59,7 +92,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
 
   @Override
   public Command[] getCommands() {
-    return (Command[])getChildren(false);
+    return super.getCommands();
   }
 
   @Override
