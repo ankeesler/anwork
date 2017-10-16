@@ -37,11 +37,11 @@ public class DocumentationGeneratorFactory {
    *     <code>null</code>
    */
   public DocumentationGenerator createGenerator(DocumentationType type) {
-    switch (type) {
-      case GITHUB_MARKDOWN:
-        return new GithubReadmeDocumentationGenerator();
-      default:
-        throw new IllegalArgumentException("Unknown DocumentationType: " + type);
+    try {
+      return type.instantiate();
+    } catch (Exception e) {
+      throw new IllegalStateException("Cannot instanitate documentation generator for type "
+                                      + type, e);
     }
   }
 }
