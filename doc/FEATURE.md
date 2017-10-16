@@ -7,7 +7,6 @@ into sections below.
 - Add note command for adding a note to a task.
 
 ## CLI
-- Add CLI documentation generator.
 - Add CLI argument stuff.
 - The CLI usage printing is ugly. Write a real test for this.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.

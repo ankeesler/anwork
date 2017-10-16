@@ -1,10 +1,16 @@
 package com.marshmallow.anwork.app.cli.test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 
 import com.marshmallow.anwork.app.cli.Cli;
+import com.marshmallow.anwork.app.cli.DocumentationGenerator;
+import com.marshmallow.anwork.app.cli.DocumentationGeneratorFactory;
+import com.marshmallow.anwork.app.cli.DocumentationType;
 import com.marshmallow.anwork.app.cli.Visitor;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +25,32 @@ import org.junit.Test;
  * @author Andrew
  */
 public abstract class BaseCliTest {
+
+  /**
+   * This class is a {@link Writer} that does nothing. It is useful for writing controlled tests.
+   *
+   * <p>
+   * Created Oct 16, 2017
+   * </p>
+   *
+   * @author Andrew
+   */
+  private static class NoOpWriter extends Writer {
+    @Override
+    public void write(char[] cbuf, int off, int len) throws IOException {
+      // no-op
+    }
+
+    @Override
+    public void flush() throws IOException {
+      // no-op
+    }
+
+    @Override
+    public void close() throws IOException {
+      // no-op
+    }
+  }
 
   private Cli cli;
 
@@ -61,5 +93,22 @@ public abstract class BaseCliTest {
   @Test
   public void usageTest() {
     System.out.println(cli.getUsage());
+  }
+
+  /**
+   * This test ensures that the {@link Cli} instance for this class can successfully have
+   * documentation generated for it via a {@link DocumentationGenerator}.
+   */
+  @Test
+  public void documentationGenerationTest() throws Exception {
+    for (DocumentationType documentationType : DocumentationType.values()) {
+      DocumentationGenerator generator
+          = DocumentationGeneratorFactory.getInstance().createGenerator(documentationType);
+      try {
+        generator.generate(cli, new PrintWriter(new NoOpWriter(), false));
+      } catch (Exception e) {
+        throw new Exception("Documentation generation failed for type " + documentationType);
+      }
+    }
   }
 }

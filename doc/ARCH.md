@@ -89,6 +89,10 @@ getters.
 A CLI API for an application can also be specified via an XML schema. A *CliXmlReader* is the class
 that reads in an XML stream and returns a *Cli* object.
 
+Given a *Cli* instance, one can use the *DocumentationGenerator* framework to generate
+documentation of different formats. The singleton *DocumentationGeneratorFactory* will generate
+*DocumentationGenerator*s based on a *DocumentationType* (like Github markdown, text, etc.).  
+
 ### Internal Implementation
 
 Most of this package includes implementation classes ending in "Impl". For example, the

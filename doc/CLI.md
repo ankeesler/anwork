@@ -1,4 +1,4 @@
-This documentation is generated from com.marshmallow.anwork.app.AnworkCliDocumentationGenerator
+This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadmeDocumentationGenerator
 
 #  *anwork*: ANWORK CLI commands
 ## Flags
