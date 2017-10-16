@@ -32,6 +32,11 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     this.action = action;
   }
 
+  /**
+   * Return whether or not this {@link Node} represents a CLI {@link List}.
+   *
+   * @return Whether or not this {@link Node} represents a CLI {@link List}
+   */
   protected abstract boolean isList();
 
   @Override
@@ -271,8 +276,18 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
    * Section - Visitor
    */
 
+  /**
+   * Start the visitation of a {@link Node}.
+   *
+   * @param visitor The visitor that is visiting during this visitation
+   */
   protected abstract void startVisit(Visitor visitor);
 
+  /**
+   * End the visitation of a {@link Node}.
+   *
+   * @param visitor The visitor that is visiting during this visitation
+   */
   protected abstract void endVisit(Visitor visitor);
 
   void visit(Visitor visitor) {
