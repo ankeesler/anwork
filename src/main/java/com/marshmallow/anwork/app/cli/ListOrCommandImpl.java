@@ -19,8 +19,9 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
 
   /**
    * This is a helper class for CLI parsing functionality. It contains information about the per
-   * {@link #parse(String[])} state. Calling {@link #setActiveNode(ListOrCommandImpl)} will initialize the
-   * state for the current {@link ListOrCommandImpl} being {@link ListOrCommandImpl#parse(String[])}'d.
+   * {@link #parse(String[])} state. Calling {@link #setActiveNode(ListOrCommandImpl)} will
+   * initialize the state for the current {@link ListOrCommandImpl} being
+   * {@link ListOrCommandImpl#parse(String[])}'d.
    *
    * <p>
    * Created Sep 10, 2017
@@ -35,11 +36,14 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     private final ArgumentValues flagValues = new ArgumentValues();
 
     // This is a map from Flag#getShortFlag to Flag
-    private final Map<String, Flag> flags = new LinkedHashMap<String, Flag>();
+    private final Map<String, Flag> flags
+        = new LinkedHashMap<String, Flag>();
     // This is a map from Flag#getLongFlag to Flag#getShortFlag
-    private final Map<String, String> longFlags = new LinkedHashMap<String, String>();
+    private final Map<String, String> longFlags
+        = new LinkedHashMap<String, String>();
     // This is a map from Node#getName to Node
-    private final Map<String, ListOrCommandImpl> children = new LinkedHashMap<String, ListOrCommandImpl>();
+    private final Map<String, ListOrCommandImpl> children
+        = new LinkedHashMap<String, ListOrCommandImpl>();
 
     private void reinitialize() {
       flags.clear();

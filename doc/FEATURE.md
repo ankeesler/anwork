@@ -12,7 +12,6 @@ into sections below.
 - The CLI usage printing is ugly. Write a real test for this.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Add support for CliArgumentType.FILE.
-- Update CLI ARCH.md text.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
