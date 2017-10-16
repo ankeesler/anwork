@@ -15,12 +15,12 @@ import java.util.Map;
  *
  * @author Andrew
  */
-abstract class Node implements MutableListOrCommand, Comparable<Node> {
+abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<ListOrCommandImpl> {
 
   /**
    * This is a helper class for CLI parsing functionality. It contains information about the per
-   * {@link #parse(String[])} state. Calling {@link #setActiveNode(Node)} will initialize the
-   * state for the current {@link Node} being {@link Node#parse(String[])}'d.
+   * {@link #parse(String[])} state. Calling {@link #setActiveNode(ListOrCommandImpl)} will initialize the
+   * state for the current {@link ListOrCommandImpl} being {@link ListOrCommandImpl#parse(String[])}'d.
    *
    * <p>
    * Created Sep 10, 2017
@@ -30,7 +30,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
    */
   private static class ParseContext {
 
-    private Node activeNode;
+    private ListOrCommandImpl activeNode;
     private final List<String> parameters = new ArrayList<String>();
     private final ArgumentValues flagValues = new ArgumentValues();
 
@@ -39,7 +39,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     // This is a map from Flag#getLongFlag to Flag#getShortFlag
     private final Map<String, String> longFlags = new LinkedHashMap<String, String>();
     // This is a map from Node#getName to Node
-    private final Map<String, Node> children = new LinkedHashMap<String, Node>();
+    private final Map<String, ListOrCommandImpl> children = new LinkedHashMap<String, ListOrCommandImpl>();
 
     private void reinitialize() {
       flags.clear();
@@ -51,16 +51,16 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
       }
 
       children.clear();
-      for (Node child : activeNode.children) {
+      for (ListOrCommandImpl child : activeNode.children) {
         children.put(child.getName(), child);
       }
     }
 
-    public Node getActiveNode() {
+    public ListOrCommandImpl getActiveNode() {
       return activeNode;
     }
 
-    public void setActiveNode(Node activeNode) {
+    public void setActiveNode(ListOrCommandImpl activeNode) {
       this.activeNode = activeNode;
       reinitialize();
     }
@@ -97,27 +97,27 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
       return children.containsKey(name);
     }
 
-    public Node getChild(String name) {
+    public ListOrCommandImpl getChild(String name) {
       return children.get(name);
     }
   }
 
   private final java.util.List<Flag> flags = new ArrayList<Flag>();
-  private final java.util.List<Node> children = new ArrayList<Node>();
+  private final java.util.List<ListOrCommandImpl> children = new ArrayList<ListOrCommandImpl>();
 
   private String name;
   private Action action;
   private String description;
 
-  protected Node(String name, Action action) {
+  protected ListOrCommandImpl(String name, Action action) {
     this.name = name;
     this.action = action;
   }
 
   /**
-   * Return whether or not this {@link Node} represents a CLI {@link List}.
+   * Return whether or not this {@link ListOrCommandImpl} represents a CLI {@link List}.
    *
-   * @return Whether or not this {@link Node} represents a CLI {@link List}
+   * @return Whether or not this {@link ListOrCommandImpl} represents a CLI {@link List}
    */
   protected abstract boolean isList();
 
@@ -130,10 +130,10 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   public boolean equals(Object other) {
     if (other == null) {
       return this == null;
-    } else if (!(other instanceof Node)) {
+    } else if (!(other instanceof ListOrCommandImpl)) {
       return false;
     } else {
-      return ((Node)other).getName().equals(getName());
+      return ((ListOrCommandImpl)other).getName().equals(getName());
     }
   }
 
@@ -205,17 +205,17 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
    * Section - Children
    */
 
-  protected void addChild(Node child) {
+  protected void addChild(ListOrCommandImpl child) {
     if (children.contains(child)) {
       children.remove(child);
     }
     children.add(child);
   }
 
-  protected Node[] getChildren(boolean lists) {
+  protected ListOrCommandImpl[] getChildren(boolean lists) {
     return children.stream()
                    .filter(lists ? (node) -> node.isList() : (node) -> !node.isList())
-                   .toArray(Node[]::new);
+                   .toArray(ListOrCommandImpl[]::new);
   }
 
   /*
@@ -251,7 +251,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     }
 
     StringBuilder builder = new StringBuilder();
-    for (Node child : children) {
+    for (ListOrCommandImpl child : children) {
       builder.append(name).append(' ');
       builder.append(flagUsage);
       builder.append(child.name).append(" : ").append(child.description);
@@ -286,7 +286,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     if (isFlag(arg)) {
       nextIndex = parseFlag(args, index, context);
     } else if (context.hasChild(arg) && context.getParameters().length == 0) {
-      Node child = context.getChild(arg);
+      ListOrCommandImpl child = context.getChild(arg);
       nextIndex = child.parse(args, index + 1, context);
     } else {
       context.addParameter(arg);
@@ -345,7 +345,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   }
 
   private void validateContext(ParseContext context) {
-    Node activeNode = context.getActiveNode();
+    ListOrCommandImpl activeNode = context.getActiveNode();
     String[] parameters = context.getParameters();
     if (activeNode.isList() && parameters.length != 0) {
       throw new IllegalArgumentException("Unknown command '" + parameters[0]
@@ -354,7 +354,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   }
 
   private void runActiveNodeFromContext(ParseContext context) {
-    Node activeNode = context.getActiveNode();
+    ListOrCommandImpl activeNode = context.getActiveNode();
     String[] parameters = context.getParameters();
     activeNode.action.run(context.getFlagValues(), parameters);
   }
@@ -364,14 +364,14 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
    */
 
   /**
-   * Start the visitation of a {@link Node}.
+   * Start the visitation of a {@link ListOrCommandImpl}.
    *
    * @param visitor The visitor that is visiting during this visitation
    */
   protected abstract void startVisit(Visitor visitor);
 
   /**
-   * End the visitation of a {@link Node}.
+   * End the visitation of a {@link ListOrCommandImpl}.
    *
    * @param visitor The visitor that is visiting during this visitation
    */
@@ -398,7 +398,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   }
 
   @Override
-  public int compareTo(Node other) {
+  public int compareTo(ListOrCommandImpl other) {
     return name.compareTo(other.name);
   }
 }

@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.app.cli;
 
 /**
- * This is a {@link Node} that represents a {@link Command}.
+ * This is a {@link ListOrCommandImpl} that represents a {@link Command}.
  *
  * <p>
  * Created Oct 15, 2017
@@ -9,9 +9,9 @@ package com.marshmallow.anwork.app.cli;
  *
  * @author Andrew
  */
-class CommandNode extends Node implements MutableCommand {
+class CommandImpl extends ListOrCommandImpl implements MutableCommand {
 
-  CommandNode(String name, Action action) {
+  CommandImpl(String name, Action action) {
     super(name, action);
   }
 

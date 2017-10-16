@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.app.cli;
 
 /**
- * This is a {@link Node} that represents a {@link List}.
+ * This is a {@link ListOrCommandImpl} that represents a {@link List}.
  *
  * <p>
  * Created Oct 15, 2017
@@ -9,9 +9,9 @@ package com.marshmallow.anwork.app.cli;
  *
  * @author Andrew
  */
-class ListNode extends Node implements MutableList {
+class ListImpl extends ListOrCommandImpl implements MutableList {
 
-  ListNode(String name) {
+  ListImpl(String name) {
     super(name, null);
     setAction(new Action() {
       @Override
@@ -40,7 +40,7 @@ class ListNode extends Node implements MutableList {
 
   @Override
   public MutableList addList(String name) {
-    ListNode list = new ListNode(name);
+    ListImpl list = new ListImpl(name);
     addChild(list);
     return list;
   }
@@ -52,7 +52,7 @@ class ListNode extends Node implements MutableList {
 
   @Override
   public MutableCommand addCommand(String name, Action action) {
-    CommandNode command = new CommandNode(name, action);
+    CommandImpl command = new CommandImpl(name, action);
     addChild(command);
     return command;
   }

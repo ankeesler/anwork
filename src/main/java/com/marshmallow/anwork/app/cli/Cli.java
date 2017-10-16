@@ -39,7 +39,7 @@ package com.marshmallow.anwork.app.cli;
  */
 public class Cli {
 
-  private final ListNode root;
+  private final ListImpl root;
 
   /**
    * Create a new command line interface (i.e., a {@link Cli}).
@@ -47,7 +47,7 @@ public class Cli {
    * @param name The name for the command line interface
    */
   public Cli(String name) {
-    root = new ListNode(name);
+    root = new ListImpl(name);
   }
 
   /**

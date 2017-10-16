@@ -62,54 +62,46 @@ that they occured. Here are the major interfaces.
 ### Public Interface
 
 The CLI framework is a (large) add-on to the application layer. It is a general framework for
-interacting with a Java application at the command line. Here are the main public concepts.
-- A com.marshmallow.anwork.app.cli.Cli is the entry point object for creating a CLI for an
-  application.
-- A com.marshmallow.anwork.app.cli.CliCommand is some action that may have some flags associated
-  with it.
-- A com.marshmallow.anwork.app.cli.CliList contains a number of
-  com.marshmallow.anwork.app.cli.CliCommand's under some list title. For example, the list title
-  may be "git" and the com.marshmallow.anwork.app.cli.CliCommand's in the lists may be "status,"
-  "log," "commit," etc.
-- A com.marshmallow.anwork.app.CliAction is some action that runs in response to a
-  com.marshmallow.anwork.app.cli.CliCommand.
-- A com.marshmallow.anwork.app.cli.CliVisitor is some object that reacts to visiting each CLI node.
-  One can visit a CLI tree using the com.marshmallow.anwork.app.cli.Cli#visit method. This may be
-  useful for tasks such as documentation and test generation.
+interacting with a Java application at the command line. Here are the main public concepts. These
+classes are located in the com.marshmallow.anwork.app.cli package.
+- A *Cli* is the entry point object for creating a CLI for an application. A client can create an
+  instance of this object and create their CLI API via the root list (See *Cli#getRoot*). The
+  method *Cli#parse* is what actually does the parsing of command line arguments.
+- A *Command* is a keyword passed on the command line that runs some *Action*. A *Command* may be
+  something like "commit" in "git commit." An *Action* is just some Java code that runs when this
+  *Command* is passed. An *ActionCreator* is a simple interface that creates *Action*s.
+- A *List* is a collection of CLI *Command*'s. *List*s allow us to organize *Command*s into
+  different sub APIs. For example, "git submodule" is a *List* because it contains a number of
+  *Command*s (update, add, remove, etc.).
+- A *Flag* is an option passed to a *Command* or *List*. It is of the format -f (referred to as a
+  "short flag") or --file (referred to as a "long flag"). An example of a *Flag* is "-f" in
+  "make -f file.mak".
+- An *Argument* is a thing that is passed to a *Command* or a *Flag*. *Argument*s have a backing
+  Java type that allows clients to easily convert from command line to Java runtime. An example of
+  an *Argument* would be "file.mak" in "make -f file.mak" or "25" in "tail -n 25".
+- A *Visitor* is an object that can iterate through the CLI data structure and be notified of
+  *Flag*s, *Command*s, and *List*s. See *Cli#visit* for the main use of this class.
 
-CLI com.marshmallow.anwork.app.cli.CliList's and com.marshmallow.anwork.app.cli.CliCommand's are
-created in code using the com.marshmallow.anwork.app.cli.CliList#addList and
-com.marshmallow.anwork.app.cli.CliList#addCommand methods.
+Most of the main concepts have sub-interfaces that start with "Mutable". These sub-interfaces allow
+for editing of the main concepts, i.e., they offer setters whereas the super-interfaces only offer
+getters.
 
-CLI commands can also be created via an XML document. The XML document is read using a
-com.marshmallow.anwork.app.cli.CliXmlReader which returns a com.marshmallow.anwork.app.cli.Cli
-object. There is a schema associated with this XML format: com.marshmallow.anwork.app.cli.cli.xsd.
-
-CLI flags (which can be applied to com.marshmallow.anwork.app.cli.CliList's and
-com.marshmallow.anwork.app.cli.CliCommand's) can have a parameter passed to them. These flag values
-can be accessed by com.marshmallow.anwork.app.cli.CliAction's through
-com.marshmallow.anwork.app.cli.CliFlags instances, which are roughly a map from the flag to the
-value of the flag. Each flag value has some sort of type associated with it. If there is no
-parameter, then a BOOLEAN type is assumed. These types are defined in the
-com.marshmallow.anwork.app.cli.CliArgumentTypes enum.
+A CLI API for an application can also be specified via an XML schema. A *CliXmlReader* is the class
+that reads in an XML stream and returns a *Cli* object.
 
 ### Internal Implementation
 
-This CLI implementation uses a tree to store com.marshmallow.anwork.app.cli.CliList's and
-com.marshmallow.anwork.app.cli.CliCommand's. Here are the package-scope implementation concepts.
-- A com.marshmallow.anwork.app.cli.CliFlag is a flag that is passed to a
-  com.marshmallow.anwork.app.cli.CliList or com.marshmallow.anwork.app.cli.CliCommand. A flag can
-  be short (i.e., -f) or long (--file).
-- A com.marshmallow.anwork.app.cli.CliNode is the common base interface for
-  com.marshmallow.anwork.app.cli.CliList and com.marshmallow.anwork.app.cli.CliCommand. A node can
-  have com.marshmallow.anwork.app.cli.CliFlag's added to it.
+Most of this package includes implementation classes ending in "Impl". For example, the
+implementation of *MutableArgument* is named *ArgumentImpl*.
 
-Each com.marshmallow.anwork.app.cli.CliArgumentTypes value has a
-com.marshmallow.anwork.app.cli.CliArgumentConverter associated with it. This object takes the
-string values that are passed to the CLI system over the command line and turns them into some
-instance of some Java object type. Currently, there are instance
-com.marshmallow.anwork.app.cli.CliArgumentConverter types that can be accessed via
-com.marshmallow.anwork.app.cli.CliArgumentConverters.
+This CLI implementation uses a tree to store *List*s (see *ListImpl*) and *Command*s (see
+*CommandImpl*). When *Cli#parse* is called, the *ListOrCommandImpl* class lazily initializes a
+*ParseContext* instance in order to keep track of what *Flag*s, *List*s, and *Command*s are
+available on the current *ListOrCommandImpl*. The *Cli#parse* method works down the tree,
+collecting arguments and flags as it goes, and the validates and runs the resulting *Action* in
+*ListOrCommandImpl#validateContext* and *ListOrCommandImpl#runActiveNodeFromContext*, respectively.
+The *Cli#parse* implementation will throw a *java.lang.IllegalArgumentException* if something goes
+wrong. 
 
 ## Test
 
