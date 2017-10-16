@@ -1,7 +1,8 @@
 package com.marshmallow.anwork.app.cli;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,12 +17,93 @@ import java.util.Map;
  */
 abstract class Node implements MutableListOrCommand, Comparable<Node> {
 
-  // This is a map from short flag to information about the flag.
-  private Map<String, Flag> shortFlagInfo = new LinkedHashMap<String, Flag>();
-  // This is a map from long flag to short flag.
-  private Map<String, String> longFlagShortFlags = new HashMap<String, String>();
-  // This is a map from child name to child node.
-  private Map<String, Node> children = new HashMap<String, Node>();
+  /**
+   * This is a helper class for CLI parsing functionality. It contains information about the per
+   * {@link #parse(String[])} state. Calling {@link #setActiveNode(Node)} will initialize the
+   * state for the current {@link Node} being {@link Node#parse(String[])}'d.
+   *
+   * <p>
+   * Created Sep 10, 2017
+   * </p>
+   *
+   * @author Andrew
+   */
+  private static class ParseContext {
+
+    private Node activeNode;
+    private final List<String> parameters = new ArrayList<String>();
+    private final ArgumentValues flagValues = new ArgumentValues();
+
+    // This is a map from Flag#getShortFlag to Flag
+    private final Map<String, Flag> flags = new LinkedHashMap<String, Flag>();
+    // This is a map from Flag#getLongFlag to Flag#getShortFlag
+    private final Map<String, String> longFlags = new LinkedHashMap<String, String>();
+    // This is a map from Node#getName to Node
+    private final Map<String, Node> children = new LinkedHashMap<String, Node>();
+
+    private void reinitialize() {
+      flags.clear();
+      for (Flag flag : activeNode.flags) {
+        flags.put(flag.getShortFlag(), flag);
+        if (flag.hasLongFlag()) {
+          longFlags.put(flag.getLongFlag(), flag.getShortFlag());
+        }
+      }
+
+      children.clear();
+      for (Node child : activeNode.children) {
+        children.put(child.getName(), child);
+      }
+    }
+
+    public Node getActiveNode() {
+      return activeNode;
+    }
+
+    public void setActiveNode(Node activeNode) {
+      this.activeNode = activeNode;
+      reinitialize();
+    }
+
+    public String[] getParameters() {
+      return parameters.toArray(new String[0]);
+    }
+
+    public void addParameter(String parameter) {
+      parameters.add(parameter);
+    }
+
+    public ArgumentValues getFlagValues() {
+      return flagValues;
+    }
+
+    public boolean hasFlag(String shortFlag) {
+      return flags.containsKey(shortFlag);
+    }
+
+    public Flag getFlag(String shortFlag) {
+      return flags.get(shortFlag);
+    }
+
+    public boolean hasLongFlag(String longFlag) {
+      return longFlags.containsKey(longFlag);
+    }
+
+    public String getShortFlag(String shortFlag) {
+      return longFlags.get(shortFlag);
+    }
+
+    public boolean hasChild(String name) {
+      return children.containsKey(name);
+    }
+
+    public Node getChild(String name) {
+      return children.get(name);
+    }
+  }
+
+  private final java.util.List<Flag> flags = new ArrayList<Flag>();
+  private final java.util.List<Node> children = new ArrayList<Node>();
 
   private String name;
   private Action action;
@@ -42,6 +124,22 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   @Override
   public String toString() {
     return String.format("%s:%s", getClass().getName(), getName());
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == null) {
+      return this == null;
+    } else if (!(other instanceof Node)) {
+      return false;
+    } else {
+      return ((Node)other).getName().equals(getName());
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
   }
 
   @Override
@@ -86,13 +184,20 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
 
   @Override
   public Flag[] getFlags() {
-    return shortFlagInfo.values().toArray(new Flag[0]);
+    return flags.toArray(new Flag[0]);
   }
 
   @Override
   public MutableFlag addFlag(String shortFlag) {
+    for (Flag flag : flags) {
+      if (flag.getShortFlag().equals(shortFlag)) {
+        flags.remove(flag);
+        break;
+      }
+    }
+
     MutableFlag flag = new FlagImpl(shortFlag);
-    shortFlagInfo.put(flag.getShortFlag(), flag);
+    flags.add(flag);
     return flag;
   }
 
@@ -101,12 +206,14 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
    */
 
   protected void addChild(Node child) {
-    children.put(child.name, child);
+    if (children.contains(child)) {
+      children.remove(child);
+    }
+    children.add(child);
   }
 
   protected Node[] getChildren(boolean lists) {
-    return children.values()
-                   .stream()
+    return children.stream()
                    .filter(lists ? (node) -> node.isList() : (node) -> !node.isList())
                    .toArray(Node[]::new);
   }
@@ -121,7 +228,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
 
   private String makeFlagUsage() {
     StringBuilder builder = new StringBuilder();
-    for (Flag flag : shortFlagInfo.values()) {
+    for (Flag flag : flags) {
       builder.append('[');
       builder.append(Flag.FLAG_START).append(flag.getShortFlag());
       if (flag.hasLongFlag()) {
@@ -144,7 +251,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     }
 
     StringBuilder builder = new StringBuilder();
-    for (Node child : children.values()) {
+    for (Node child : children) {
       builder.append(name).append(' ');
       builder.append(flagUsage);
       builder.append(child.name).append(" : ").append(child.description);
@@ -165,23 +272,11 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   }
 
   private int parse(String[] args, int index, ParseContext context) {
-    updateLongFlagsShortFlags();
     context.setActiveNode(this);
     while (index < args.length) {
       index = parseArg(args, index, context);
     }
     return index;
-  }
-
-  private void updateLongFlagsShortFlags() {
-    // We do this lazily so that the flags can be updated until the last moment when #parse is
-    // called.
-    longFlagShortFlags.clear();
-    for (Flag flag : shortFlagInfo.values()) {
-      if (flag.hasLongFlag()) {
-        longFlagShortFlags.put(flag.getLongFlag(), flag.getShortFlag());
-      }
-    }
   }
 
   // Process the argument at index. Returns the next index to process.
@@ -190,8 +285,8 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     int nextIndex;
     if (isFlag(arg)) {
       nextIndex = parseFlag(args, index, context);
-    } else if (isChild(arg) && context.getParameters().length == 0) {
-      Node child = getChild(arg);
+    } else if (context.hasChild(arg) && context.getParameters().length == 0) {
+      Node child = context.getChild(arg);
       nextIndex = child.parse(args, index + 1, context);
     } else {
       context.addParameter(arg);
@@ -219,13 +314,13 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     // Is it a valid flag?
     String flagString = arg.substring(isLongFlag ? 2 : 1);
     boolean validFlag = (isLongFlag
-                         ? longFlagShortFlags.containsKey(flagString)
-                         : shortFlagInfo.containsKey(flagString));
+                         ? context.hasLongFlag(flagString)
+                         : context.hasFlag(flagString));
     if (!validFlag) {
       throwBadArgException("Unknown flag '" + flagString + "'", args, index);
     }
-    String shortFlag = (isLongFlag ? longFlagShortFlags.get(flagString) : flagString);
-    Flag flag = shortFlagInfo.get(shortFlag);
+    String shortFlag = (isLongFlag ? context.getShortFlag(flagString) : flagString);
+    Flag flag = context.getFlag(shortFlag);
 
     // Does it have an argument?
     if (flag.hasArgument()) {
@@ -235,21 +330,13 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
       index += 1;
       String argument = args[index];
       Object argumentValue = flag.getArgument().getType().convert(argument);
-      context.getFlags().addShortFlagValue(shortFlag, argumentValue);
+      context.getFlagValues().addShortFlagValue(shortFlag, argumentValue);
     } else {
-      // By default, flags with no argument are set to Boolean.TRUE.
-      context.getFlags().addShortFlagValue(shortFlag, Boolean.TRUE);
+      // By default, flags with no argument are set to Boolean.TRUE. See Action#run.
+      context.getFlagValues().addShortFlagValue(shortFlag, Boolean.TRUE);
     }
 
     return index + 1;
-  }
-
-  private boolean isChild(String arg) {
-    return children.containsKey(arg);
-  }
-
-  private Node getChild(String arg) {
-    return children.get(arg);
   }
 
   private void throwBadArgException(String baseMessage, String[] args, int index) {
@@ -269,7 +356,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
   private void runActiveNodeFromContext(ParseContext context) {
     Node activeNode = context.getActiveNode();
     String[] parameters = context.getParameters();
-    activeNode.action.run(context.getFlags(), parameters);
+    activeNode.action.run(context.getFlagValues(), parameters);
   }
 
   /*
@@ -294,19 +381,16 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
     // First, we visit ourselves.
     startVisit(visitor);
     // Second, we visit our flags.
-    shortFlagInfo.values()
-                 .stream()
-                 .sorted()
-                 .forEach(flag -> visitor.visitFlag(flag));
+    flags.stream()
+         .sorted()
+         .forEach(flag -> visitor.visitFlag(flag));
     // Third, we visit our commands.
-    children.values()
-            .stream()
+    children.stream()
             .filter(node -> !node.isList())
             .sorted()
             .forEach(command -> command.visit(visitor));
     // Fourth, we visit our lists.
-    children.values()
-            .stream()
+    children.stream()
             .filter(node -> node.isList())
             .sorted()
             .forEach(list -> list.visit(visitor));

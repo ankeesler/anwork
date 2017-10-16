@@ -29,6 +29,7 @@ public class BasicCliTest extends BaseCliTest {
 
   private TestCliAction tunaMarlinAction = new TestCliAction();
   private TestCliAction mayoAction = new TestCliAction();
+  private TestCliAction fooAction = new TestCliAction();
 
   @Override
   protected Cli createCli() {
@@ -50,7 +51,10 @@ public class BasicCliTest extends BaseCliTest {
         .setDescription("This is the e short flag")
         .setArgument("number", ArgumentType.NUMBER).setDescription("This is your favorite number");
 
-    MutableList tunaList = root.addList("tuna").setDescription("This is the tuna command list");
+    // Change the name of the list here to make sure that the changed list name will be parsed.
+    MutableList tunaList = root.addList("wrong")
+                               .setDescription("This is the tuna command list")
+                               .setName("tuna");
     tunaList.addFlag("a")
             .setLongFlag("andrew")
             .setArgument("age", ArgumentType.NUMBER).setDescription("The age you think I am");
@@ -59,11 +63,22 @@ public class BasicCliTest extends BaseCliTest {
 
     MutableCommand tunaMarlinCommand = tunaList.addCommand("marlin", tunaMarlinAction);
     tunaMarlinCommand.setDescription("This is the marlin command");
-    tunaMarlinCommand.addFlag("z").setDescription("The z flag, ya know");
+    tunaMarlinCommand.addFlag("wrong").setDescription("The z flag, ya know").setShortFlag("z");
+    // ^^^ this makes sure that we can change the short flag on a flag and parse the correct flag
+    tunaMarlinCommand.addFlag("d").setLongFlag("donut");
+    tunaMarlinCommand.addFlag("d").setLongFlag("duplicate");
 
-    root.addCommand("mayo", mayoAction).setDescription("This is the mayo command");
+    // Change the name of the command here to make sure the changed command name will be parsed.
+    root.addCommand("wrong", mayoAction)
+        .setDescription("This is the mayo command")
+        .setName("mayo");
 
     root.addCommand("command-without-description", new TestCliAction());
+    MutableList duplicateList = root.addList("duplicate-list")
+                                    .setDescription("this has a description!");
+    duplicateList = root.addList("duplicate-list"); // no description...
+    duplicateList.addCommand("foo", new TestCliAction());
+    duplicateList.addCommand("foo", fooAction);
 
     root.addList("list-without-description");
 
@@ -140,6 +155,11 @@ public class BasicCliTest extends BaseCliTest {
     tunaMarlinAction.getFlags().getValue("e", ArgumentType.STRING);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testDuplicateFlagsNegative() {
+    parse("tuna", "marlin", "--donut");
+  }
+
   /*
    * Subsection - Positive Flag Tests
    */
@@ -167,6 +187,14 @@ public class BasicCliTest extends BaseCliTest {
   @Test
   public void testEmptyArgs() {
     parse();
+  }
+
+  @Test
+  public void testDuplicateFlagsPositive() {
+    parse("tuna", "marlin", "--duplicate");
+    assertTrue(tunaMarlinAction.getRan());
+    Boolean b = tunaMarlinAction.getFlags().getValue("d", ArgumentType.BOOLEAN);
+    assertEquals(Boolean.TRUE, b);
   }
 
   /*
@@ -261,6 +289,17 @@ public class BasicCliTest extends BaseCliTest {
     assertArrayEquals(new String[] { "a", "b", "c" }, mayoAction.getArguments());
   }
 
+  @Test
+  public void testDuplicateList() {
+    parse("duplicate-list");
+  }
+
+  @Test
+  public void testDuplicateCommand() {
+    parse("duplicate-list", "foo");
+    assertTrue(fooAction.getRan());
+  }
+
   /*
    * Section - Visitor
    */
@@ -274,15 +313,18 @@ public class BasicCliTest extends BaseCliTest {
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlagsWithParameters(),
                                             "c", "e");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlags(),
-                                            "bob");
+                                            "bob", "duplicate");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlagsWithParameters(),
                                             "dog", "andrew");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommands(),
-                                            "command-without-description", "mayo", "marlin");
+                                            "command-without-description", "mayo",
+                                            "foo", "marlin");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLists(),
-                                            "cli-test", "list-without-description", "tuna");
+                                            "cli-test", "duplicate-list",
+                                            "list-without-description", "tuna");
     TestUtilities.assertVariadicArrayEquals(visitor.getLeftLists(),
-                                            "list-without-description", "tuna", "cli-test");
+                                            "duplicate-list", "list-without-description",
+                                            "tuna", "cli-test");
   }
 
   @Test

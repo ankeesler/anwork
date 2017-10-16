@@ -50,8 +50,8 @@ public class Smoketest {
   }
 
   @Test
-  public void createTest() throws Exception {
-    run(true, "create", "task-a");
+  public void showNoTasksTest() throws Exception {
+    run(true, "task", "show");
   }
 
   private void run(boolean debug, String...args) throws Exception {

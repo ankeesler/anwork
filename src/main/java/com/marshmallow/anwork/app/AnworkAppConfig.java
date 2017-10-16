@@ -52,7 +52,7 @@ public class AnworkAppConfig {
 
   // These fields are set to their defaults.
   private String context = "default-context";
-  private File persistenceRoot;
+  private File persistenceRoot = new File(".");
   private boolean doPersist = true;
   private boolean debug = false;
   private Consumer<String> debugPrinter = new Consumer<String>() {

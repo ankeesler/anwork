@@ -30,7 +30,7 @@ public abstract class TaskManagerCliAction implements Action {
       run(config, args, manager);
       saveTaskManager(config, manager);
     } catch (Exception e) {
-      System.out.println("Failed task manager action: " + e.getMessage());
+      throw new IllegalStateException("Failed task manager action!", e);
     }
   }
 

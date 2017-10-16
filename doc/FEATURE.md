@@ -13,7 +13,6 @@ into sections below.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Add support for CliArgumentType.FILE.
 - Update CLI ARCH.md text.
-- Add test to make sure changing the name/short flag of a CLI node/flag doesn't mess anything up.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
