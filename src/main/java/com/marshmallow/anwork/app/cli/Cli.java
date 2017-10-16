@@ -1,41 +1,34 @@
 package com.marshmallow.anwork.app.cli;
 
 /**
- * This class represents the entry point for the CLI tree.
+ * This class represents the entry point for the CLI API.
  *
  * <p>The class is meant to be used in the following way.
  * <pre>
- *   Cli cli = new Cli("cli-app", "This is the CLI for my app.");
- *   CliNode root = cli.getRoot();
- *   root.addShortFlag("f",
- *                     "This is a description", new CliAction() { ... });
- *   root.addLongFlag("v",
- *                    "verbose",
- *                    "This is a description",
- *                    new CliAction() { ... });
- *   root.addLongFlagWithParameter("o",
- *                                 "output",
- *                                 "This is a description",
- *                                 "location",
- *                                 new CliAction() { ... });
+ *   Cli cli = new Cli("cli-app");
+ *   MutableList rootList = cli.getRoot();
+ *   rootList.addFlag("f")
+ *           .setDescription("This is a description");
+ *   rootList.addFlag("o")
+ *           .setLongFlag("output")
+ *           .setDescription("This is a description")
+ *           .setArgument("location").setType(ArgumentType.STRING);
  *
- *   CliNode tunaCommand = root.addCommand("tuna",
- *                                         "This is a tuna command",
- *                                         new CliAction() { ... });
- *   tunaCommand.addShortFlag("a", "This is a description", new CliAction() { ... });
+ *   MutableCommand tunaCommand = root.addCommand("tuna", new CliAction() { ... });
+ *   tunaCommand.setDescription("This is the tuna command");
+ *   tunaCommand.addFlag("a").setDescription("This is a description");
  *
- *   CliNode fishList = root.addList("fish", "This is the fish command list");
- *   CliNode fishMarlinCommand = fishList.addCommand("marlin",
- *                                                   "This is the marlin command",
- *                                                   new CliAction() { ... });
+ *   MutableList fishList = root.addList("fish").setDescription(""This is the fish command list");
+ *   fishList.addCommand("marlin", new CliAction() { ... }))
+ *           .setDescription("This is the marlin command");
  *   ...
  *   root.parse(args);
  * </pre>
  *
  * <p>The above would result in the following command line API.
  * <pre>
- *   root-command [-f] [-v|--verbose] [-o|--output location] tuna [-a]
- *   root-command [-f] [-v|--verbose] [-o|--output location] fish marlin
+ *   cli-app [-f] [-o|--output location] tuna [-a]
+ *   cli-app [-f] [-o|--output location] fish marlin
  * </pre>
  *
  * <p>
@@ -46,24 +39,23 @@ package com.marshmallow.anwork.app.cli;
  */
 public class Cli {
 
-  private final CliNodeImpl root;
+  private final ListNode root;
 
   /**
-   * Create a new command line interface.
+   * Create a new command line interface (i.e., a {@link Cli}).
    *
    * @param name The name for the command line interface
-   * @param description The description of the command line interface
    */
-  public Cli(String name, String description) {
-    root = CliNodeImpl.makeRoot(name, description);
+  public Cli(String name) {
+    root = new ListNode(name);
   }
 
   /**
-   * Get the root CLI node for this CLI.
+   * Get the root {@link List} for this CLI, in editable form.
    *
-   * @return The root CLI node
+   * @return The root CLI {@link List} that can be edited, i.e., a {@link MutableList}
    */
-  public CliList getRoot() {
+  public MutableList getRoot() {
     return root;
   }
 
@@ -87,20 +79,20 @@ public class Cli {
   }
 
   /**
-   * Visit the CLI tree with a {@link CliVisitor}.
+   * Visit the CLI tree with a {@link Visitor}.
    *
-   * <p>Per CLI-node, the visitation will happen in this order.
+   * <p>Per {@link List} in the {@link Cli}, the visitation will happen in this order.
    *   <ol>
-   *     <li>Flags    (see {@link CliNode})</li>
-   *     <li>Commands (see {@link CliCommand})</li>
-   *     <li>Lists    (see {@link CliList})</li>
+   *     <li>Flags    (see {@link Flag})</li>
+   *     <li>Commands (see {@link Command})</li>
+   *     <li>Lists    (see {@link List})</li>
    *   </ol>
    * Each of the groups above will be sorted so that each visitation sequence is deterministic.
    * When lists are visited, they are visited in a depth-first manner.
    *
-   * @param visitor The {@link CliVisitor} with which to visit the CLI tree nodes
+   * @param visitor The {@link Visitor} with which to visit the CLI tree nodes
    */
-  public void visit(CliVisitor visitor) {
+  public void visit(Visitor visitor) {
     root.visit(visitor);
   }
 }

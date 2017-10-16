@@ -1,18 +1,18 @@
 package com.marshmallow.anwork.app.cli.test;
 
-import com.marshmallow.anwork.app.cli.CliAction;
-import com.marshmallow.anwork.app.cli.CliFlags;
+import com.marshmallow.anwork.app.cli.Action;
+import com.marshmallow.anwork.app.cli.ArgumentValues;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is a {@link CliAction} used to validate whether or not the "bing-home-bacon" command
+ * This is a {@link Action} used to validate whether or not the "bing-home-bacon" command
  * was issued in the {@link CliXmlTest}.
  *
  * <p>
  * Note that the methods offered on this class are <code>static</code> and they track the
- * <em>total</em> number of times that this {@link CliAction} has been run across <em>all</em>
+ * <em>total</em> number of times that this {@link Action} has been run across <em>all</em>
  * instances of this class.
  * </p>
  *
@@ -22,23 +22,23 @@ import java.util.List;
  *
  * @author Andrew
  */
-public class BringHomeBaconTestCliAction implements CliAction {
+public class BringHomeBaconTestCliAction implements Action {
 
   // This is a static field so that we can count how many times this command was run over multiple
   // instances of this class.
   private static List<String[]> runs = new ArrayList<String[]>();
 
   /**
-   * Reset the number of times that this {@link CliAction} has been run to 0.
+   * Reset the number of times that this {@link Action} has been run to 0.
    */
   public static void resetRunCount() {
     runs = new ArrayList<String[]>();
   }
 
   /**
-   * Get the number of times that this {@link CliAction} has been run.
+   * Get the number of times that this {@link Action} has been run.
    *
-   * @return The number of times that this {@link CliAction} has been run across all instances of
+   * @return The number of times that this {@link Action} has been run across all instances of
    *     this class
    */
   public static int getRunCount() {
@@ -58,7 +58,7 @@ public class BringHomeBaconTestCliAction implements CliAction {
   }
 
   @Override
-  public void run(CliFlags flags, String[] parameters) {
+  public void run(ArgumentValues flags, String[] parameters) {
     runs.add(parameters);
   }
 }

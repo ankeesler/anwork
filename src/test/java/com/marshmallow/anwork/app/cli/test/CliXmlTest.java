@@ -40,8 +40,8 @@ public class CliXmlTest extends BaseCliTest {
 
   @Test
   public void testFlags() {
-    parse("-a", "--bacon", "-c", "fish", "--dog", "97");
-    parse("-a", "-b", "-c", "fish", "-d", "34");
+    parse("-a", "--bacon", "-c", "fish", "--dog", "97", "--no-description-long-flag", "meh");
+    parse("-a", "-b", "-c", "fish", "-d", "34", "-no-description-short-flag", "-n", "meh");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
     TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
     assertNotNull(fishAction);
@@ -54,6 +54,7 @@ public class CliXmlTest extends BaseCliTest {
   @Test
   public void testCommands() {
     parse("fish");
+    parse("fish", "-n", "15");
     parse("marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
     TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
@@ -135,6 +136,11 @@ public class CliXmlTest extends BaseCliTest {
   @Test(expected = Exception.class)
   public void testBothActionAndActionCreator() throws Exception {
     read("both-action-and-action-creator.xml");
+  }
+
+  @Test(expected = Exception.class)
+  public void testTooManyFlagArguments() throws Exception {
+    read("too-many-flag-arguments.xml");
   }
 
   private Cli read(String filename) throws Exception {

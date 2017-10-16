@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.app;
 
-import com.marshmallow.anwork.app.cli.CliAction;
-import com.marshmallow.anwork.app.cli.CliFlags;
+import com.marshmallow.anwork.app.cli.Action;
+import com.marshmallow.anwork.app.cli.ArgumentValues;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.task.TaskManager;
@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * This is a {@link CliAction} that loads a {@link TaskManager}, does something, and
+ * This is a {@link Action} that loads a {@link TaskManager}, does something, and
  * then saves the {@link TaskManager}.
  *
  * <p>
@@ -20,10 +20,10 @@ import java.util.Collections;
  *
  * @author Andrew
  */
-public abstract class TaskManagerCliAction implements CliAction {
+public abstract class TaskManagerCliAction implements Action {
 
   @Override
-  public void run(CliFlags flags, String[] args) {
+  public void run(ArgumentValues flags, String[] args) {
     AnworkAppConfig config = new AnworkAppConfig(flags);
     try {
       TaskManager manager = loadTaskManager(config);

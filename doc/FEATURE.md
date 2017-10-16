@@ -13,6 +13,7 @@ into sections below.
 - Remove the usage functionality from the CliNodeImpl class and use a CliVisitor instead.
 - Use a builder flass for flags and reuse it in the XML parser!
 - Add support for CliArgumentType.FILE.
+- Update CLI ARCH.md text.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?

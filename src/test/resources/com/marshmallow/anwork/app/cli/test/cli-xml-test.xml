@@ -3,16 +3,24 @@
   <flag shortFlag="a" description="This is the short a flag" />
   <flag shortFlag="b" longFlag="bacon" description="This is the long b flag" />
   <flag shortFlag="c" description="This is the short c flag with a parameter">
-    <parameter name="name" description="This is the name of something" type="STRING" />
+    <argument name="name" description="This is the name of something" type="STRING" />
   </flag>
   <flag shortFlag="d" longFlag="dog" description="This is the long d flag with a parameter">
-    <parameter name="age" description="This is the age of the dog" type="INTEGER" />
+    <argument name="age" description="This is the age of the dog" type="NUMBER" />
   </flag>
   <flag shortFlag="e" description="This is a boolean flag">
-    <parameter name="yesOrNo" description="This is a boolean flag" type="BOOLEAN" />
+    <argument name="yesOrNo" description="This is a boolean flag" type="BOOLEAN" />
+  </flag>
+  <flag shortFlag="no-description-short-flag">
+  </flag>
+  <flag shortFlag="n" longFlag="no-description-long-flag">
+    <argument name="blah" type="STRING" />
   </flag>
 
   <command name="fish" description="This is the tuna fish command">
+    <flag shortFlag="n" description="The number of fish that you desire">
+      <argument name="number" type="NUMBER" />
+    </flag>
     <actionCreator class="com.marshmallow.anwork.app.cli.test.TestCliActionCreator" />
   </command>
   <command name="marlin" description="This is the tuna marlin command">
@@ -22,7 +30,7 @@
   <list name="list-a" description="This is list A!">
     <flag shortFlag="m" longFlag="mom" description="This is the mom flag" />
     <flag shortFlag="d" longFlag="dad" description="This is the data flag">
-      <parameter name="activity" description="This is the activity that dad is doing" type="STRING" />
+      <argument name="activity" description="This is the activity that dad is doing" type="STRING" />
     </flag>
     <command name="bring-home-bacon" description="This command brings home the bacon">
       <action class="com.marshmallow.anwork.app.cli.test.BringHomeBaconTestCliAction" />
@@ -33,7 +41,7 @@
     <command name="shake-it-up" description="This command shakes it up">
       <flag shortFlag="a" longFlag="andrew" description="This is the andrew flag" />
       <flag shortFlag="o" longFlag="output" description="This is the output flag">
-        <parameter name="directory" description="The output directory" type="STRING" />
+        <argument name="directory" description="The output directory" type="STRING" />
       </flag>
       <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
     </command>

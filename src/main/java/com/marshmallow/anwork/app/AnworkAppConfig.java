@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.app;
 
-import com.marshmallow.anwork.app.cli.CliArgumentType;
-import com.marshmallow.anwork.app.cli.CliFlags;
+import com.marshmallow.anwork.app.cli.ArgumentType;
+import com.marshmallow.anwork.app.cli.ArgumentValues;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -21,32 +21,32 @@ public class AnworkAppConfig {
   // These are the CLI flags globally used in the ANWORK app. Each flag has a short flag
   // associated with it and maybe a {@link CliArgumentType} if it takes a parameter.
   private static enum CliFlag {
-    CONTEXT("c", CliArgumentType.STRING),
-    PERSISTENCE_ROOT("o", CliArgumentType.STRING),
+    CONTEXT("c", ArgumentType.STRING),
+    PERSISTENCE_ROOT("o", ArgumentType.STRING),
     DONT_PERSIST("n"),
     DEBUG("d")
     ;
 
     private final String shortFlag;
-    private final CliArgumentType parameterType;
+    private final ArgumentType<?> argumentType;
 
-    private CliFlag(String shortFlag, CliArgumentType parameterType) {
+    private CliFlag(String shortFlag, ArgumentType<?> argumentType) {
       this.shortFlag = shortFlag;
-      this.parameterType = parameterType;
+      this.argumentType = argumentType;
     }
 
     private CliFlag(String shortFlag) {
       // By default, flags with no parameters are translated to BOOLEAN values.
       this.shortFlag = shortFlag;
-      this.parameterType = CliArgumentType.BOOLEAN;
+      this.argumentType = ArgumentType.BOOLEAN;
     }
 
     public String getShortFlag() {
       return shortFlag;
     }
 
-    public CliArgumentType getParameterType() {
-      return parameterType;
+    public ArgumentType<?> getArgumentType() {
+      return argumentType;
     }
   }
 
@@ -68,9 +68,9 @@ public class AnworkAppConfig {
    * Create a configuration data object from the CLI flags to be used in the rest of the ANWORK
    * app.
    *
-   * @param flags The {@link CliFlags} with which to initialize this object
+   * @param flags The {@link ArgumentValues} with which to initialize this object
    */
-  public AnworkAppConfig(CliFlags flags) {
+  public AnworkAppConfig(ArgumentValues flags) {
     String context = (String)getFlagValue(flags, CliFlag.CONTEXT);
     if (context != null) {
       this.context = context;
@@ -112,7 +112,7 @@ public class AnworkAppConfig {
     return debugPrinter;
   }
 
-  private Object getFlagValue(CliFlags flags, CliFlag cliFlag) {
-    return flags.getValue(cliFlag.getShortFlag(), cliFlag.getParameterType());
+  private Object getFlagValue(ArgumentValues flags, CliFlag cliFlag) {
+    return flags.getValue(cliFlag.getShortFlag(), cliFlag.getArgumentType());
   }
 }

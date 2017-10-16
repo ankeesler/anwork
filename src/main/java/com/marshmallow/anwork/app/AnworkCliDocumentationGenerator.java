@@ -1,8 +1,10 @@
 package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.Cli;
-import com.marshmallow.anwork.app.cli.CliArgumentType;
-import com.marshmallow.anwork.app.cli.CliVisitor;
+import com.marshmallow.anwork.app.cli.Command;
+import com.marshmallow.anwork.app.cli.Flag;
+import com.marshmallow.anwork.app.cli.List;
+import com.marshmallow.anwork.app.cli.Visitor;
 
 import java.io.PrintWriter;
 import java.util.Stack;
@@ -17,8 +19,9 @@ import java.util.stream.Collectors;
  *
  * @author Andrew
  */
-public class AnworkCliDocumentationGenerator implements CliVisitor {
+public class AnworkCliDocumentationGenerator implements Visitor {
 
+  private static final String NO_DESCRIPTION = "<no description>";
   private static final String FILENAME = "doc/CLI.md";
 
   private static enum State {
@@ -37,7 +40,7 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
   public static void main(String[] args) {
     try (PrintWriter writer = new PrintWriter(FILENAME)) {
       Cli cli = AnworkApp.createCli();
-      CliVisitor visitor = new AnworkCliDocumentationGenerator(writer);
+      Visitor visitor = new AnworkCliDocumentationGenerator(writer);
       cli.visit(visitor);
     } catch (Exception e) {
       System.out.println("Error: " + e);
@@ -77,93 +80,59 @@ public class AnworkCliDocumentationGenerator implements CliVisitor {
     }
   }
 
-  private void writeFlagLine(String shortFlag,
-                             String longFlag,
-                             String description,
-                             String parameterName,
-                             String parameterDescription,
-                             CliArgumentType parameterType) {
+  @Override
+  public void visitFlag(Flag flag) {
+    checkFlagState();
     StringBuilder lineBuilder = new StringBuilder();
-    lineBuilder.append("- -").append(shortFlag);
-    if (longFlag != null) {
-      lineBuilder.append("|--" + longFlag);
+    lineBuilder.append("- -").append(flag.getShortFlag());
+    if (flag.hasLongFlag()) {
+      lineBuilder.append("|--" + flag.getLongFlag());
     }
-    if (parameterName != null) {
+    if (flag.hasArgument()) {
       lineBuilder.append(" (")
-                 .append(parameterType.name())
+                 .append(flag.getArgument().getType().toString())
                  .append(" ")
-                 .append(parameterName)
-                 .append(": ")
-                 .append(parameterDescription)
-                 .append(")");
+                 .append(flag.getArgument().getName());
+      if (flag.getArgument().hasDescription()) {
+        lineBuilder.append(": ")
+                   .append(flag.getArgument().getDescription());
+      }
+      lineBuilder.append(")");
     }
-    lineBuilder.append(": ").append(description);
+    lineBuilder.append(": ").append((flag.hasDescription()
+                                     ? flag.getDescription()
+                                     : NO_DESCRIPTION));
     writer.println(lineBuilder.toString());
   }
 
   @Override
-  public void visitShortFlag(String shortFlag, String description) {
-    checkFlagState();
-    writeFlagLine(shortFlag, null, description, null, null, null);
-  }
-
-  @Override
-  public void visitShortFlagWithParameter(String shortFlag,
-                                          String description,
-                                          String parameterName,
-                                          String parameterDescription,
-                                          CliArgumentType parameterType) {
-    checkFlagState();
-    writeFlagLine(shortFlag,
-                  null,
-                  description,
-                  parameterName,
-                  parameterDescription,
-                  parameterType);
-  }
-
-  @Override
-  public void visitLongFlag(String shortFlag,
-                            String longFlag,
-                            String description) {
-    checkFlagState();
-    writeFlagLine(shortFlag, longFlag, description, null, null, null);
-  }
-
-  @Override
-  public void visitLongFlagWithParameter(String shortFlag,
-                                         String longFlag,
-                                         String description,
-                                         String parameterName,
-                                         String parameterDescription,
-                                         CliArgumentType parameterType) {
-    checkFlagState();
-    writeFlagLine(shortFlag,
-                  longFlag,
-                  description,
-                  parameterName,
-                  parameterDescription,
-                  parameterType);
-  }
-
-  @Override
-  public void visitList(String name, String description) {
+  public void visitList(List list) {
     checkListState();
     String prefix = listStack.stream().collect(Collectors.joining(" "));
-    writer.println(String.format("# %s *%s*: %s", prefix, name, description));
-    listStack.push(name);
+    writer.println(String.format("# %s *%s*: %s",
+                                 prefix,
+                                 list.getName(),
+                                 (list.hasDescription()
+                                  ? list.getDescription()
+                                  : NO_DESCRIPTION)));
+    listStack.push(list.getName());
   }
 
   @Override
-  public void leaveList(String name) {
+  public void leaveList(List list) {
     checkListState();
     listStack.pop();
   }
 
   @Override
-  public void visitCommand(String name, String description) {
+  public void visitCommand(Command command) {
     checkCommandState();
     String prefix = listStack.stream().collect(Collectors.joining(" "));
-    writer.println(String.format("- %s *%s*: %s", prefix, name, description));
+    writer.println(String.format("- %s *%s*: %s",
+                                 prefix,
+                                 command.getName(),
+                                 (command.hasDescription()
+                                  ? command.getDescription()
+                                  : NO_DESCRIPTION)));
   }
 }

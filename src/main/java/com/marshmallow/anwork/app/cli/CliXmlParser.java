@@ -18,24 +18,30 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 class CliXmlParser extends DefaultHandler {
 
+  // <argument>
+  private static final String ARGUMENT = "argument";
+  private static final String ARGUMENT_NAME = "name";
+  private static final String ARGUMENT_DESCRIPTION = "description";
+  private static final String ARGUMENT_TYPE = "type";
+
   // <flag>
   private static final String FLAG = "flag";
   private static final String FLAG_SHORTFLAG = "shortFlag";
   private static final String FLAG_LONGFLAG = "longFlag";
   private static final String FLAG_DESCRIPTION = "description";
-  private static final String FLAG_PARAMETER = "parameter";
-  private static final String FLAG_PARAMETER_NAME = "name";
-  private static final String FLAG_PARAMETER_DESCRIPTION = "description";
-  private static final String FLAG_PARAMETER_TYPE = "type";
 
   // <command>
   private static final String COMMAND = "command";
   private static final String COMMAND_NAME = "name";
   private static final String COMMAND_DESCRIPTION = "description";
-  private static final String COMMAND_ACTION = "action";
-  private static final String COMMAND_ACTION_CLASS = "class";
-  private static final String COMMAND_ACTIONCREATOR = "actionCreator";
-  private static final String COMMAND_ACTIONCREATOR_CLASS = "class";
+
+  // <action>
+  private static final String ACTION = "action";
+  private static final String ACTION_CLASS = "class";
+
+  // <actionCreator>
+  private static final String ACTIONCREATOR = "actionCreator";
+  private static final String ACTIONCREATOR_CLASS = "class";
 
   // <list>
   private static final String LIST = "list";
@@ -56,22 +62,9 @@ class CliXmlParser extends DefaultHandler {
   }
 
   private Cli cli;
-  private Stack<CliList> listStack = new Stack<CliList>();
-
-  // TODO: make this less field-driven and use a builder paradigm!
-  // <flag>
-  private String flagShortFlagName;
-  private String flagLongFlagName;
-  private String flagDescription;
-  private String flagParameterName;
-  private String flagParameterDescription;
-  private String flagParameterType;
-
-  // <command>
-  private String commandName;
-  private String commandDescription;
-  private String commandActionClass;
-  private String commandActionCreatorClass;
+  private Stack<MutableList> listStack = new Stack<MutableList>();
+  private MutableFlag currentFlag;
+  private MutableCommand currentCommand;
 
   /**
    * Get the parsed {@link Cli} object. This method is only valid once the parsing has taken place!
@@ -96,7 +89,7 @@ class CliXmlParser extends DefaultHandler {
   public void startElement(String uri,
                            String localName,
                            String elementName,
-                           Attributes attributes) {
+                           Attributes attributes) throws SAXException {
     debug("startElement(uri=" + uri
                      + ", localName=" + localName
                      + ", elementName=" + elementName
@@ -104,26 +97,37 @@ class CliXmlParser extends DefaultHandler {
     if (elementName.equals(CLI)) {
       String name = attributes.getValue(CLI_NAME);
       String description = attributes.getValue(CLI_DESCRIPTION);
-      makeCli(name, description);
+      cli = makeCli(name, description);
+      listStack.push(cli.getRoot());
+    } else if (elementName.equals(ARGUMENT)) {
+      String name = attributes.getValue(ARGUMENT_NAME);
+      String description = attributes.getValue(ARGUMENT_DESCRIPTION);
+      String type = attributes.getValue(ARGUMENT_TYPE);
+      addArgument(currentFlag, name, description, type);
     } else if (elementName.equals(FLAG)) {
-      flagShortFlagName = attributes.getValue(FLAG_SHORTFLAG);
-      flagLongFlagName = attributes.getValue(FLAG_LONGFLAG);
-      flagDescription = attributes.getValue(FLAG_DESCRIPTION);
-    } else if (elementName.equals(FLAG_PARAMETER)) {
-      flagParameterName = attributes.getValue(FLAG_PARAMETER_NAME);
-      flagParameterDescription = attributes.getValue(FLAG_PARAMETER_DESCRIPTION);
-      flagParameterType = attributes.getValue(FLAG_PARAMETER_TYPE);
+      String shortFlag = attributes.getValue(FLAG_SHORTFLAG);
+      String longFlag = attributes.getValue(FLAG_LONGFLAG);
+      String description = attributes.getValue(FLAG_DESCRIPTION);
+      currentFlag = addFlag(currentCommand != null ? currentCommand : listStack.peek(),
+                            shortFlag,
+                            longFlag,
+                            description);
     } else if (elementName.equals(COMMAND)) {
-      commandName = attributes.getValue(COMMAND_NAME);
-      commandDescription = attributes.getValue(COMMAND_DESCRIPTION);
-    } else if (elementName.equals(COMMAND_ACTION)) {
-      commandActionClass = attributes.getValue(COMMAND_ACTION_CLASS);
-    } else if (elementName.equals(COMMAND_ACTIONCREATOR)) {
-      commandActionCreatorClass = attributes.getValue(COMMAND_ACTIONCREATOR_CLASS);
+      String name = attributes.getValue(COMMAND_NAME);
+      String description = attributes.getValue(COMMAND_DESCRIPTION);
+      currentCommand = addCommand(listStack.peek(), name, description);
+    } else if (elementName.equals(ACTION) || elementName.equals(ACTIONCREATOR)) {
+      boolean isActionCreator = elementName.equals(ACTIONCREATOR);
+      String className = attributes.getValue(isActionCreator ? ACTIONCREATOR_CLASS : ACTION_CLASS);
+      try {
+        setAction(currentCommand, className, isActionCreator);
+      } catch (Exception e) {
+        throw new SAXException(e);
+      }
     } else if (elementName.equals(LIST)) {
       String name = attributes.getValue(LIST_NAME);
       String description = attributes.getValue(LIST_DESCRIPTION);
-      makeList(name, description);
+      listStack.push(addList(listStack.peek(), name, description));
     }
   }
 
@@ -132,16 +136,12 @@ class CliXmlParser extends DefaultHandler {
     debug("endElement(uri=" + uri
                    + ", localName=" + localName
                    + ", elementName=" + elementName + ")");
-    if (elementName.equals(LIST)) {
-      listStack.pop();
-    } else if (elementName.equals(FLAG)) {
-      makeFlag();
+    if (elementName.equals(FLAG)) {
+      currentFlag = null;
     } else if (elementName.equals(COMMAND)) {
-      try {
-        makeCommand();
-      } catch (Exception e) {
-        throw new SAXException(e);
-      }
+      currentCommand = null;
+    } else if (elementName.equals(LIST)) {
+      listStack.pop();
     }
   }
 
@@ -162,73 +162,82 @@ class CliXmlParser extends DefaultHandler {
     throw e;
   }
 
-  private void makeCli(String name, String description) {
-    cli = new Cli(name, description);
-    listStack.push(cli.getRoot());
-  }
-
-  private void makeFlag() {
-    // See note in cli.xsd - it should be mandated by the schema that these values stay up to date
-    // with the CliArgumentType enum!
-    boolean hasParameter = (flagParameterName != null);
-    CliArgumentType parameterType = (hasParameter
-                                     ? CliArgumentType.valueOf(flagParameterType)
-                                     : null);
-    if (flagLongFlagName == null) {
-      if (!hasParameter) {
-        listStack.peek().addShortFlag(flagShortFlagName, flagDescription);
-      } else {
-        listStack.peek().addShortFlagWithParameter(flagShortFlagName,
-                                                   flagDescription,
-                                                   flagParameterName,
-                                                   flagParameterDescription,
-                                                   parameterType);
-      }
-    } else {
-      if (!hasParameter) {
-        listStack.peek().addLongFlag(flagShortFlagName, flagLongFlagName, flagDescription);
-      } else {
-        listStack.peek().addLongFlagWithParameter(flagShortFlagName,
-                                                  flagLongFlagName,
-                                                  flagDescription,
-                                                  flagParameterName,
-                                                  flagParameterDescription,
-                                                  parameterType);
-      }
+  private static Cli makeCli(String name, String description) {
+    Cli cli = new Cli(name);
+    if (description != null) {
+      cli.getRoot().setDescription(description);
     }
-    flagShortFlagName = null;
-    flagLongFlagName = null;
-    flagDescription = null;
-    flagParameterName = null;
-    flagDescription = null;
-    flagParameterType = null;
+    return cli;
   }
 
-  private void makeCommand() throws Exception {
-    CliAction action = makeCommandAction();
-    listStack.peek().addCommand(commandName, commandDescription, action);
-    commandName = null;
-    commandDescription = null;
-    commandActionClass = null;
-    commandActionCreatorClass = null;
+  private static ArgumentType<?> getArgumentType(String type) {
+    // TODO: get rid of this horrible hardcoding!
+    switch (type) {
+      case "STRING":
+        return ArgumentType.STRING;
+      case "NUMBER":
+        return ArgumentType.NUMBER;
+      case "BOOLEAN":
+        return ArgumentType.BOOLEAN;
+      default:
+        throw new IllegalArgumentException("No known ArgumentType for type" + type);
+    }
   }
 
-  private CliAction makeCommandAction() throws Exception {
-    boolean isActionCreator = (commandActionCreatorClass != null);
-    String commandClass = (isActionCreator ? commandActionCreatorClass : commandActionClass);
-    Class<?> clazz = Class.forName(commandClass);
-    if ((isActionCreator && !CliActionCreator.class.isAssignableFrom(clazz))
-        || (!isActionCreator && !CliAction.class.isAssignableFrom(clazz))) {
+  private static void addArgument(MutableFlag flag, String name, String description, String type) {
+    ArgumentType<?> realType = getArgumentType(type);
+    MutableArgument argument = flag.setArgument(name, realType);
+    if (description != null) {
+      argument.setDescription(description);
+    }
+  }
+
+  private static MutableFlag addFlag(MutableListOrCommand listOrCommand,
+                                     String shortFlag,
+                                     String longFlag,
+                                     String description) {
+    MutableFlag flag = listOrCommand.addFlag(shortFlag);
+    if (longFlag != null) {
+      flag.setLongFlag(longFlag);
+    }
+    if (description != null) {
+      flag.setDescription(description);
+    }
+    return flag;
+  }
+
+  private static MutableCommand addCommand(MutableList list, String name, String description) {
+    // Action is set later...
+    MutableCommand command = list.addCommand(name, null);
+    if (description != null) {
+      command.setDescription(description);
+    }
+    return command;
+  }
+
+  private static void setAction(MutableCommand command,
+                                String className,
+                                boolean isActionCreator) throws Exception {
+    String commandName = command.getName();
+    Class<?> clazz = Class.forName(className);
+    if ((isActionCreator && !ActionCreator.class.isAssignableFrom(clazz))
+        || (!isActionCreator && !Action.class.isAssignableFrom(clazz))) {
       throw new Exception("Class " + clazz.getName() + " for command " + commandName
-                          + " is not an instance of " + CliAction.class.getName());
+                          + " is not an instance of " + Action.class.getName());
     }
-    return (isActionCreator
-            ? ((CliActionCreator)clazz.newInstance()).createAction(commandName)
-            : (CliAction)clazz.newInstance());
+    Action action =  (isActionCreator
+                      ? ((ActionCreator)clazz.newInstance()).createAction(commandName)
+                      : (Action)clazz.newInstance());
+    command.setAction(action);
   }
 
-  private void makeList(String name,
-                        String description) {
-    listStack.push(listStack.peek().addList(name, description));
+  private static MutableList addList(MutableList currentList,
+                                     String name,
+                                     String description) {
+    MutableList list = currentList.addList(name);
+    if (description != null) {
+      list.setDescription(description);
+    }
+    return list;
   }
 }

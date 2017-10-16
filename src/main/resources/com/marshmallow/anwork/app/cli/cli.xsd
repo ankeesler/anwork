@@ -6,32 +6,32 @@
     </xs:documentation>
   </xs:annotation>
 
-  <xs:simpleType name="argumentType">
+  <xs:simpleType name="argumentTypeType">
     <xs:annotation>
       <xs:documentation>
-        Note that this simple type should be kept up to date with the com.marshmallow.anwork.app.cli.CliArgumentType type!
+        Note that this simple type should be kept up to date with the com.marshmallow.anwork.app.cli.ArgumentType type!
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
       <xs:enumeration value="BOOLEAN" />
       <xs:enumeration value="STRING" />
-      <xs:enumeration value="INTEGER" />
+      <xs:enumeration value="NUMBER" />
     </xs:restriction>
   </xs:simpleType>
 
+  <xs:complexType name="argumentType">
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="type" type="argumentTypeType" use="required" />      
+  </xs:complexType>
+
   <xs:complexType name="flagType">
     <xs:sequence>
-      <xs:element name="parameter" minOccurs="0" maxOccurs="1">
-        <xs:complexType>
-          <xs:attribute name="name" type="xs:string" use="required" />
-          <xs:attribute name="description" type="xs:string" use="required" />
-          <xs:attribute name="type" type="argumentType" use="required" />
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="argument" type="argumentType" minOccurs="0" maxOccurs="1" />
     </xs:sequence>
     <xs:attribute name="shortFlag" type="xs:string" use="required" />
     <xs:attribute name="longFlag" type="xs:string" use="optional" />
-    <xs:attribute name="description" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="classType">
@@ -53,7 +53,7 @@
       </xs:choice>
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required" />
-    <xs:attribute name="description" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="listType">
@@ -63,7 +63,7 @@
       <xs:element name="list" type="listType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required" />
-    <xs:attribute name="description" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
   </xs:complexType>
 
   <xs:element name="cli" type="listType" />

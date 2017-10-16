@@ -1,10 +1,10 @@
 package com.marshmallow.anwork.app.cli.test;
 
-import com.marshmallow.anwork.app.cli.CliAction;
-import com.marshmallow.anwork.app.cli.CliFlags;
+import com.marshmallow.anwork.app.cli.Action;
+import com.marshmallow.anwork.app.cli.ArgumentValues;
 
 /**
- * This is a dummy {@link CliAction} class to be used in CLI tests.
+ * This is a dummy {@link Action} class to be used in CLI tests.
  *
  * <p>
  * Created Sep 9, 2017
@@ -12,14 +12,14 @@ import com.marshmallow.anwork.app.cli.CliFlags;
  *
  * @author Andrew
  */
-public class TestCliAction implements CliAction {
+public class TestCliAction implements Action {
 
   private boolean ran = false;
-  private CliFlags flags = null;
+  private ArgumentValues flags = null;
   private String[] arguments = null;
 
   @Override
-  public void run(CliFlags flags, String[] arguments) {
+  public void run(ArgumentValues flags, String[] arguments) {
     ran = true;
     this.flags = flags;
     this.arguments = arguments;
@@ -29,7 +29,7 @@ public class TestCliAction implements CliAction {
     return ran;
   }
 
-  public CliFlags getFlags() {
+  public ArgumentValues getFlags() {
     return flags;
   }
 

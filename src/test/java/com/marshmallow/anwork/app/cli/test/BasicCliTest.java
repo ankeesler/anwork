@@ -6,13 +6,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.marshmallow.anwork.app.cli.ArgumentType;
+import com.marshmallow.anwork.app.cli.ArgumentValues;
 import com.marshmallow.anwork.app.cli.Cli;
-import com.marshmallow.anwork.app.cli.CliArgumentType;
-import com.marshmallow.anwork.app.cli.CliCommand;
-import com.marshmallow.anwork.app.cli.CliFlags;
-import com.marshmallow.anwork.app.cli.CliList;
-
-import java.util.List;
+import com.marshmallow.anwork.app.cli.MutableCommand;
+import com.marshmallow.anwork.app.cli.MutableList;
 
 import org.junit.Test;
 
@@ -28,54 +26,56 @@ import org.junit.Test;
  */
 public class BasicCliTest extends BaseCliTest {
 
+  // TODO: the description on the root node is correct
+  // TODO: changing the name of a node doesn't mess anything up
+  // TODO: changing the name of a short flag doesn't mess anything up
+  // TODO: not setting a description doesn't throw any errors
+  // TODO: test the #hasXXX functionality
+  // TODO: test visitor functionality more robustly
+  // TODO: get rid of warnings in this file
+  // TODO: update Cli javadoc
+  // TODO: update CLI XML
+  // TODO: update CLI ARCH.md entry
+
   private TestCliAction tunaMarlinAction = new TestCliAction();
 
   private TestCliAction mayoAction = new TestCliAction();
 
   @Override
   protected Cli createCli() {
-    Cli cli = new Cli("cli-test",  "The are commands for the CLI unit test");
-    CliList root = cli.getRoot();
-    root.addShortFlag("a",
-                      "Description for a flag");
-    root.addLongFlag("b",
-                     "bob",
-                     "Description for flag b|bob flag");
-    root.addShortFlagWithParameter("c",
-                                   "Description for c flag",
-                                   "word",
-                                   "Some word, whatever you want",
-                                   CliArgumentType.STRING);
-    root.addLongFlagWithParameter("d",
-                                  "dog",
-                                  "Description for d|dog",
-                                  "name",
-                                  "The name of the dog",
-                                  CliArgumentType.STRING);
-    root.addShortFlagWithParameter("e",
-                                   "This is the e short flag",
-                                   "number",
-                                   "This is your favorite number",
-                                   CliArgumentType.INTEGER);
+    Cli cli = new Cli("cli-test");
+    MutableList root = cli.getRoot();
+    root.setDescription("The are commands for the CLI unit test");
+    root.addFlag("a")
+        .setDescription("Description for a flag");
+    root.addFlag("b")
+        .setLongFlag("bob")
+        .setDescription("Description for flag b|bob flag");
+    root.addFlag("c")
+        .setDescription("Description for c flag")
+        .setArgument("word", ArgumentType.STRING).setDescription("Some word, whatever you want");
+    root.addFlag("d")
+        .setLongFlag("dog")
+        .setDescription("Description for d|dog")
+        .setArgument("name", ArgumentType.STRING).setDescription("The name of the dog");
+    root.addFlag("e")
+        .setDescription("This is the e short flag")
+        .setArgument("number", ArgumentType.NUMBER).setDescription("This is your favorite number");
 
-    CliList tunaList = root.addList("tuna",
-                                    "This is the tuna command list");
-    tunaList.addLongFlagWithParameter("a",
-                                      "andrew",
-                                      "Description for andrew flag",
-                                      "age",
-                                      "The age you think I am",
-                                      CliArgumentType.INTEGER);
-    tunaList.addShortFlag("f",
-                          "The f flag, ya know");
+    MutableList tunaList = root.addList("tuna").setDescription("This is the tuna command list");
+    tunaList.addFlag("a")
+            .setLongFlag("andrew")
+            .setDescription("Description for andrew flag")
+            .setArgument("age", ArgumentType.NUMBER).setDescription("The age you think I am");
+    tunaList.addFlag("f")
+            .setDescription("The f flag, ya know");
 
-    CliCommand tunaMarlinCommand = tunaList.addCommand("marlin",
-                                                      "This is the marlin command",
-                                                      tunaMarlinAction);
-    tunaMarlinCommand.addShortFlag("z",
-                                   "The z flag, ya know");
+    MutableCommand tunaMarlinCommand = tunaList.addCommand("marlin", tunaMarlinAction);
+    tunaMarlinCommand.setDescription("This is the marlin command");
+    tunaMarlinCommand.addFlag("z").setDescription("The z flag, ya know");
 
-    root.addCommand("mayo", "This is the mayo command", mayoAction);
+    root.addCommand("mayo", mayoAction).setDescription("This is the mayo command");
+
     return cli;
   }
 
@@ -146,7 +146,7 @@ public class BasicCliTest extends BaseCliTest {
   public void testBadGetFlagValue() throws IllegalArgumentException {
     parse("-e", "15", "tuna", "marlin");
     assertTrue(tunaMarlinAction.getRan());
-    tunaMarlinAction.getFlags().getValue("e", CliArgumentType.STRING);
+    tunaMarlinAction.getFlags().getValue("e", ArgumentType.STRING);
   }
 
   /*
@@ -216,9 +216,9 @@ public class BasicCliTest extends BaseCliTest {
   public void testMarlinCommandWithoutArgument() {
     parse("tuna", "marlin");
     assertTrue(tunaMarlinAction.getRan());
-    CliFlags flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(new String[0], flags.getAllShortFlags());
-    assertNull(flags.getValue("z", CliArgumentType.BOOLEAN));
+    ArgumentValues flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(new String[0], flags.getAllKeys());
+    assertNull(flags.getValue("z", ArgumentType.BOOLEAN));
     assertEquals(0, tunaMarlinAction.getArguments().length);
   }
 
@@ -226,9 +226,9 @@ public class BasicCliTest extends BaseCliTest {
   public void testMarlinCommandWithFlag() {
     parse("tuna", "marlin", "-z");
     assertTrue(tunaMarlinAction.getRan());
-    CliFlags flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(new String[] { "z" }, flags.getAllShortFlags());
-    assertEquals(Boolean.TRUE, flags.getValue("z", CliArgumentType.BOOLEAN));
+    ArgumentValues flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(new String[] { "z" }, flags.getAllKeys());
+    assertEquals(Boolean.TRUE, flags.getValue("z", ArgumentType.BOOLEAN));
     assertArrayEquals(tunaMarlinAction.getArguments(), new String[0]);
   }
 
@@ -236,18 +236,18 @@ public class BasicCliTest extends BaseCliTest {
   public void testMarlinCommandWithArguments() {
     parse("tuna", "marlin", "hello", "world");
     assertTrue(tunaMarlinAction.getRan());
-    CliFlags flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(flags.getAllShortFlags(), new String[0]);
-    assertNull(flags.getValue("z", CliArgumentType.BOOLEAN));
+    ArgumentValues flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(flags.getAllKeys(), new String[0]);
+    assertNull(flags.getValue("z", ArgumentType.BOOLEAN));
     assertArrayEquals(new String[] { "hello", "world" }, tunaMarlinAction.getArguments());
   }
 
   @Test
   public void testMarlinCommandWithArgumentsAndFlag() {
     parse("tuna", "marlin", "-z", "hello", "world");
-    CliFlags flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(flags.getAllShortFlags(), new String[] { "z" });
-    assertEquals(Boolean.TRUE, flags.getValue("z", CliArgumentType.BOOLEAN));
+    ArgumentValues flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(flags.getAllKeys(), new String[] { "z" });
+    assertEquals(Boolean.TRUE, flags.getValue("z", ArgumentType.BOOLEAN));
     assertArrayEquals(new String[] { "hello", "world" }, tunaMarlinAction.getArguments());
   }
 
@@ -255,17 +255,18 @@ public class BasicCliTest extends BaseCliTest {
   public void testMarlinCommandWitPreFlagsAndArguments() {
     parse("tuna", "-a", "15", "-f", "marlin", "hello", "world");
     assertTrue(tunaMarlinAction.getRan());
-    CliFlags flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(new String[] { "a", "f" }, flags.getAllShortFlags());
-    assertEquals(15, flags.getValue("a", CliArgumentType.INTEGER));
+    ArgumentValues flags = tunaMarlinAction.getFlags();
+    assertArrayEquals(new String[] { "a", "f" }, flags.getAllKeys());
+    Long number = flags.getValue("a", ArgumentType.NUMBER);
+    assertEquals(new Long(15), number);
   }
 
   @Test
   public void testMayoCommand() {
     parse("mayo", "a", "b", "c");
     assertTrue(mayoAction.getRan());
-    CliFlags flags = mayoAction.getFlags();
-    assertArrayEquals(new String[0], flags.getAllShortFlags());
+    ArgumentValues flags = mayoAction.getFlags();
+    assertArrayEquals(new String[0], flags.getAllKeys());
     assertArrayEquals(new String[] { "a", "b", "c" }, mayoAction.getArguments());
   }
 
@@ -279,17 +280,14 @@ public class BasicCliTest extends BaseCliTest {
 
     assertVisited(visitor.getVisitedShortFlags(), "a", "f", "z");
     assertVisited(visitor.getVisitedShortFlagsWithParameters(), "c", "e");
-    assertVisited(visitor.getVisitedLongFlags(), "b");
-    assertVisited(visitor.getVisitedLongFlagsWithParameters(), "d", "a");
+    assertVisited(visitor.getVisitedLongFlags(), "bob");
+    assertVisited(visitor.getVisitedLongFlagsWithParameters(), "dog", "andrew");
     assertVisited(visitor.getVisitedCommands(), "mayo", "marlin");
     assertVisited(visitor.getVisitedLists(), "cli-test", "tuna");
-    assertVisited(visitor.getLeftLists(), "cli-test", "tuna");
+    assertVisited(visitor.getLeftLists(), "tuna", "cli-test");
   }
 
-  private void assertVisited(List<String> flags, String...expecteds) {
-    assertEquals(flags.size(), expecteds.length);
-    for (String expected : expecteds) {
-      assertTrue(flags.contains(expected));
-    }
+  private void assertVisited(String[] visitedStuff, String...expecteds) {
+    assertArrayEquals(expecteds, visitedStuff);
   }
 }

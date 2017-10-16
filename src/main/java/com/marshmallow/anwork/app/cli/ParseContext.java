@@ -12,17 +12,17 @@ import java.util.List;
  *
  * @author Andrew
  */
-class CliParseContext {
+class ParseContext {
 
-  private CliNodeImpl activeNode;
+  private Node activeNode;
   private List<String> parameters = new ArrayList<String>();
-  private CliFlags flags = new CliFlags();
+  private ArgumentValues flags = new ArgumentValues();
 
-  CliNodeImpl getActiveNode() {
+  Node getActiveNode() {
     return activeNode;
   }
 
-  void setActiveNode(CliNodeImpl activeNode) {
+  void setActiveNode(Node activeNode) {
     this.activeNode = activeNode;
   }
 
@@ -34,7 +34,7 @@ class CliParseContext {
     parameters.add(parameter);
   }
 
-  CliFlags getFlags() {
+  ArgumentValues getFlags() {
     return flags;
   }
 }

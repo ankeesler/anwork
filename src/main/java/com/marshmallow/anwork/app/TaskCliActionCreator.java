@@ -1,13 +1,13 @@
 package com.marshmallow.anwork.app;
 
-import com.marshmallow.anwork.app.cli.CliAction;
-import com.marshmallow.anwork.app.cli.CliActionCreator;
+import com.marshmallow.anwork.app.cli.Action;
+import com.marshmallow.anwork.app.cli.ActionCreator;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
 
 /**
- * This is a {@link CliActionCreator} for the task commands in the ANWORK app.
+ * This is a {@link ActionCreator} for the task commands in the ANWORK app.
  *
  * <p>
  * Created Oct 4, 2017
@@ -15,9 +15,9 @@ import com.marshmallow.anwork.task.TaskState;
  *
  * @author Andrew
  */
-public class TaskCliActionCreator implements CliActionCreator {
+public class TaskCliActionCreator implements ActionCreator {
 
-  private static class SetStateCliAction extends TaskManagerCliAction implements CliAction {
+  private static class SetStateCliAction extends TaskManagerCliAction implements Action {
 
     private TaskState taskState;
 
@@ -34,7 +34,7 @@ public class TaskCliActionCreator implements CliActionCreator {
   }
 
   @Override
-  public CliAction createAction(String commandName) {
+  public Action createAction(String commandName) {
     switch (commandName) {
       case "create":
         return new TaskManagerCliAction() {

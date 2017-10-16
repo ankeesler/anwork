@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.app;
 
-import com.marshmallow.anwork.app.cli.CliAction;
-import com.marshmallow.anwork.app.cli.CliActionCreator;
+import com.marshmallow.anwork.app.cli.Action;
+import com.marshmallow.anwork.app.cli.ActionCreator;
 import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskManagerJournalEntry;
@@ -9,7 +9,7 @@ import com.marshmallow.anwork.task.TaskManagerJournalEntry;
 import java.util.Arrays;
 
 /**
- * This is a {@link CliActionCreator} for the journal commands in the ANWORK app.
+ * This is a {@link ActionCreator} for the journal commands in the ANWORK app.
  *
  * <p>
  * Created Oct 4, 2017
@@ -17,10 +17,10 @@ import java.util.Arrays;
  *
  * @author Andrew
  */
-public class JournalCliActionCreator implements CliActionCreator {
+public class JournalCliActionCreator implements ActionCreator {
 
   @Override
-  public CliAction createAction(String commandName) {
+  public Action createAction(String commandName) {
     switch (commandName) {
       case "show-all":
         return new TaskManagerCliAction() {

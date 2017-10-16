@@ -3,7 +3,7 @@ package com.marshmallow.anwork.app.cli.test;
 import static org.junit.Assert.assertNotNull;
 
 import com.marshmallow.anwork.app.cli.Cli;
-import com.marshmallow.anwork.app.cli.CliVisitor;
+import com.marshmallow.anwork.app.cli.Visitor;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,12 +45,12 @@ public abstract class BaseCliTest {
   }
 
   /**
-   * Run a {@link CliVisitor} on the {@link Cli} created through {@link #createCli()}.
+   * Run a {@link Visitor} on the {@link Cli} created through {@link #createCli()}.
    *
-   * @param visitor The {@link CliVisitor} to visit the {@link Cli} tree created through
+   * @param visitor The {@link Visitor} to visit the {@link Cli} tree created through
    *     {@link #createCli()}
    */
-  protected void visit(CliVisitor visitor) {
+  protected void visit(Visitor visitor) {
     cli.visit(visitor);
   }
 
