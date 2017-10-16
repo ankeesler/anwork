@@ -25,7 +25,7 @@ abstract class Node implements MutableListOrCommand, Comparable<Node> {
 
   private String name;
   private Action action;
-  private String description = "";
+  private String description;
 
   protected Node(String name, Action action) {
     this.name = name;

@@ -11,6 +11,7 @@ import com.marshmallow.anwork.app.cli.ArgumentValues;
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.MutableCommand;
 import com.marshmallow.anwork.app.cli.MutableList;
+import com.marshmallow.anwork.core.test.TestUtilities;
 
 import org.junit.Test;
 
@@ -26,19 +27,7 @@ import org.junit.Test;
  */
 public class BasicCliTest extends BaseCliTest {
 
-  // TODO: the description on the root node is correct
-  // TODO: changing the name of a node doesn't mess anything up
-  // TODO: changing the name of a short flag doesn't mess anything up
-  // TODO: not setting a description doesn't throw any errors
-  // TODO: test the #hasXXX functionality
-  // TODO: test visitor functionality more robustly
-  // TODO: get rid of warnings in this file
-  // TODO: update Cli javadoc
-  // TODO: update CLI XML
-  // TODO: update CLI ARCH.md entry
-
   private TestCliAction tunaMarlinAction = new TestCliAction();
-
   private TestCliAction mayoAction = new TestCliAction();
 
   @Override
@@ -52,7 +41,6 @@ public class BasicCliTest extends BaseCliTest {
         .setLongFlag("bob")
         .setDescription("Description for flag b|bob flag");
     root.addFlag("c")
-        .setDescription("Description for c flag")
         .setArgument("word", ArgumentType.STRING).setDescription("Some word, whatever you want");
     root.addFlag("d")
         .setLongFlag("dog")
@@ -65,7 +53,6 @@ public class BasicCliTest extends BaseCliTest {
     MutableList tunaList = root.addList("tuna").setDescription("This is the tuna command list");
     tunaList.addFlag("a")
             .setLongFlag("andrew")
-            .setDescription("Description for andrew flag")
             .setArgument("age", ArgumentType.NUMBER).setDescription("The age you think I am");
     tunaList.addFlag("f")
             .setDescription("The f flag, ya know");
@@ -75,6 +62,10 @@ public class BasicCliTest extends BaseCliTest {
     tunaMarlinCommand.addFlag("z").setDescription("The z flag, ya know");
 
     root.addCommand("mayo", mayoAction).setDescription("This is the mayo command");
+
+    root.addCommand("command-without-description", new TestCliAction());
+
+    root.addList("list-without-description");
 
     return cli;
   }
@@ -273,21 +264,38 @@ public class BasicCliTest extends BaseCliTest {
   /*
    * Section - Visitor
    */
+
   @Test
   public void testVisitorPattern() {
     TestCliVisitor visitor = new TestCliVisitor();
     visit(visitor);
-
-    assertVisited(visitor.getVisitedShortFlags(), "a", "f", "z");
-    assertVisited(visitor.getVisitedShortFlagsWithParameters(), "c", "e");
-    assertVisited(visitor.getVisitedLongFlags(), "bob");
-    assertVisited(visitor.getVisitedLongFlagsWithParameters(), "dog", "andrew");
-    assertVisited(visitor.getVisitedCommands(), "mayo", "marlin");
-    assertVisited(visitor.getVisitedLists(), "cli-test", "tuna");
-    assertVisited(visitor.getLeftLists(), "tuna", "cli-test");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlags(),
+                                            "a", "f", "z");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlagsWithParameters(),
+                                            "c", "e");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlags(),
+                                            "bob");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlagsWithParameters(),
+                                            "dog", "andrew");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommands(),
+                                            "command-without-description", "mayo", "marlin");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLists(),
+                                            "cli-test", "list-without-description", "tuna");
+    TestUtilities.assertVariadicArrayEquals(visitor.getLeftLists(),
+                                            "list-without-description", "tuna", "cli-test");
   }
 
-  private void assertVisited(String[] visitedStuff, String...expecteds) {
-    assertArrayEquals(expecteds, visitedStuff);
+  @Test
+  public void testHasXxxMethods() {
+    // This test makes sure that if we don't set an optional field, then the hasXxx methods will
+    // return false.
+    OptionalDataCliVisitor visitor = new OptionalDataCliVisitor();
+    visit(visitor);
+    TestUtilities.assertVariadicArrayEquals(visitor.getFlagsWithDescriptions(),
+                                            "a", "b", "d", "e", "f", "z");
+    TestUtilities.assertVariadicArrayEquals(visitor.getCommandsWithDescriptions(),
+                                            "mayo", "marlin");
+    TestUtilities.assertVariadicArrayEquals(visitor.getListsWithDescriptions(),
+                                            "cli-test", "tuna");
   }
 }

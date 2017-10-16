@@ -29,17 +29,18 @@
 
   <list name="list-a" description="This is list A!">
     <flag shortFlag="m" longFlag="mom" description="This is the mom flag" />
-    <flag shortFlag="d" longFlag="dad" description="This is the data flag">
+    <flag shortFlag="d" longFlag="dad">
       <argument name="activity" description="This is the activity that dad is doing" type="STRING" />
     </flag>
-    <command name="bring-home-bacon" description="This command brings home the bacon">
+    <command name="bring-home-bacon">
       <action class="com.marshmallow.anwork.app.cli.test.BringHomeBaconTestCliAction" />
     </command>
+    <list name="dumb-list" />
   </list>
 
   <list name="list-b" description="This is list B!">
     <command name="shake-it-up" description="This command shakes it up">
-      <flag shortFlag="a" longFlag="andrew" description="This is the andrew flag" />
+      <flag shortFlag="a" longFlag="andrew" />
       <flag shortFlag="o" longFlag="output" description="This is the output flag">
         <argument name="directory" description="The output directory" type="STRING" />
       </flag>

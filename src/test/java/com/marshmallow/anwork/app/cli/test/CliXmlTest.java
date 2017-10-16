@@ -99,6 +99,38 @@ public class CliXmlTest extends BaseCliTest {
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
   }
 
+  @Test
+  public void testVisitorChecksOut() {
+    TestCliVisitor visitor = new TestCliVisitor();
+    visit(visitor);
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlags(),
+                                            "a", "no-description-short-flag");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlagsWithParameters(),
+                                            "c", "e", "n");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlags(),
+                                            "bacon", "mom", "andrew");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlagsWithParameters(),
+                                            "dog", "no-description-long-flag", "dad", "output");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommands(),
+                                            "fish", "marlin", "bring-home-bacon", "shake-it-up");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLists(),
+                                            "tuna", "list-a", "dumb-list", "list-b");
+    TestUtilities.assertVariadicArrayEquals(visitor.getLeftLists(),
+                                            "dumb-list", "list-a", "list-b", "tuna");
+  }
+
+  @Test
+  public void testOptionalData() {
+    OptionalDataCliVisitor visitor = new OptionalDataCliVisitor();
+    visit(visitor);
+    TestUtilities.assertVariadicArrayEquals(visitor.getFlagsWithDescriptions(),
+                                            "a", "b", "c", "d", "e", "n", "m", "o");
+    TestUtilities.assertVariadicArrayEquals(visitor.getCommandsWithDescriptions(),
+                                            "fish", "marlin", "shake-it-up");
+    TestUtilities.assertVariadicArrayEquals(visitor.getListsWithDescriptions(),
+                                            "tuna", "list-a", "list-b");
+  }
+
   /*
    * Section - Negative Tests
    */

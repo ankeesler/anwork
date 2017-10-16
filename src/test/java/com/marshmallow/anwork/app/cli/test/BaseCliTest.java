@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 
 import com.marshmallow.anwork.app.cli.Cli;

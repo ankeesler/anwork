@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.core.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -37,5 +38,15 @@ public final class TestUtilities {
       fail("Cannot convert " + name + " to file for class " + clazz + ": " + e);
       return null;
     }
+  }
+
+  /**
+   * Assert that an array is equal to another array passed as a variadic argument.
+   *
+   * @param array The array under test
+   * @param expected The expected array
+   */
+  public static void assertVariadicArrayEquals(Object[] array, Object...expected) {
+    assertArrayEquals(expected, array);
   }
 }
