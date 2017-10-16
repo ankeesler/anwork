@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -49,9 +50,56 @@ public class Smoketest {
     }
   }
 
+  @Before
+  public void deleteAllTasks() throws Exception {
+    run(true, "task", "delete-all");
+  }
+
   @Test
   public void showNoTasksTest() throws Exception {
     run(true, "task", "show");
+  }
+
+  @Test
+  public void showSomeTasksTest() throws Exception {
+    run(true, "task", "create", "task-a", "This is task-a", "1");
+    run(true, "task", "create", "task-b", "This is task-b", "1");
+    run(true, "task", "create", "task-c", "This is task-c", "1");
+    run(true, "task", "show");
+  }
+
+  @Test
+  public void deleteSomeTasksTest() throws Exception {
+    run(true, "task", "create", "task-a", "This is task-a", "1");
+    run(true, "task", "create", "task-b", "This is task-b", "1");
+    run(true, "task", "delete", "task-a");
+    run(true, "task", "show");
+  }
+
+  @Test
+  public void setStateOnSomeTasks() throws Exception {
+    run(true, "task", "create", "task-a", "This is task-a", "1");
+    run(true, "task", "create", "task-b", "This is task-b", "1");
+    run(true, "task", "create", "task-c", "This is task-c", "1");
+    run(true, "task", "set-running", "task-c");
+    run(true, "task", "set-blocked", "task-b");
+    run(true, "task", "set-finished", "task-a");
+    run(true, "task", "show");
+  }
+
+  @Test
+  public void showAllEmptyJournalTest() throws Exception {
+    run(true, "journal", "show-all");
+  }
+
+  @Test
+  public void showJournalTest() throws Exception {
+    run(true, "task", "create", "task-a", "This is task-a", "1");
+    run(true, "task", "create", "task-b", "This is task-b", "1");
+    run(true, "task", "create", "task-c", "This is task-c", "1");
+    run(true, "journal", "show", "task-a");
+    run(true, "journal", "show", "task-b");
+    run(true, "journal", "show", "task-c");
   }
 
   private void run(boolean debug, String...args) throws Exception {

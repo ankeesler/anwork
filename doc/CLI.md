@@ -14,6 +14,7 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 ## Commands
 - anwork task *create*: Create a task
 - anwork task *delete*: Delete a task
+- anwork task *delete-all*: Delete all tasks
 - anwork task *set-blocked*: Set a task as blocked
 - anwork task *set-finished*: Set a task as finished
 - anwork task *set-running*: Set a task as running

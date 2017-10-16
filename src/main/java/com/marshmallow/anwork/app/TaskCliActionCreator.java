@@ -60,6 +60,16 @@ public class TaskCliActionCreator implements ActionCreator {
             config.getDebugPrinter().accept("deleted task '" + args[0] + "'");
           }
         };
+      case "delete-all":
+        return new TaskManagerCliAction() {
+          @Override
+          public void run(AnworkAppConfig config, String[] args, TaskManager manager) {
+            for (Task task : manager.getTasks()) {
+              manager.deleteTask(task.getName());
+            }
+            config.getDebugPrinter().accept("deleted all tasks");
+          }
+        };
       case "show":
         return new TaskManagerCliAction() {
           @Override

@@ -120,6 +120,18 @@ public class AppTest {
   }
 
   @Test
+  public void deleteAllTest() throws IOException {
+    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-c", "This is the description for task C", "3");
+    run("task", "delete-all");
+
+    TaskManager taskManager = readTaskManager();
+    assertEquals(0, taskManager.getTasks().length);
+    assertEquals(6, taskManager.getJournal().getEntries().length);
+  }
+
+  @Test
   public void showTest() throws IOException {
     run("task", "create", "task-a", "This is the description for task A", "1");
     run("task", "create", "task-b", "This is the description for task B", "2");

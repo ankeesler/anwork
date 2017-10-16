@@ -28,6 +28,9 @@
     <command name="delete" description="Delete a task">
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
+    <command name="delete-all" description="Delete all tasks">
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
     <command name="show" description="Show all tasks">
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
