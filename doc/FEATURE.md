@@ -5,10 +5,10 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
+- Add ability to optionally specify description and priority of task.
 
 ## CLI
 - Add CLI argument stuff.
-- The CLI usage printing is ugly. Write a real test for this.
 - Add support for CliArgumentType.FILE.
 
 ## Infrastructure
