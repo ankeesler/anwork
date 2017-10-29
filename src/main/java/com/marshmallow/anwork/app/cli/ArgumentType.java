@@ -36,6 +36,11 @@ public interface ArgumentType<T> {
     public Class<String> getConversionClass() {
       return String.class;
     }
+
+    @Override
+    public String getName() {
+      return "STRING";
+    }
   };
 
   /**
@@ -51,6 +56,11 @@ public interface ArgumentType<T> {
     public Class<Long> getConversionClass() {
       return Long.class;
     }
+
+    @Override
+    public String getName() {
+      return "NUMBER";
+    }
   };
 
   /**
@@ -65,6 +75,11 @@ public interface ArgumentType<T> {
     @Override
     public Class<Boolean> getConversionClass() {
       return Boolean.class;
+    }
+
+    @Override
+    public String getName() {
+      return "BOOLEAN";
     }
   };
 

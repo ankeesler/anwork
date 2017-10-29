@@ -76,7 +76,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
     }
     if (flag.hasArgument()) {
       lineBuilder.append(" (")
-                 .append(flag.getArgument().getType().toString())
+                 .append(flag.getArgument().getType().getName())
                  .append(" ")
                  .append(flag.getArgument().getName());
       if (flag.getArgument().hasDescription()) {

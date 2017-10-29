@@ -1,7 +1,6 @@
 package com.marshmallow.anwork.app.cli;
 
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.stream.Collectors;
