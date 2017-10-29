@@ -11,8 +11,8 @@ package com.marshmallow.anwork.app.cli;
  */
 class CommandImpl extends ListOrCommandImpl implements MutableCommand {
 
-  CommandImpl(String name, Action action) {
-    super(name, action);
+  CommandImpl(ListImpl parent, String name, Action action) {
+    super(parent, name, action);
   }
 
   @Override

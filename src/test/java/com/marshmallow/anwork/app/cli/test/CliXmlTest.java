@@ -54,7 +54,7 @@ public class CliXmlTest extends BaseCliTest {
   @Test
   public void testCommands() {
     parse("fish");
-    parse("fish", "-n", "15");
+    parse("fish", "-o", "15");
     parse("marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
     TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
@@ -106,7 +106,7 @@ public class CliXmlTest extends BaseCliTest {
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlags(),
                                             "a", "no-description-short-flag");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlagsWithParameters(),
-                                            "c", "e", "n");
+                                            "c", "e", "o");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlags(),
                                             "bacon", "mom", "andrew");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlagsWithParameters(),
@@ -124,7 +124,7 @@ public class CliXmlTest extends BaseCliTest {
     OptionalDataCliVisitor visitor = new OptionalDataCliVisitor();
     visit(visitor);
     TestUtilities.assertVariadicArrayEquals(visitor.getFlagsWithDescriptions(),
-                                            "a", "b", "c", "d", "e", "n", "m", "o");
+                                            "a", "b", "c", "d", "e", "o", "m", "o");
     TestUtilities.assertVariadicArrayEquals(visitor.getCommandsWithDescriptions(),
                                             "fish", "marlin", "shake-it-up");
     TestUtilities.assertVariadicArrayEquals(visitor.getListsWithDescriptions(),

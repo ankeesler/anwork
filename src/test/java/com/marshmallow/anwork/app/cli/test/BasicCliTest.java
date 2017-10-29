@@ -13,7 +13,6 @@ import com.marshmallow.anwork.app.cli.MutableCommand;
 import com.marshmallow.anwork.app.cli.MutableList;
 import com.marshmallow.anwork.core.test.TestUtilities;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -56,7 +55,7 @@ public class BasicCliTest extends BaseCliTest {
     MutableList tunaList = root.addList("wrong")
                                .setDescription("This is the tuna command list")
                                .setName("tuna");
-    tunaList.addFlag("a")
+    tunaList.addFlag("w")
             .setLongFlag("andrew")
             .setArgument("age", ArgumentType.NUMBER).setDescription("The age you think I am");
     tunaList.addFlag("f")
@@ -66,8 +65,8 @@ public class BasicCliTest extends BaseCliTest {
     tunaMarlinCommand.setDescription("This is the marlin command");
     tunaMarlinCommand.addFlag("wrong").setDescription("The z flag, ya know").setShortFlag("z");
     // ^^^ this makes sure that we can change the short flag on a flag and parse the correct flag
-    tunaMarlinCommand.addFlag("d").setLongFlag("donut");
-    tunaMarlinCommand.addFlag("d").setLongFlag("duplicate");
+    tunaMarlinCommand.addFlag("t").setLongFlag("donut");
+    tunaMarlinCommand.addFlag("t").setLongFlag("duplicate");
 
     // Change the name of the command here to make sure the changed command name will be parsed.
     root.addCommand("wrong", mayoAction)
@@ -82,6 +81,8 @@ public class BasicCliTest extends BaseCliTest {
     duplicateList.addCommand("foo", fooAction);
 
     root.addList("list-without-description");
+    root.addFlag("f");
+    // ^^^ this flag ensures that we can add the same flag to different paths in the CLI tree
 
     return cli;
   }
@@ -162,6 +163,13 @@ public class BasicCliTest extends BaseCliTest {
     parse("tuna", "marlin", "--donut");
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testAssigningSameFlagToCliTreePath() {
+    Cli cli = new Cli("foo");
+    MutableList rootList = cli.getRoot();
+    rootList.addFlag("a");
+    rootList.addCommand("bar", (flags, args) -> { }).addFlag("a");
+  }
   /*
    * Subsection - Positive Flag Tests
    */
@@ -195,29 +203,20 @@ public class BasicCliTest extends BaseCliTest {
   public void testDuplicateFlagsPositive() {
     parse("tuna", "marlin", "--duplicate");
     assertTrue(tunaMarlinAction.getRan());
-    assertTrue(tunaMarlinAction.getFlags().containsKey("d"));
-    Boolean b = tunaMarlinAction.getFlags().getValue("d", ArgumentType.BOOLEAN);
+    assertTrue(tunaMarlinAction.getFlags().containsKey("t"));
+    Boolean b = tunaMarlinAction.getFlags().getValue("t", ArgumentType.BOOLEAN);
     assertEquals(Boolean.TRUE, b);
   }
 
   @Test
   public void testNonexistentFlagValues() {
-    parse("tuna", "marlin", "-d");
+    parse("tuna", "marlin", "-t");
     assertFalse(tunaMarlinAction.getFlags().containsKey(""));
     assertFalse(tunaMarlinAction.getFlags().containsKey("a"));
     assertFalse(tunaMarlinAction.getFlags().containsKey("b"));
     assertFalse(tunaMarlinAction.getFlags().containsKey("c"));
     assertFalse(tunaMarlinAction.getFlags().containsKey("e"));
     assertFalse(tunaMarlinAction.getFlags().containsKey("f"));
-  }
-
-  @Ignore()
-  public void testDuplicateFlagsAtDifferentListOrCommand() {
-    parse("--dog", "doug", "tuna", "marlin", "--duplicate");
-    assertTrue(tunaMarlinAction.getRan());
-    assertTrue(tunaMarlinAction.getFlags().containsKey("d"));
-    String dogName = tunaMarlinAction.getFlags().getValue("d", ArgumentType.STRING);
-    assertEquals("doug", dogName);
   }
 
   /*
@@ -295,11 +294,11 @@ public class BasicCliTest extends BaseCliTest {
 
   @Test
   public void testMarlinCommandWitPreFlagsAndArguments() {
-    parse("tuna", "-a", "15", "-f", "marlin", "hello", "world");
+    parse("tuna", "-w", "15", "-f", "marlin", "hello", "world");
     assertTrue(tunaMarlinAction.getRan());
     ArgumentValues flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(new String[] { "a", "f" }, flags.getAllKeys());
-    Long number = flags.getValue("a", ArgumentType.NUMBER);
+    assertArrayEquals(new String[] { "f", "w" }, flags.getAllKeys());
+    Long number = flags.getValue("w", ArgumentType.NUMBER);
     assertEquals(new Long(15), number);
   }
 
@@ -332,7 +331,7 @@ public class BasicCliTest extends BaseCliTest {
     TestCliVisitor visitor = new TestCliVisitor();
     visit(visitor);
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlags(),
-                                            "a", "f", "z");
+                                            "a", "f", "f", "z");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedShortFlagsWithParameters(),
                                             "c", "e");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLongFlags(),

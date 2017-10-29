@@ -19,8 +19,8 @@
 
   <command name="fish" description="This is the tuna fish command">
     <!-- Add a duplicate flag to test that we use the second one! -->
-    <flag shortFlag="n" longFlag="nooooo" />
-    <flag shortFlag="n" description="The number of fish that you desire">
+    <flag shortFlag="o" longFlag="nooooo" />
+    <flag shortFlag="o" description="The number of fish that you desire">
       <argument name="number" type="NUMBER" />
     </flag>
     <actionCreator class="com.marshmallow.anwork.app.cli.test.TestCliActionCreator" />
@@ -37,7 +37,7 @@
   <list name="list-a" />
   <list name="list-a" description="This is list A!">
     <flag shortFlag="m" longFlag="mom" description="This is the mom flag" />
-    <flag shortFlag="d" longFlag="dad">
+    <flag shortFlag="dad" longFlag="dad">
       <argument name="activity" description="This is the activity that dad is doing" type="STRING" />
     </flag>
     <command name="bring-home-bacon">
@@ -48,7 +48,7 @@
 
   <list name="list-b" description="This is list B!">
     <command name="shake-it-up" description="This command shakes it up">
-      <flag shortFlag="a" longFlag="andrew" />
+      <flag shortFlag="w" longFlag="andrew" />
       <flag shortFlag="o" longFlag="output" description="This is the output flag">
         <argument name="directory" description="The output directory" type="STRING" />
       </flag>

@@ -107,13 +107,15 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
   }
 
   private final java.util.List<Flag> flags = new ArrayList<Flag>();
+  private final ListOrCommandImpl parent;
   private final java.util.List<ListOrCommandImpl> children = new ArrayList<ListOrCommandImpl>();
 
   private String name;
   private Action action;
   private String description;
 
-  protected ListOrCommandImpl(String name, Action action) {
+  protected ListOrCommandImpl(ListOrCommandImpl parent, String name, Action action) {
+    this.parent = parent;
     this.name = name;
     this.action = action;
   }
@@ -193,6 +195,14 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
 
   @Override
   public MutableFlag addFlag(String shortFlag) {
+    if (parentContainsFlag(shortFlag)) {
+      throw new IllegalStateException("Cannot assign the same short flag "
+                                      + "to hiearchical lists/commands! "
+                                      + "If this was allowed, then there would be ambiguity upon "
+                                      + "accessing whether or not a flag was set on a command "
+                                      + "when the same flag was set on a parent list.");
+    }
+
     for (Flag flag : flags) {
       if (flag.getShortFlag().equals(shortFlag)) {
         flags.remove(flag);
@@ -203,6 +213,20 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     MutableFlag flag = new FlagImpl(shortFlag);
     flags.add(flag);
     return flag;
+  }
+
+  private boolean parentContainsFlag(String shortFlag) {
+    if (parent == null) {
+      return false;
+    }
+
+    for (Flag flag : parent.getFlags()) {
+      if (flag.getShortFlag().equals(shortFlag)) {
+        return true;
+      }
+    }
+
+    return parent.parentContainsFlag(shortFlag);
   }
 
   /*

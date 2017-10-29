@@ -49,8 +49,8 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
     }
   }
 
-  ListImpl(String name) {
-    super(name, null);
+  ListImpl(ListImpl parent, String name) {
+    super(parent, name, null);
     setAction(new ListAction(this));
   }
 
@@ -73,7 +73,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
 
   @Override
   public MutableList addList(String name) {
-    ListImpl list = new ListImpl(name);
+    ListImpl list = new ListImpl(this, name);
     addChild(list);
     return list;
   }
@@ -85,7 +85,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
 
   @Override
   public MutableCommand addCommand(String name, Action action) {
-    CommandImpl command = new CommandImpl(name, action);
+    CommandImpl command = new CommandImpl(this, name, action);
     addChild(command);
     return command;
   }

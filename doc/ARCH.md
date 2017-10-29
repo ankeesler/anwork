@@ -86,6 +86,11 @@ Most of the main concepts have sub-interfaces that start with "Mutable". These s
 for editing of the main concepts, i.e., they offer setters whereas the super-interfaces only offer
 getters.
 
+Note that the same "short flag" cannot be added to two lists or a list and a command in the same
+CLI hiearchy. For example, consider the command line invocation "git -a whatever log -a foo". Upon
+the calling of the *Action* for the "log" *Command*, there would be ambiguity about what value the
+"-a" *Flag* holds.
+
 A CLI API for an application can also be specified via an XML schema. A *CliXmlReader* is the class
 that reads in an XML stream and returns a *Cli* object.
 

@@ -47,7 +47,7 @@ public class Cli {
    * @param name The name for the command line interface
    */
   public Cli(String name) {
-    root = new ListImpl(name);
+    root = new ListImpl(null, name);
   }
 
   /**

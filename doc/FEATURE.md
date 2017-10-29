@@ -9,7 +9,6 @@ into sections below.
 ## CLI
 - Add CLI argument stuff.
 - Add support for CliArgumentType.FILE.
-- Fix bug where we can't have 2 of the same short flags in a CLI tree. 
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
