@@ -13,6 +13,10 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 # anwork *task*: Task commands...
 ## Commands
 - anwork task *create*: Create a task
+## Flags
+- -e|--description (STRING description: The description of the task): The description of the task
+- -p|--priority (NUMBER priority: The priority of the task): The priority of the task
+## Commands
 - anwork task *delete*: Delete a task
 - anwork task *delete-all*: Delete all tasks
 - anwork task *set-blocked*: Set a task as blocked

@@ -2,12 +2,14 @@ package com.marshmallow.anwork.app.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import com.marshmallow.anwork.app.AnworkApp;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.core.test.TestUtilities;
+import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
 
@@ -50,9 +52,13 @@ public class AppTest {
 
   @Test
   public void createTest() throws IOException {
-    run("task", "create", "task-a", "This is the description for task A", "1");
-    run("task", "create", "task-b", "This is the description for task B", "2");
-    run("task", "create", "task-c", "This is the description for task C", "3");
+    run("task", "create", "task-a",
+        "-e", "This is the description for task A",
+        "-p", "15");
+    run("task", "create", "task-b",
+        "--description", "This is the description for task B",
+        "--priority", "25");
+    run("task", "create", "task-c");
 
     TaskManager taskManager = readTaskManager();
     assertEquals(3, taskManager.getTasks().length);
@@ -60,13 +66,29 @@ public class AppTest {
     assertEquals(1, taskManager.getJournal("task-a").getEntries().length);
     assertEquals(1, taskManager.getJournal("task-b").getEntries().length);
     assertEquals(1, taskManager.getJournal("task-c").getEntries().length);
+
+    Task taskA = null;
+    Task taskB = null;
+    for (Task task : taskManager.getTasks()) {
+      if (task.getName().equals("task-a")) {
+        taskA = task;
+      } else if (task.getName().equals("task-b")) {
+        taskB = task;
+      }
+    }
+    assertNotNull("Unable to find task-a!", taskA);
+    assertNotNull("Unable to find task-b!", taskB);
+    assertEquals(15, taskA.getPriority());
+    assertEquals("This is the description for task A", taskA.getDescription());
+    assertEquals(25, taskB.getPriority());
+    assertEquals("This is the description for task B", taskB.getDescription());
   }
 
   @Test
   public void setStateTest() throws IOException {
-    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-a");
     run("task", "set-running", "task-a");
-    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-b");
     run("task", "set-blocked", "task-b");
 
     TaskManager manager = readTaskManager();
@@ -100,8 +122,8 @@ public class AppTest {
 
   @Test
   public void deleteTest() throws IOException {
-    run("task", "create", "task-a", "This is the description for task A", "1");
-    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
     run("task", "delete", "task-a");
 
     TaskManager taskManager = readTaskManager();
@@ -121,9 +143,9 @@ public class AppTest {
 
   @Test
   public void deleteAllTest() throws IOException {
-    run("task", "create", "task-a", "This is the description for task A", "1");
-    run("task", "create", "task-b", "This is the description for task B", "2");
-    run("task", "create", "task-c", "This is the description for task C", "3");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "create", "task-c");
     run("task", "delete-all");
 
     TaskManager taskManager = readTaskManager();
@@ -133,8 +155,8 @@ public class AppTest {
 
   @Test
   public void showTest() throws IOException {
-    run("task", "create", "task-a", "This is the description for task A", "1");
-    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
     run("task", "show");
     run("task", "delete", "task-a");
     run("task", "show");
@@ -143,8 +165,8 @@ public class AppTest {
   @Test
   public void showAllJournalTest() throws IOException {
     run("journal", "show-all");
-    run("task", "create", "task-a", "This is the description for task A", "1");
-    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
     run("journal", "show-all");
     run("task", "delete", "task-a");
     run("journal", "show-all");
@@ -153,10 +175,10 @@ public class AppTest {
   @Test
   public void showJournalTest() throws IOException {
     run("journal", "show", "task-a");
-    run("task", "create", "task-a", "This is the description for task A", "1");
+    run("task", "create", "task-a");
     run("journal", "show", "task-a");
     run("journal", "show", "task-b");
-    run("task", "create", "task-b", "This is the description for task B", "2");
+    run("task", "create", "task-b");
     run("journal", "show", "task-a");
     run("journal", "show", "task-b");
     run("task", "delete", "task-a");
@@ -168,7 +190,7 @@ public class AppTest {
 
   @Test
   public void testNoPersist() throws IOException {
-    run("--no-persist", "task", "create", "task-a", "This is the description for task A", "1");
+    run("--no-persist", "task", "create", "task-a");
     assertFalse(new FilePersister<TaskManager>(PERSISTENCE_ROOT).exists(CONTEXT));
   }
 

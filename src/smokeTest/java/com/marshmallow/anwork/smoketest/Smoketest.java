@@ -62,25 +62,29 @@ public class Smoketest {
 
   @Test
   public void showSomeTasksTest() throws Exception {
-    run(true, "task", "create", "task-a", "This is task-a", "1");
-    run(true, "task", "create", "task-b", "This is task-b", "1");
-    run(true, "task", "create", "task-c", "This is task-c", "1");
+    run(true, "task", "create", "task-a",
+        "-e", "This is task-a",
+        "-p", "1");
+    run(true, "task", "create", "task-b",
+        "--description", "This is task-b",
+        "--priority", "1");
+    run(true, "task", "create", "task-c");
     run(true, "task", "show");
   }
 
   @Test
   public void deleteSomeTasksTest() throws Exception {
-    run(true, "task", "create", "task-a", "This is task-a", "1");
-    run(true, "task", "create", "task-b", "This is task-b", "1");
+    run(true, "task", "create", "task-a");
+    run(true, "task", "create", "task-b");
     run(true, "task", "delete", "task-a");
     run(true, "task", "show");
   }
 
   @Test
   public void setStateOnSomeTasks() throws Exception {
-    run(true, "task", "create", "task-a", "This is task-a", "1");
-    run(true, "task", "create", "task-b", "This is task-b", "1");
-    run(true, "task", "create", "task-c", "This is task-c", "1");
+    run(true, "task", "create", "task-a");
+    run(true, "task", "create", "task-b");
+    run(true, "task", "create", "task-c");
     run(true, "task", "set-running", "task-c");
     run(true, "task", "set-blocked", "task-b");
     run(true, "task", "set-finished", "task-a");
@@ -94,9 +98,9 @@ public class Smoketest {
 
   @Test
   public void showJournalTest() throws Exception {
-    run(true, "task", "create", "task-a", "This is task-a", "1");
-    run(true, "task", "create", "task-b", "This is task-b", "1");
-    run(true, "task", "create", "task-c", "This is task-c", "1");
+    run(true, "task", "create", "task-a");
+    run(true, "task", "create", "task-b");
+    run(true, "task", "create", "task-c");
     run(true, "journal", "show", "task-a");
     run(true, "journal", "show", "task-b");
     run(true, "journal", "show", "task-c");

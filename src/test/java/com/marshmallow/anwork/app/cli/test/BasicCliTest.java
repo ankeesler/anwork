@@ -13,6 +13,7 @@ import com.marshmallow.anwork.app.cli.MutableCommand;
 import com.marshmallow.anwork.app.cli.MutableList;
 import com.marshmallow.anwork.core.test.TestUtilities;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -152,6 +153,7 @@ public class BasicCliTest extends BaseCliTest {
   public void testBadGetFlagValue() throws IllegalArgumentException {
     parse("-e", "15", "tuna", "marlin");
     assertTrue(tunaMarlinAction.getRan());
+    assertTrue(tunaMarlinAction.getFlags().containsKey("e"));
     tunaMarlinAction.getFlags().getValue("e", ArgumentType.STRING);
   }
 
@@ -193,8 +195,29 @@ public class BasicCliTest extends BaseCliTest {
   public void testDuplicateFlagsPositive() {
     parse("tuna", "marlin", "--duplicate");
     assertTrue(tunaMarlinAction.getRan());
+    assertTrue(tunaMarlinAction.getFlags().containsKey("d"));
     Boolean b = tunaMarlinAction.getFlags().getValue("d", ArgumentType.BOOLEAN);
     assertEquals(Boolean.TRUE, b);
+  }
+
+  @Test
+  public void testNonexistentFlagValues() {
+    parse("tuna", "marlin", "-d");
+    assertFalse(tunaMarlinAction.getFlags().containsKey(""));
+    assertFalse(tunaMarlinAction.getFlags().containsKey("a"));
+    assertFalse(tunaMarlinAction.getFlags().containsKey("b"));
+    assertFalse(tunaMarlinAction.getFlags().containsKey("c"));
+    assertFalse(tunaMarlinAction.getFlags().containsKey("e"));
+    assertFalse(tunaMarlinAction.getFlags().containsKey("f"));
+  }
+
+  @Ignore()
+  public void testDuplicateFlagsAtDifferentListOrCommand() {
+    parse("--dog", "doug", "tuna", "marlin", "--duplicate");
+    assertTrue(tunaMarlinAction.getRan());
+    assertTrue(tunaMarlinAction.getFlags().containsKey("d"));
+    String dogName = tunaMarlinAction.getFlags().getValue("d", ArgumentType.STRING);
+    assertEquals("doug", dogName);
   }
 
   /*

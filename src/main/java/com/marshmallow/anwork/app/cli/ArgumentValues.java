@@ -36,6 +36,16 @@ public class ArgumentValues {
   }
 
   /**
+   * Return whether or not there is a value in this class that is associated with the provided key.
+   *
+   * @param key The key that may or may not be associated with a value in this class
+   * @return whether or not there is a value in this class that is associated with the provided key
+   */
+  public boolean containsKey(String key) {
+    return values.containsKey(key);
+  }
+
+  /**
    * Get the value for a argument given the key and the expected type of the value.
    *
    * @param <T> the type of the backing Java type for this value's {@link ArgumentType}

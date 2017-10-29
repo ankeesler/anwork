@@ -27,7 +27,7 @@ public abstract class TaskManagerCliAction implements Action {
     AnworkAppConfig config = new AnworkAppConfig(flags);
     try {
       TaskManager manager = loadTaskManager(config);
-      run(config, args, manager);
+      run(config, flags, args, manager);
       saveTaskManager(config, manager);
     } catch (Exception e) {
       throw new IllegalStateException("Failed task manager action!", e);
@@ -37,11 +37,15 @@ public abstract class TaskManagerCliAction implements Action {
   /**
    * Run the CLI action on a {@link TaskManager}.
    *
-   * @param config The {@link AnworkAppConfig} applied to this action
+   * @param config The {@link AnworkAppConfig} applied to this {@link Action}
+   * @param flags The {@link ArgumentValues} associated with this {@link Action}
    * @param args The CLI arguments
    * @param manager The task manager
    */
-  public abstract void run(AnworkAppConfig config, String[] args, TaskManager manager);
+  public abstract void run(AnworkAppConfig config,
+                           ArgumentValues flags,
+                           String[] args,
+                           TaskManager manager);
 
   private TaskManager loadTaskManager(AnworkAppConfig config) throws Exception {
     String context = config.getContext();

@@ -11,6 +11,12 @@
 
   <list name="task" description="Task commands...">
     <command name="create" description="Create a task">
+      <flag shortFlag="e" longFlag="description" description="The description of the task">
+        <argument name="description" description="The description of the task" type="STRING" />
+      </flag>
+      <flag shortFlag="p" longFlag="priority" description="The priority of the task">
+        <argument name="priority" description="The priority of the task" type="NUMBER" />
+      </flag>
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="set-waiting" description="Set a task as waiting">
