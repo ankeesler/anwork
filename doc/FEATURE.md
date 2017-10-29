@@ -5,11 +5,11 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
-- Add ability to optionally specify description and priority of task.
 
 ## CLI
 - Add CLI argument stuff.
 - Add support for CliArgumentType.FILE.
+- Fix bug where we can't have 2 of the same short flags in a CLI tree. 
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
