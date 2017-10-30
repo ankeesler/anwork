@@ -70,7 +70,7 @@ class CommandImpl extends ListOrCommandImpl implements MutableCommand {
     }
 
     ArgumentValues argumentValues = makeArgumentValues(arguments.toArray(new String[0]));
-    action.run(flagValues, arguments.toArray(new String[0]));
+    action.run(flagValues, argumentValues);
   }
 
   private ArgumentValues makeArgumentValues(String[] actualArguments) {

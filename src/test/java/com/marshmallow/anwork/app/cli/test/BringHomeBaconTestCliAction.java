@@ -26,13 +26,13 @@ public class BringHomeBaconTestCliAction implements Action {
 
   // This is a static field so that we can count how many times this command was run over multiple
   // instances of this class.
-  private static List<String[]> runs = new ArrayList<String[]>();
+  private static List<ArgumentValues> runs = new ArrayList<ArgumentValues>();
 
   /**
    * Reset the number of times that this {@link Action} has been run to 0.
    */
   public static void resetRunCount() {
-    runs = new ArrayList<String[]>();
+    runs.clear();
   }
 
   /**
@@ -53,12 +53,12 @@ public class BringHomeBaconTestCliAction implements Action {
    * @return The arguments that were passed to the 0-indexed run instance across all instances of
    *     this class
    */
-  public static String[] getRunArguments(int runNumber) {
+  public static ArgumentValues getRunArguments(int runNumber) {
     return runs.get(runNumber);
   }
 
   @Override
-  public void run(ArgumentValues flags, String[] parameters) {
-    runs.add(parameters);
+  public void run(ArgumentValues flags, ArgumentValues arguments) {
+    runs.add(arguments);
   }
 }

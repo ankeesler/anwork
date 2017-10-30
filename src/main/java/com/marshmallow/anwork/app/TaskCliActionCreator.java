@@ -31,9 +31,9 @@ public class TaskCliActionCreator implements ActionCreator {
     @Override
     public void run(AnworkAppConfig config,
                     ArgumentValues flags,
-                    String[] args,
+                    ArgumentValues arguments,
                     TaskManager manager) {
-      String taskName = args[0];
+      String taskName = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
       manager.setState(taskName, taskState);
     }
   }
@@ -46,9 +46,9 @@ public class TaskCliActionCreator implements ActionCreator {
           @Override
           public void run(AnworkAppConfig config,
                           ArgumentValues flags,
-                          String[] args,
+                          ArgumentValues arguments,
                           TaskManager manager) {
-            String name = args[0];
+            String name = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
             String description = (flags.containsKey("e")
                                   ? flags.getValue("e", ArgumentType.STRING)
                                   : "");
@@ -56,7 +56,7 @@ public class TaskCliActionCreator implements ActionCreator {
                                  ? flags.getValue("p", ArgumentType.NUMBER)
                                  : Task.DEFAULT_PRIORITY);
             manager.createTask(name, description, priority);
-            config.getDebugPrinter().accept("created task '" + args[0] + "'");
+            config.getDebugPrinter().accept("created task '" + name + "'");
           }
         };
       case "set-waiting":
@@ -72,10 +72,11 @@ public class TaskCliActionCreator implements ActionCreator {
           @Override
           public void run(AnworkAppConfig config,
                           ArgumentValues flags,
-                          String[] args,
+                          ArgumentValues arguments,
                           TaskManager manager) {
-            manager.deleteTask(args[0]);
-            config.getDebugPrinter().accept("deleted task '" + args[0] + "'");
+            String name = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
+            manager.deleteTask(name);
+            config.getDebugPrinter().accept("deleted task '" + name + "'");
           }
         };
       case "delete-all":
@@ -83,7 +84,7 @@ public class TaskCliActionCreator implements ActionCreator {
           @Override
           public void run(AnworkAppConfig config,
                           ArgumentValues flags,
-                          String[] args,
+                          ArgumentValues arguments,
                           TaskManager manager) {
             for (Task task : manager.getTasks()) {
               manager.deleteTask(task.getName());
@@ -96,7 +97,7 @@ public class TaskCliActionCreator implements ActionCreator {
           @Override
           public void run(AnworkAppConfig config,
                           ArgumentValues flags,
-                          String[] args,
+                          ArgumentValues arguments,
                           TaskManager manager) {
             for (Task task : manager.getTasks()) {
               System.out.println(task);

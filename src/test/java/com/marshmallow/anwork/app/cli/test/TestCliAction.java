@@ -16,10 +16,10 @@ public class TestCliAction implements Action {
 
   private boolean ran = false;
   private ArgumentValues flags = null;
-  private String[] arguments = null;
+  private ArgumentValues arguments = null;
 
   @Override
-  public void run(ArgumentValues flags, String[] arguments) {
+  public void run(ArgumentValues flags, ArgumentValues arguments) {
     ran = true;
     this.flags = flags;
     this.arguments = arguments;
@@ -33,7 +33,7 @@ public class TestCliAction implements Action {
     return flags;
   }
 
-  public String[] getArguments() {
+  public ArgumentValues getArguments() {
     return arguments;
   }
 

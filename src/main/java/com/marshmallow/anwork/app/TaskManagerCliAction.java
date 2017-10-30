@@ -1,9 +1,14 @@
 package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.Action;
+import com.marshmallow.anwork.app.cli.Argument;
+import com.marshmallow.anwork.app.cli.ArgumentType;
 import com.marshmallow.anwork.app.cli.ArgumentValues;
+import com.marshmallow.anwork.app.cli.Command;
+import com.marshmallow.anwork.app.cli.Flag;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
+import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 
 import java.io.File;
@@ -22,12 +27,18 @@ import java.util.Collections;
  */
 public abstract class TaskManagerCliAction implements Action {
 
+  /**
+   * This is the name of the {@link Argument} used to specify the name of a {@link Task}. It is of
+   * type {@link ArgumentType#STRING}.
+   */
+  protected static final String TASK_NAME_ARGUMENT = "task-name";
+
   @Override
-  public void run(ArgumentValues flags, String[] args) {
+  public void run(ArgumentValues flags, ArgumentValues arguments) {
     AnworkAppConfig config = new AnworkAppConfig(flags);
     try {
       TaskManager manager = loadTaskManager(config);
-      run(config, flags, args, manager);
+      run(config, flags, arguments, manager);
       saveTaskManager(config, manager);
     } catch (Exception e) {
       throw new IllegalStateException("Failed task manager action!", e);
@@ -38,13 +49,13 @@ public abstract class TaskManagerCliAction implements Action {
    * Run the CLI action on a {@link TaskManager}.
    *
    * @param config The {@link AnworkAppConfig} applied to this {@link Action}
-   * @param flags The {@link ArgumentValues} associated with this {@link Action}
-   * @param args The CLI arguments
+   * @param flags The {@link Flag} {@link ArgumentValues} passed to this {@link Command}
+   * @param arguments The {@link ArgumentValues} passed to this {@link Command}
    * @param manager The task manager
    */
   public abstract void run(AnworkAppConfig config,
                            ArgumentValues flags,
-                           String[] args,
+                           ArgumentValues arguments,
                            TaskManager manager);
 
   private TaskManager loadTaskManager(AnworkAppConfig config) throws Exception {

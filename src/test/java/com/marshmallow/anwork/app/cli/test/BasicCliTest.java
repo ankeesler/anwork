@@ -272,6 +272,13 @@ public class BasicCliTest extends BaseCliTest {
     parse("mayo", "hey");
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testGettingWrongArgumentType() {
+    parse("tuna", "marlin", "25", "steve");
+    ArgumentValues arguments = tunaMarlinAction.getArguments();
+    arguments.getValue("number", ArgumentType.STRING);
+  }
+
   /*
    * Subsection - Positive Commands
    */
@@ -292,29 +299,55 @@ public class BasicCliTest extends BaseCliTest {
   public void testMarlinCommandWithArguments() {
     parse("tuna", "marlin", "25", "steve");
     assertTrue(tunaMarlinAction.getRan());
+
     ArgumentValues flags = tunaMarlinAction.getFlags();
     assertArrayEquals(flags.getAllKeys(), new String[0]);
     assertNull(flags.getValue("z", ArgumentType.BOOLEAN));
-    assertArrayEquals(new String[] { "25", "steve" }, tunaMarlinAction.getArguments());
+
+    ArgumentValues arguments = tunaMarlinAction.getArguments();
+    assertEquals(2, arguments.getAllKeys().length);
+    assertTrue(arguments.containsKey("number"));
+    assertTrue(arguments.containsKey("name"));
+    assertEquals(new Long(25), arguments.getValue("number", ArgumentType.NUMBER));
+    assertEquals("steve", arguments.getValue("name", ArgumentType.STRING));
+    assertNull(arguments.getValue("wrong", ArgumentType.STRING));
   }
 
   @Test
   public void testMarlinCommandWithArgumentsAndFlag() {
     parse("tuna", "marlin", "-z", "25", "steve");
+    assertTrue(tunaMarlinAction.getRan());
+
     ArgumentValues flags = tunaMarlinAction.getFlags();
     assertArrayEquals(flags.getAllKeys(), new String[] { "z" });
     assertEquals(Boolean.TRUE, flags.getValue("z", ArgumentType.BOOLEAN));
-    assertArrayEquals(new String[] { "25", "steve" }, tunaMarlinAction.getArguments());
+
+    ArgumentValues arguments = tunaMarlinAction.getArguments();
+    assertEquals(2, arguments.getAllKeys().length);
+    assertTrue(arguments.containsKey("number"));
+    assertTrue(arguments.containsKey("name"));
+    assertEquals(new Long(25), arguments.getValue("number", ArgumentType.NUMBER));
+    assertEquals("steve", arguments.getValue("name", ArgumentType.STRING));
+    assertNull(arguments.getValue("wrong", ArgumentType.STRING));
   }
 
   @Test
   public void testMarlinCommandWitPreFlagsAndArguments() {
     parse("tuna", "-w", "15", "-f", "marlin", "25", "steve");
     assertTrue(tunaMarlinAction.getRan());
+
     ArgumentValues flags = tunaMarlinAction.getFlags();
     assertArrayEquals(new String[] { "f", "w" }, flags.getAllKeys());
     Long number = flags.getValue("w", ArgumentType.NUMBER);
     assertEquals(new Long(15), number);
+
+    ArgumentValues arguments = tunaMarlinAction.getArguments();
+    assertEquals(2, arguments.getAllKeys().length);
+    assertTrue(arguments.containsKey("number"));
+    assertTrue(arguments.containsKey("name"));
+    assertEquals(new Long(25), arguments.getValue("number", ArgumentType.NUMBER));
+    assertEquals("steve", arguments.getValue("name", ArgumentType.STRING));
+    assertNull(arguments.getValue("wrong", ArgumentType.STRING));
   }
 
   @Test
@@ -323,7 +356,8 @@ public class BasicCliTest extends BaseCliTest {
     assertTrue(mayoAction.getRan());
     ArgumentValues flags = mayoAction.getFlags();
     assertArrayEquals(new String[0], flags.getAllKeys());
-    assertArrayEquals(new String[0], mayoAction.getArguments());
+    ArgumentValues arguments = mayoAction.getArguments();
+    assertEquals(0, arguments.getAllKeys().length);
   }
 
   @Test

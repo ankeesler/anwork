@@ -1,11 +1,13 @@
 package com.marshmallow.anwork.app.cli.test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.marshmallow.anwork.app.cli.ArgumentType;
+import com.marshmallow.anwork.app.cli.ArgumentValues;
 import com.marshmallow.anwork.app.cli.Cli;
 import com.marshmallow.anwork.app.cli.CliXmlReader;
 import com.marshmallow.anwork.core.test.TestUtilities;
@@ -60,7 +62,13 @@ public class CliXmlTest extends BaseCliTest {
     TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
     assertNotNull(fishAction);
     assertTrue(fishAction.getRan());
-    assertArrayEquals(new String[] { "25", "steve" }, fishAction.getArguments());
+    ArgumentValues arguments = fishAction.getArguments();
+    assertEquals(2, arguments.getAllKeys().length);
+    assertTrue(arguments.containsKey("number"));
+    assertTrue(arguments.containsKey("name"));
+    assertEquals(new Long(25), arguments.getValue("number", ArgumentType.NUMBER));
+    assertEquals("steve", arguments.getValue("name", ArgumentType.STRING));
+    assertNull(arguments.getValue("wrong", ArgumentType.STRING));
     TestCliAction marlinAction = TestCliActionCreator.getCreatedAction("marlin");
     assertNotNull(marlinAction);
     assertTrue(marlinAction.getRan());
@@ -80,16 +88,20 @@ public class CliXmlTest extends BaseCliTest {
     parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon", "hey", "ho");
     parse("list-b", "shake-it-up", "--andrew", "-o", "foo");
     assertEquals(1, BringHomeBaconTestCliAction.getRunCount());
-    assertArrayEquals(new String[] { "hey", "ho" },
-                      BringHomeBaconTestCliAction.getRunArguments(0));
+    ArgumentValues arguments = BringHomeBaconTestCliAction.getRunArguments(0);
+    assertEquals(2, arguments.getAllKeys().length);
+    assertEquals("hey", arguments.getValue("arg0", ArgumentType.STRING));
+    assertEquals("ho", arguments.getValue("arg1", ArgumentType.STRING));
   }
 
   @Test
   public void testListCommandsWithArguments() {
     parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon", "hey", "ho");
     assertEquals(1, BringHomeBaconTestCliAction.getRunCount());
-    assertArrayEquals(new String[] { "hey", "ho" },
-                      BringHomeBaconTestCliAction.getRunArguments(0));
+    ArgumentValues arguments = BringHomeBaconTestCliAction.getRunArguments(0);
+    assertEquals(2, arguments.getAllKeys().length);
+    assertEquals("hey", arguments.getValue("arg0", ArgumentType.STRING));
+    assertEquals("ho", arguments.getValue("arg1", ArgumentType.STRING));
   }
 
   @Test

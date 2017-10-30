@@ -7,7 +7,6 @@ into sections below.
 - Add note command for adding a note to a task.
 
 ## CLI
-- Add CLI argument stuff.
 - Add support for CliArgumentType.FILE.
 
 ## Infrastructure

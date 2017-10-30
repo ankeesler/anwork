@@ -2,6 +2,7 @@ package com.marshmallow.anwork.app;
 
 import com.marshmallow.anwork.app.cli.Action;
 import com.marshmallow.anwork.app.cli.ActionCreator;
+import com.marshmallow.anwork.app.cli.ArgumentType;
 import com.marshmallow.anwork.app.cli.ArgumentValues;
 import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.task.TaskManager;
@@ -28,7 +29,7 @@ public class JournalCliActionCreator implements ActionCreator {
           @Override
           public void run(AnworkAppConfig config,
                           ArgumentValues flags,
-                          String[] args,
+                          ArgumentValues arguments,
                           TaskManager manager) {
             System.out.println(Arrays.toString(manager.getJournal().getEntries()));
           }
@@ -38,11 +39,12 @@ public class JournalCliActionCreator implements ActionCreator {
           @Override
           public void run(AnworkAppConfig config,
                           ArgumentValues flags,
-                          String[] args,
+                          ArgumentValues arguments,
                           TaskManager manager) {
-            Journal<TaskManagerJournalEntry> journal = manager.getJournal(args[0]);
+            String name = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
+            Journal<TaskManagerJournalEntry> journal = manager.getJournal(name);
             if (journal == null) {
-              System.out.println("No entries for task named " + args[0]);
+              System.out.println("No entries for task named " + name);
             } else {
               System.out.println(Arrays.toString(journal.getEntries()));
             }
