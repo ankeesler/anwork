@@ -112,7 +112,12 @@ run via Action#run.
 
 ## Test
 
-All tests must go in the src/test source set. Here are naming conventions for tests.
+There are 2 stages of testing. The first is mostly unit tests (besides AppTest, which is mostly a
+system-level test). The second is smoke test, which takes the packaged binary and runs tests with
+it.
+
+All stage 1 tests must go in the src/test source set. Here are naming conventions for stage 1
+tests.
 - Tests for classes should live in the analagous package name in the src/test source set. A
   package's analagous test package is simple the package's name plus *.test*. For example, the
   package com.marshmallow.anwork.tuna would have a test package com.marshmallow.anwork.tuna.test.
@@ -125,3 +130,6 @@ All tests must go in the src/test source set. Here are naming conventions for te
   a suite that begins with the name of the last segment of the package name. For example, in the
   package com.marshmallow.anwork.foo.test, there should be a Junit suite class named AllFooTests.
 - The AllTests class should be kept up to date to run all tests for the ANWORK project.
+
+Stage 2 tests have the ability to run CLI commands with the packaged ANWORK binary and expect
+output in the form of regular expressions. See the *SmoketestExpect* class for more details.
