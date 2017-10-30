@@ -142,5 +142,10 @@ public class Task implements Comparable<Task>, Serializable<TaskProtobuf> {
     startDate = new Date(t.getStartDate());
     priority = t.getPriority();
     state = TaskState.values()[t.getState().ordinal()];
+
+    // Make sure the next ID remains unique...
+    if (id >= nextId) {
+      nextId = id + 1;
+    }
   }
 }

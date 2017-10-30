@@ -68,8 +68,17 @@ public class Smoketest {
         "--description", "This is task-b",
         "--priority", "1");
     run("task", "create", "task-c");
-    run(new String[] { "task", "show" },
-        new String[] { "RUNNING tasks:", "BLOCKED tasks:", "WAITING tasks:", "FINISHED tasks:", });
+    expect(new String[] { "task", "show" },
+           new String[] { "RUNNING tasks:",
+                          "BLOCKED tasks:",
+                          "WAITING tasks:",
+                          "  task-a.*",
+                          "  task-b .*",
+                          "  task-c.*",
+                          "FINISHED tasks:", });
+    nexpect(new String[] { "task", "show" },
+            new String[] { "  task-b \\(1\\).*",
+                           "  task-c \\(1\\).*"});
   }
 
   @Test
@@ -77,8 +86,8 @@ public class Smoketest {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "delete", "task-a");
-    run(new String[] { "task", "show" },
-        new String[] { "WAITING tasks:", "  task-b.*"});
+    expect(new String[] { "task", "show" },
+           new String[] { "WAITING tasks:", "  task-b.*"});
   }
 
   @Test
@@ -89,10 +98,10 @@ public class Smoketest {
     run("task", "set-running", "task-c");
     run("task", "set-blocked", "task-b");
     run("task", "set-finished", "task-a");
-    run(new String[] { "task", "show" },
-        new String[] { "RUNNING tasks:", "  task-c.*",
-                       "BLOCKED tasks:", "  task-b.*",
-                       "FINISHED tasks:", "  task-a.*"});
+    expect(new String[] { "task", "show" },
+           new String[] { "RUNNING tasks:", "  task-c.*",
+                          "BLOCKED tasks:", "  task-b.*",
+                          "FINISHED tasks:", "  task-a.*"});
   }
 
   @Test
@@ -112,22 +121,35 @@ public class Smoketest {
 
   @Test
   public void makeSureDebugPrintingWorks() throws Exception {
-    run(new String[] { "-d", "task", "create", "task-a" },
-        new String[] { ".*created task.*"});
+    expect(new String[] { "-d", "task", "create", "task-a" },
+           new String[] { ".*created task.*"});
   }
 
   private void run(String...args) throws Exception {
-    run(args, new String[] { null });
+    expect(args, new String[] { null });
   }
 
-  private void run(String[] args, String[] expectRegexes) throws Exception {
+  private void expect(String[] args, String[] expectedRegexes) throws Exception {
+    expectOrNexpect(args, expectedRegexes, true);
+  }
+
+  private void nexpect(String[] args, String[] nexpectedRegexes) throws Exception {
+    expectOrNexpect(args, nexpectedRegexes, false);
+  }
+
+  private void expectOrNexpect(String[] args, String[] expectRegexes, boolean expect)
+      throws Exception {
     List<String> commands = new ArrayList<String>();
     commands.add(anworkBinary.getAbsolutePath());
     commands.addAll(Arrays.asList(args));
 
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     configureProcess(processBuilder);
-    SmoketestExpecter.expect(expectRegexes, processBuilder);
+    if (expect) {
+      SmoketestExpecter.expect(expectRegexes, processBuilder);
+    } else {
+      SmoketestExpecter.nexpect(expectRegexes, processBuilder);
+    }
   }
 
   private void configureProcess(ProcessBuilder processBuilder) {
