@@ -1,13 +1,12 @@
 package com.marshmallow.anwork.app.cli;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This is an element of the CLI tree. Each instance of this class represents a
- * {@link MutableListOrCommand}.
+ * {@link MutableListOrCommand}. Note that this class provides {@link Object#equals(Object)},
+ * {@link Object#hashCode()}, and {@link Comparable#compareTo(Object)} implementations for use by
+ * derived classes.
  *
  * <p>
  * Created Sep 10, 2017
@@ -16,73 +15,6 @@ import java.util.Map;
  * @author Andrew
  */
 abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<ListOrCommandImpl> {
-
-  /**
-   * This is a helper class for CLI parsing functionality. It contains information about the per
-   * {@link #parse(String[])} state. Calling {@link #setActiveNode(ListOrCommandImpl)} will
-   * initialize the state for the current {@link ListOrCommandImpl} being
-   * {@link #parse(String[])}'d.
-   *
-   * <p>
-   * Created Sep 10, 2017
-   * </p>
-   *
-   * @author Andrew
-   */
-  static class ParseContext {
-
-    private final List<String> arguments = new ArrayList<String>();
-    private final ArgumentValues flagValues = new ArgumentValues();
-
-    // This is a map from Flag#getShortFlag to Flag
-    private final Map<String, Flag> flags
-        = new LinkedHashMap<String, Flag>();
-    // This is a map from Flag#getLongFlag to Flag#getShortFlag
-    private final Map<String, String> longFlags
-        = new LinkedHashMap<String, String>();
-
-    private void reinitialize(ListOrCommand activeNode) {
-      flags.clear();
-      for (Flag flag : activeNode.getFlags()) {
-        flags.put(flag.getShortFlag(), flag);
-        if (flag.hasLongFlag()) {
-          longFlags.put(flag.getLongFlag(), flag.getShortFlag());
-        }
-      }
-    }
-
-    public void setActiveNode(ListOrCommand activeNode) {
-      reinitialize(activeNode);
-    }
-
-    public String[] getArguments() {
-      return arguments.toArray(new String[0]);
-    }
-
-    public void addArgument(String argument) {
-      arguments.add(argument);
-    }
-
-    public ArgumentValues getFlagValues() {
-      return flagValues;
-    }
-
-    public boolean hasFlag(String shortFlag) {
-      return flags.containsKey(shortFlag);
-    }
-
-    public Flag getFlag(String shortFlag) {
-      return flags.get(shortFlag);
-    }
-
-    public boolean hasLongFlag(String longFlag) {
-      return longFlags.containsKey(longFlag);
-    }
-
-    public String getShortFlag(String shortFlag) {
-      return longFlags.get(shortFlag);
-    }
-  }
 
   private final ListOrCommandImpl parent;
   private String name;
@@ -167,16 +99,20 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
                                       + "when the same flag was set on a parent list.");
     }
 
+    removeFlagForShortFlag(shortFlag);
+
+    MutableFlag flag = new FlagImpl(shortFlag);
+    flags.add(flag);
+    return flag;
+  }
+
+  private void removeFlagForShortFlag(String shortFlag) {
     for (Flag flag : flags) {
       if (flag.getShortFlag().equals(shortFlag)) {
         flags.remove(flag);
         break;
       }
     }
-
-    MutableFlag flag = new FlagImpl(shortFlag);
-    flags.add(flag);
-    return flag;
   }
 
   private boolean parentContainsFlag(String shortFlag) {
@@ -193,6 +129,32 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     return parent.parentContainsFlag(shortFlag);
   }
 
+  private boolean hasShortFlag(String shortFlag) {
+    return findFlagForShortFlag(shortFlag) != null;
+  }
+
+  private boolean hasLongFlag(String longFlag) {
+    return findShortFlagForLongFlag(longFlag) != null;
+  }
+
+  private Flag findFlagForShortFlag(String shortFlag) {
+    for (Flag flag : flags) {
+      if (flag.getShortFlag().equals(shortFlag)) {
+        return flag;
+      }
+    }
+    return null;
+  }
+
+  private String findShortFlagForLongFlag(String longFlag) {
+    for (Flag flag : flags) {
+      if (flag.hasLongFlag() && flag.getLongFlag().equals(longFlag)) {
+        return flag.getShortFlag();
+      }
+    }
+    return null;
+  }
+
   /*
    * Section - Parse
    */
@@ -201,7 +163,7 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     return (arg.charAt(0) == Flag.FLAG_START);
   }
 
-  protected int parseFlag(String[] args, int index, ParseContext context) {
+  protected int parseFlag(String[] args, int index, ArgumentValues flagValues) {
     String arg = args[index];
 
     // Is it valid flag syntax?
@@ -215,14 +177,12 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
 
     // Is it a valid flag?
     String flagString = arg.substring(isLongFlag ? 2 : 1);
-    boolean validFlag = (isLongFlag
-                         ? context.hasLongFlag(flagString)
-                         : context.hasFlag(flagString));
+    boolean validFlag = (isLongFlag ? hasLongFlag(flagString) : hasShortFlag(flagString));
     if (!validFlag) {
       throwBadArgException("Unknown flag '" + flagString + "'", args, index);
     }
-    String shortFlag = (isLongFlag ? context.getShortFlag(flagString) : flagString);
-    Flag flag = context.getFlag(shortFlag);
+    String shortFlag = (isLongFlag ? findShortFlagForLongFlag(flagString) : flagString);
+    Flag flag = findFlagForShortFlag(shortFlag);
 
     // Does it have an argument?
     if (flag.hasArgument()) {
@@ -232,10 +192,10 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
       index += 1;
       String argument = args[index];
       Object argumentValue = flag.getArgument().getType().convert(argument);
-      context.getFlagValues().addValue(shortFlag, argumentValue);
+      flagValues.addValue(shortFlag, argumentValue);
     } else {
       // By default, flags with no argument are set to Boolean.TRUE. See Action#run.
-      context.getFlagValues().addValue(shortFlag, Boolean.TRUE);
+      flagValues.addValue(shortFlag, Boolean.TRUE);
     }
 
     return index + 1;

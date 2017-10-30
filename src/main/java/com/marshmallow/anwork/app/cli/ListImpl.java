@@ -63,23 +63,22 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
    */
 
   void parse(String[] args) {
-    ParseContext context = new ParseContext();
-    if (!parseList(args, 0, context)) {
+    ArgumentValues flagValues = new ArgumentValues();
+    if (!parseList(args, 0, flagValues)) {
       printUsage();
     }
   }
 
   // Returns true iff a command was run.
-  private boolean parseList(String[] args, int index, ParseContext context) {
-    context.setActiveNode(this);
+  private boolean parseList(String[] args, int index, ArgumentValues flagValues) {
     while (index < args.length) {
       String arg = args[index];
       if (isFlag(arg)) {
-        index = parseFlag(args, index, context);
+        index = parseFlag(args, index, flagValues);
       } else if (hasList(arg)) {
-        return findList(arg).parseList(args, index + 1, context);
+        return findList(arg).parseList(args, index + 1, flagValues);
       } else if (hasCommand(arg)) {
-        findCommand(arg).parse(args, index + 1, context);
+        findCommand(arg).parse(args, index + 1, flagValues);
         return true;
       } else {
         // This is not a list or a command, so let's call it an unknown command!
@@ -92,11 +91,11 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
   }
 
   private boolean hasList(String name) {
-    return lists.stream().anyMatch((list) -> list.getName().equals(name));
+    return findList(name) != null;
   }
 
   private boolean hasCommand(String name) {
-    return commands.stream().anyMatch((command) -> command.getName().equals(name));
+    return findCommand(name) != null;
   }
 
   private ListImpl findList(String name) {

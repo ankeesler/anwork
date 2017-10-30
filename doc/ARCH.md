@@ -104,13 +104,11 @@ Most of this package includes implementation classes ending in "Impl". For examp
 implementation of *MutableArgument* is named *ArgumentImpl*.
 
 This CLI implementation uses a tree to store *List*s (see *ListImpl*) and *Command*s (see
-*CommandImpl*). When *Cli#parse* is called, the *ListImpl* class lazily initializes a
-*ParseContext* instance in order to keep track of what *Flag*s, *List*s, and *Command*s are
-available on the current *ListImpl*. The *Cli#parse* method works down the tree,
-collecting arguments and flags as it goes. If an unknown argument to a list is encountered, then
-the parsing stops and an IllegalArgumentException is throw. If a valid *Command* is encountered,
-the arguments are validated (see *CommandImpl#validateContext) and the *Action* for that *Command*
-is run (see *CommandImpl#runActionFromContext).
+*CommandImpl*). The *Cli#parse* method works down the tree, collecting flags via
+ListOrCommandImpl#parseFlag as it goes. If an unknown argument to a list is encountered, then the
+parsing stops and an IllegalArgumentException is thrown. If a valid *Command* is encountered, the
+arguments are validated (see *CommandImpl#makeArgumentValues) and the *Action* for that *Command*
+run via Action#run.
 
 ## Test
 

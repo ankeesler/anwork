@@ -58,12 +58,11 @@ class CommandImpl extends ListOrCommandImpl implements MutableCommand {
   }
 
   // This is package-private so that it can be called from List parsing.
-  void parse(String[] args, int index, ParseContext context) {
+  void parse(String[] args, int index, ArgumentValues flagValues) {
     List<String> arguments = new ArrayList<String>();
-    context.setActiveNode(this);
     while (index < args.length) {
       if (isFlag(args[index])) {
-        index = parseFlag(args, index, context);
+        index = parseFlag(args, index, flagValues);
       } else {
         arguments.add(args[index]);
         index += 1;
@@ -71,7 +70,7 @@ class CommandImpl extends ListOrCommandImpl implements MutableCommand {
     }
 
     ArgumentValues argumentValues = makeArgumentValues(arguments.toArray(new String[0]));
-    action.run(context.getFlagValues(), arguments.toArray(new String[0]));
+    action.run(flagValues, arguments.toArray(new String[0]));
   }
 
   private ArgumentValues makeArgumentValues(String[] actualArguments) {
