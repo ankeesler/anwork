@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
@@ -70,13 +71,15 @@ public class SmoketestExpecter {
     List<String> cliOutputLines = getCliOutputLines(process);
     String[] firstMatches = findFirstMatches(expectRegexes, cliOutputLines);
     assertNotNull(("Could not find regexes " + Arrays.toString(expectRegexes) + " "
-                   + "in output lines " + cliOutputLines),
+                   + "in output lines:\n" + makePrettyLines(cliOutputLines)),
                   firstMatches);
   }
 
   private static String[] findFirstMatches(String[] expectRegexes, List<String> lines) {
     if (expectRegexes == null || expectRegexes.length == 0 || expectRegexes[0] == null) {
       return new String[] { "" };
+    } else if (lines.size() == 0) {
+      return null;
     }
 
     List<String> matches = new ArrayList<String>();
@@ -128,5 +131,11 @@ public class SmoketestExpecter {
       }
     }
     return lines;
+  }
+
+  private static String makePrettyLines(List<String> lines) {
+    return (lines.size() == 0
+           ? "<no output>"
+           : lines.stream().collect(Collectors.joining("\n")));
   }
 }

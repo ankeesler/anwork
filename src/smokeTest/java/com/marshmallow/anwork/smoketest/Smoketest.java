@@ -68,8 +68,8 @@ public class Smoketest {
         "--description", "This is task-b",
         "--priority", "1");
     run("task", "create", "task-c");
-    run(new String[] { "RUNNING tasks:", "BLOCKED tasks:", "WAITING tasks:", "FINISHED tasks:", },
-        new String[] { "task", "show" });
+    run(new String[] { "task", "show" },
+        new String[] { "RUNNING tasks:", "BLOCKED tasks:", "WAITING tasks:", "FINISHED tasks:", });
   }
 
   @Test
@@ -77,8 +77,8 @@ public class Smoketest {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "delete", "task-a");
-    run(new String[] { "WAITING tasks:", "  task-b.*"},
-        new String[] { "task", "show" });
+    run(new String[] { "task", "show" },
+        new String[] { "WAITING tasks:", "  task-b.*"});
   }
 
   @Test
@@ -89,10 +89,10 @@ public class Smoketest {
     run("task", "set-running", "task-c");
     run("task", "set-blocked", "task-b");
     run("task", "set-finished", "task-a");
-    run(new String[] { "RUNNING tasks:", "  task-c.*",
+    run(new String[] { "task", "show" },
+        new String[] { "RUNNING tasks:", "  task-c.*",
                        "BLOCKED tasks:", "  task-b.*",
-                       "FINISHED tasks:", "  task-a.*"},
-        new String[] { "task", "show" });
+                       "FINISHED tasks:", "  task-a.*"});
   }
 
   @Test
@@ -110,15 +110,17 @@ public class Smoketest {
     run("journal", "show", "task-c");
   }
 
+  @Test
+  public void makeSureDebugPrintingWorks() throws Exception {
+    run(new String[] { "-d", "task", "create", "task-a" },
+        new String[] { ".*created task.*"});
+  }
+
   private void run(String...args) throws Exception {
-    run(new String[] { null }, args);
+    run(args, new String[] { null });
   }
 
-  private void run(String expectRegex, String[] args) throws Exception {
-    run(new String[] { expectRegex }, args);
-  }
-
-  private void run(String[] expectRegexes, String[] args) throws Exception {
+  private void run(String[] args, String[] expectRegexes) throws Exception {
     List<String> commands = new ArrayList<String>();
     commands.add(anworkBinary.getAbsolutePath());
     commands.addAll(Arrays.asList(args));

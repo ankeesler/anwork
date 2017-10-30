@@ -12,7 +12,7 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- We need a test for the debug ouput and that the ID of each task is different.
+- We need a test that the ID of each task is different.
 
 ## Journaling
 

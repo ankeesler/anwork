@@ -88,7 +88,7 @@ public class AnworkAppConfig {
 
     Boolean debug = (Boolean)getFlagValue(flags, CliFlag.DEBUG);
     if (debug != null && debug.equals(Boolean.TRUE)) {
-      debug = true;
+      this.debug = true;
     }
   }
 
