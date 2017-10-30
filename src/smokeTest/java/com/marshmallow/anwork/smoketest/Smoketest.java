@@ -68,7 +68,8 @@ public class Smoketest {
         "--description", "This is task-b",
         "--priority", "1");
     run("task", "create", "task-c");
-    run("RUNNING tasks:", new String[] { "task", "show" });
+    run(new String[] { "RUNNING tasks:", "BLOCKED tasks:", "WAITING tasks:", "FINISHED tasks:", },
+        new String[] { "task", "show" });
   }
 
   @Test
@@ -76,7 +77,8 @@ public class Smoketest {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "delete", "task-a");
-    run("task", "show");
+    run(new String[] { "WAITING tasks:", "  task-b.*"},
+        new String[] { "task", "show" });
   }
 
   @Test
@@ -87,7 +89,10 @@ public class Smoketest {
     run("task", "set-running", "task-c");
     run("task", "set-blocked", "task-b");
     run("task", "set-finished", "task-a");
-    run("task", "show");
+    run(new String[] { "RUNNING tasks:", "  task-c.*",
+                       "BLOCKED tasks:", "  task-b.*",
+                       "FINISHED tasks:", "  task-a.*"},
+        new String[] { "task", "show" });
   }
 
   @Test
@@ -106,17 +111,21 @@ public class Smoketest {
   }
 
   private void run(String...args) throws Exception {
-    run(null, args);
+    run(new String[] { null }, args);
   }
 
   private void run(String expectRegex, String[] args) throws Exception {
+    run(new String[] { expectRegex }, args);
+  }
+
+  private void run(String[] expectRegexes, String[] args) throws Exception {
     List<String> commands = new ArrayList<String>();
     commands.add(anworkBinary.getAbsolutePath());
     commands.addAll(Arrays.asList(args));
 
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     configureProcess(processBuilder);
-    SmoketestExpecter.expect(expectRegex, processBuilder);
+    SmoketestExpecter.expect(expectRegexes, processBuilder);
   }
 
   private void configureProcess(ProcessBuilder processBuilder) {

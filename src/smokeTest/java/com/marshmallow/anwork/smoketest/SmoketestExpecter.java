@@ -10,9 +10,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.junit.Assert;
 
@@ -42,6 +43,23 @@ public class SmoketestExpecter {
    * @throws Exception if something goes wrong
    */
   public static void expect(String expectRegex, ProcessBuilder processBuilder) throws Exception {
+    expect(new String[] { expectRegex }, processBuilder);
+  }
+
+  /**
+   * Match a multiple regular expressions against the output of a CLI command, or
+   * {@link Assert#fail()}. Each line of CLI output will be individually matched against the next
+   * {@code expectRegexes}. If all {@code expectRegexes} do not find a matching line, then this
+   * method will {@link Assert#fail()}.
+   *
+   * @param expectRegexes The regular expressions to try to find in the CLI command output
+   * @param processBuilder The {@link ProcessBuilder} that contains the necessary commands (see
+   *     {@link ProcessBuilder#command()}) and working directory (see
+   *     {@link ProcessBuilder#directory()}) to be run
+   * @throws Exception if something goes wrong
+   */
+  public static void expect(String[] expectRegexes, ProcessBuilder processBuilder)
+      throws Exception {
     processBuilder.redirectOutput(Redirect.PIPE);
 
     Process process = processBuilder.start();
@@ -50,25 +68,34 @@ public class SmoketestExpecter {
                  0, exitValue);
 
     List<String> cliOutputLines = getCliOutputLines(process);
-    String firstMatch = findFirstMatch(expectRegex, cliOutputLines);
-    assertNotNull(("Could not find regex '" + expectRegex + "' "
+    String[] firstMatches = findFirstMatches(expectRegexes, cliOutputLines);
+    assertNotNull(("Could not find regexes " + Arrays.toString(expectRegexes) + " "
                    + "in output lines " + cliOutputLines),
-                  firstMatch);
+                  firstMatches);
   }
 
-  private static String findFirstMatch(String expectRegex, List<String> lines) {
-    if (expectRegex == null) {
-      return "";
+  private static String[] findFirstMatches(String[] expectRegexes, List<String> lines) {
+    if (expectRegexes == null || expectRegexes.length == 0 || expectRegexes[0] == null) {
+      return new String[] { "" };
     }
 
-    Pattern pattern = Pattern.compile(expectRegex);
-    for (String line : lines) {
-      Matcher matcher = pattern.matcher(line);
-      if (matcher.matches()) {
-        return line;
+    List<String> matches = new ArrayList<String>();
+    Pattern[] patterns = Stream.of(expectRegexes).map(Pattern::compile).toArray(Pattern[]::new);
+    int lineIndex = 0;
+    int patternIndex = 0;
+    do {
+      String line = lines.get(lineIndex);
+      Pattern pattern = patterns[patternIndex];
+
+      if (pattern.matcher(line).matches()) {
+        matches.add(line);
+        patternIndex++;
       }
-    }
-    return null;
+
+      lineIndex++;
+    } while (lineIndex < lines.size() && patternIndex < patterns.length);
+
+    return (patternIndex == patterns.length ? matches.toArray(new String[0]) : null);
   }
 
   // Runs the process for a maximum of 1 second before saying that it failed
