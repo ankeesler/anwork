@@ -5,6 +5,8 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
+- Fix show-all journal printing - it is hideous.
+- Make "task show" command cleaner. Maybe we should show the tasks in categories of state?
 
 ## CLI
 - Add support for CliArgumentType.FILE.
