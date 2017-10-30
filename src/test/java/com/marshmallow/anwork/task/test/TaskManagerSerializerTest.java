@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import com.marshmallow.anwork.core.Serializer;
 import com.marshmallow.anwork.core.test.BaseSerializerTest;
@@ -76,6 +77,9 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
     manager.createTask("task-c", "This is task c", 0);
     Task[] tasks = manager.getTasks();
     assertEquals(3, tasks.length);
+    assertNotEquals(tasks[0].getId(), tasks[1].getId());
+    assertNotEquals(tasks[0].getId(), tasks[2].getId());
+    assertNotEquals(tasks[1].getId(), tasks[2].getId());
     JournalEntry[] entries = manager.getJournal().getEntries();
     assertEquals(3, entries.length);
 

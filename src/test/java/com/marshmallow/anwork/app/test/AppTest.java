@@ -2,6 +2,7 @@ package com.marshmallow.anwork.app.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -62,6 +63,10 @@ public class AppTest {
 
     TaskManager taskManager = readTaskManager();
     assertEquals(3, taskManager.getTasks().length);
+    Task[] tasks = taskManager.getTasks();
+    assertNotEquals(tasks[0].getId(), tasks[1].getId());
+    assertNotEquals(tasks[0].getId(), tasks[2].getId());
+    assertNotEquals(tasks[1].getId(), tasks[2].getId());
     assertEquals(3, taskManager.getJournal().getEntries().length);
     assertEquals(1, taskManager.getJournal("task-a").getEntries().length);
     assertEquals(1, taskManager.getJournal("task-b").getEntries().length);

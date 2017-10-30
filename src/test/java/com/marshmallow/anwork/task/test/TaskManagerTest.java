@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.task.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -36,6 +37,7 @@ public class TaskManagerTest {
 
     manager.createTask("Task2", "This is task 2.", 1);
     assertEquals(2, manager.getTasks().length);
+    assertNotEquals(manager.getTasks()[0].getId(), manager.getTasks()[1].getId());
     assertJournalEntriesEqual("Task1", "Task2");
 
     assertJournalEntrySize("Task1", 1);
