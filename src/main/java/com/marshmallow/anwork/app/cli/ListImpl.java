@@ -13,50 +13,11 @@ import java.util.stream.Stream;
  */
 class ListImpl extends ListOrCommandImpl implements MutableList {
 
-  /**
-   * This is a simple {@link Action} that prints some usage information on a {@link List}.
-   *
-   * <p>
-   * Created Oct 16, 2017
-   * </p>
-   *
-   * @author Andrew
-   */
-  private static class ListAction implements Action {
-
-    private final List list;
-
-    public ListAction(List list) {
-      this.list = list;
-    }
-
-    @Override
-    public void run(ArgumentValues flags, String[] parameters) {
-      StringBuilder builder = new StringBuilder();
-      generateUsage(list, builder);
-      System.out.println(builder.toString());
-    }
-
-    private static void generateUsage(List list, StringBuilder builder) {
-      TextDocumentationGenerator.writeList(new List[] { list }, builder);
-      if (list.getFlags().length > 0) {
-        TextDocumentationGenerator.writeFlags(list.getFlags(), builder);
-      }
-      if (list.getCommands().length > 0) {
-        TextDocumentationGenerator.writeCommands(list.getCommands(), builder);
-      }
-      Stream.of(list.getLists()).forEach((l) -> generateUsage(l, builder));
-    }
-  }
+  private final java.util.List<ListImpl> lists = new java.util.ArrayList<ListImpl>();
+  private final java.util.List<CommandImpl> commands = new java.util.ArrayList<CommandImpl>();
 
   ListImpl(ListImpl parent, String name) {
-    super(parent, name, null);
-    setAction(new ListAction(this));
-  }
-
-  @Override
-  protected boolean isList() {
-    return true;
+    super(parent, name);
   }
 
   @Override
@@ -74,34 +35,114 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
   @Override
   public MutableList addList(String name) {
     ListImpl list = new ListImpl(this, name);
-    addChild(list);
+    lists.remove(list);
+    lists.add(list);
     return list;
   }
 
   @Override
   public List[] getLists() {
-    return super.getLists();
+    return lists.toArray(new List[0]);
   }
 
   @Override
   public MutableCommand addCommand(String name, Action action) {
     CommandImpl command = new CommandImpl(this, name, action);
-    addChild(command);
+    commands.remove(command);
+    commands.add(command);
     return command;
   }
 
   @Override
   public Command[] getCommands() {
-    return super.getCommands();
+    return commands.toArray(new Command[0]);
   }
 
-  @Override
-  protected void startVisit(Visitor visitor) {
+  /*
+   * Section - Parsing
+   */
+
+  void parse(String[] args) {
+    ParseContext context = new ParseContext();
+    if (!parseList(args, 0, context)) {
+      printUsage();
+    }
+  }
+
+  // Returns true iff a command was run.
+  private boolean parseList(String[] args, int index, ParseContext context) {
+    context.setActiveNode(this);
+    while (index < args.length) {
+      String arg = args[index];
+      if (isFlag(arg)) {
+        index = parseFlag(args, index, context);
+      } else if (hasList(arg)) {
+        return findList(arg).parseList(args, index + 1, context);
+      } else if (hasCommand(arg)) {
+        findCommand(arg).parse(args, index + 1, context);
+        return true;
+      } else {
+        // This is not a list or a command, so let's call it an unknown command!
+        throwBadArgException("Unknown command/list '" + arg + "' for list " + getName(),
+                             args,
+                             index);
+      }
+    }
+    return false;
+  }
+
+  private boolean hasList(String name) {
+    return lists.stream().anyMatch((list) -> list.getName().equals(name));
+  }
+
+  private boolean hasCommand(String name) {
+    return commands.stream().anyMatch((command) -> command.getName().equals(name));
+  }
+
+  private ListImpl findList(String name) {
+    for (ListImpl list : lists) {
+      if (list.getName().equals(name)) {
+        return list;
+      }
+    }
+    return null;
+  }
+
+  private CommandImpl findCommand(String name) {
+    for (CommandImpl command : commands) {
+      if (command.getName().equals(name)) {
+        return command;
+      }
+    }
+    return null;
+  }
+
+  private void printUsage() {
+    StringBuilder builder = new StringBuilder();
+    printUsage(this, builder);
+    System.out.println(builder.toString());
+  }
+
+  private void printUsage(List list, StringBuilder builder) {
+    TextDocumentationGenerator.writeList(new List[] { list }, builder);
+    if (list.getFlags().length > 0) {
+      TextDocumentationGenerator.writeFlags(list.getFlags(), builder);
+    }
+    if (list.getCommands().length > 0) {
+      TextDocumentationGenerator.writeCommands(list.getCommands(), builder);
+    }
+    Stream.of(list.getLists()).forEach((l) -> printUsage(l, builder));
+  }
+
+  /*
+   * Section - Visitor
+   */
+
+  void visit(Visitor visitor) {
     visitor.visitList(this);
-  }
-
-  @Override
-  protected void endVisit(Visitor visitor) {
+    visitFlags(visitor);
+    commands.stream().sorted().forEach((command) -> command.visit(visitor));
+    lists.stream().sorted().forEach((list) -> list.visit(visitor));
     visitor.leaveList(this);
   }
 }

@@ -11,13 +11,11 @@ package com.marshmallow.anwork.app.cli;
  */
 class CommandImpl extends ListOrCommandImpl implements MutableCommand {
 
-  CommandImpl(ListImpl parent, String name, Action action) {
-    super(parent, name, action);
-  }
+  private Action action;
 
-  @Override
-  protected boolean isList() {
-    return false;
+  CommandImpl(ListImpl parent, String name, Action action) {
+    super(parent, name);
+    this.action = action;
   }
 
   @Override
@@ -34,22 +32,42 @@ class CommandImpl extends ListOrCommandImpl implements MutableCommand {
 
   @Override
   public MutableCommand setAction(Action action) {
-    super.setAction(action);
+    this.action = action;
     return this;
   }
 
   @Override
   public Action getAction() {
-    return super.getAction();
+    return action;
   }
 
-  @Override
-  protected void startVisit(Visitor visitor) {
+  // This is package-private so that it can be called from List parsing.
+  void parse(String[] args, int index, ParseContext context) {
+    context.setActiveNode(this);
+    while (index < args.length) {
+      if (isFlag(args[index])) {
+        index = parseFlag(args, index, context);
+      } else {
+        context.addParameter(args[index]);
+        index += 1;
+      }
+    }
+
+    validateContext(context);
+    runActionFromContext(context);
+  }
+
+  private void validateContext(ParseContext context) {
+
+  }
+
+  private void runActionFromContext(ParseContext context) {
+    action.run(context.getFlagValues(), context.getParameters());
+  }
+
+  // This is package-private so that it can be called from List visitation.
+  void visit(Visitor visitor) {
+    visitFlags(visitor);
     visitor.visitCommand(this);
-  }
-
-  @Override
-  protected void endVisit(Visitor visitor) {
-    // no-op
   }
 }

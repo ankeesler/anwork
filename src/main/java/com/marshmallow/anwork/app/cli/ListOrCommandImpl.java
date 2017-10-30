@@ -21,7 +21,7 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
    * This is a helper class for CLI parsing functionality. It contains information about the per
    * {@link #parse(String[])} state. Calling {@link #setActiveNode(ListOrCommandImpl)} will
    * initialize the state for the current {@link ListOrCommandImpl} being
-   * {@link ListOrCommandImpl#parse(String[])}'d.
+   * {@link #parse(String[])}'d.
    *
    * <p>
    * Created Sep 10, 2017
@@ -29,9 +29,8 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
    *
    * @author Andrew
    */
-  private static class ParseContext {
+  static class ParseContext {
 
-    private ListOrCommandImpl activeNode;
     private final List<String> parameters = new ArrayList<String>();
     private final ArgumentValues flagValues = new ArgumentValues();
 
@@ -41,32 +40,19 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     // This is a map from Flag#getLongFlag to Flag#getShortFlag
     private final Map<String, String> longFlags
         = new LinkedHashMap<String, String>();
-    // This is a map from Node#getName to Node
-    private final Map<String, ListOrCommandImpl> children
-        = new LinkedHashMap<String, ListOrCommandImpl>();
 
-    private void reinitialize() {
+    private void reinitialize(ListOrCommand activeNode) {
       flags.clear();
-      for (Flag flag : activeNode.flags) {
+      for (Flag flag : activeNode.getFlags()) {
         flags.put(flag.getShortFlag(), flag);
         if (flag.hasLongFlag()) {
           longFlags.put(flag.getLongFlag(), flag.getShortFlag());
         }
       }
-
-      children.clear();
-      for (ListOrCommandImpl child : activeNode.children) {
-        children.put(child.getName(), child);
-      }
     }
 
-    public ListOrCommandImpl getActiveNode() {
-      return activeNode;
-    }
-
-    public void setActiveNode(ListOrCommandImpl activeNode) {
-      this.activeNode = activeNode;
-      reinitialize();
+    public void setActiveNode(ListOrCommand activeNode) {
+      reinitialize(activeNode);
     }
 
     public String[] getParameters() {
@@ -96,36 +82,18 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     public String getShortFlag(String shortFlag) {
       return longFlags.get(shortFlag);
     }
-
-    public boolean hasChild(String name) {
-      return children.containsKey(name);
-    }
-
-    public ListOrCommandImpl getChild(String name) {
-      return children.get(name);
-    }
   }
 
-  private final java.util.List<Flag> flags = new ArrayList<Flag>();
   private final ListOrCommandImpl parent;
-  private final java.util.List<ListOrCommandImpl> children = new ArrayList<ListOrCommandImpl>();
-
   private String name;
-  private Action action;
   private String description;
+  private final java.util.List<Flag> flags;
 
-  protected ListOrCommandImpl(ListOrCommandImpl parent, String name, Action action) {
+  protected ListOrCommandImpl(ListOrCommandImpl parent, String name) {
     this.parent = parent;
     this.name = name;
-    this.action = action;
+    flags = new ArrayList<Flag>();
   }
-
-  /**
-   * Return whether or not this {@link ListOrCommandImpl} represents a CLI {@link List}.
-   *
-   * @return Whether or not this {@link ListOrCommandImpl} represents a CLI {@link List}
-   */
-  protected abstract boolean isList();
 
   @Override
   public String toString() {
@@ -146,6 +114,11 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
   @Override
   public int hashCode() {
     return getName().hashCode();
+  }
+
+  @Override
+  public int compareTo(ListOrCommandImpl other) {
+    return name.compareTo(other.name);
   }
 
   @Override
@@ -173,15 +146,6 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
   @Override
   public String getDescription() {
     return description;
-  }
-
-  protected MutableListOrCommand setAction(Action action) {
-    this.action = action;
-    return this;
-  }
-
-  protected Action getAction() {
-    return action;
   }
 
   /*
@@ -230,68 +194,14 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
   }
 
   /*
-   * Section - Children
-   */
-
-  protected void addChild(ListOrCommandImpl child) {
-    if (children.contains(child)) {
-      children.remove(child);
-    }
-    children.add(child);
-  }
-
-  protected Command[] getCommands() {
-    return children.stream()
-                   .filter((node) -> !node.isList())
-                   .toArray(Command[]::new);
-  }
-
-  protected com.marshmallow.anwork.app.cli.List[] getLists() {
-    return children.stream()
-                   .filter((node) -> node.isList())
-                   .toArray(com.marshmallow.anwork.app.cli.List[]::new);
-  }
-
-  /*
    * Section - Parse
    */
 
-  void parse(String[] args) {
-    ParseContext context = new ParseContext();
-    parse(args, 0, context);
-    validateContext(context);
-    runActiveNodeFromContext(context);
-  }
-
-  private int parse(String[] args, int index, ParseContext context) {
-    context.setActiveNode(this);
-    while (index < args.length) {
-      index = parseArg(args, index, context);
-    }
-    return index;
-  }
-
-  // Process the argument at index. Returns the next index to process.
-  private int parseArg(String[] args, int index, ParseContext context) {
-    String arg = args[index];
-    int nextIndex;
-    if (isFlag(arg)) {
-      nextIndex = parseFlag(args, index, context);
-    } else if (context.hasChild(arg) && context.getParameters().length == 0) {
-      ListOrCommandImpl child = context.getChild(arg);
-      nextIndex = child.parse(args, index + 1, context);
-    } else {
-      context.addParameter(arg);
-      nextIndex = index + 1;
-    }
-    return nextIndex;
-  }
-
-  private boolean isFlag(String arg) {
+  protected boolean isFlag(String arg) {
     return (arg.charAt(0) == Flag.FLAG_START);
   }
 
-  private int parseFlag(String[] args, int index, ParseContext context) {
+  protected int parseFlag(String[] args, int index, ParseContext context) {
     String arg = args[index];
 
     // Is it valid flag syntax?
@@ -331,66 +241,16 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
     return index + 1;
   }
 
-  private void throwBadArgException(String baseMessage, String[] args, int index) {
+  protected void throwBadArgException(String baseMessage, String[] args, int index) {
     String message = String.format("%s index=%d, arg=%s", baseMessage, index, args[index]);
     throw new IllegalArgumentException(message);
-  }
-
-  private void validateContext(ParseContext context) {
-    ListOrCommandImpl activeNode = context.getActiveNode();
-    String[] parameters = context.getParameters();
-    if (activeNode.isList() && parameters.length != 0) {
-      throw new IllegalArgumentException("Unknown command '" + parameters[0]
-                                         + "' for list " + activeNode.name);
-    }
-  }
-
-  private void runActiveNodeFromContext(ParseContext context) {
-    ListOrCommandImpl activeNode = context.getActiveNode();
-    String[] parameters = context.getParameters();
-    activeNode.action.run(context.getFlagValues(), parameters);
   }
 
   /*
    * Section - Visitor
    */
 
-  /**
-   * Start the visitation of a {@link ListOrCommandImpl}.
-   *
-   * @param visitor The visitor that is visiting during this visitation
-   */
-  protected abstract void startVisit(Visitor visitor);
-
-  /**
-   * End the visitation of a {@link ListOrCommandImpl}.
-   *
-   * @param visitor The visitor that is visiting during this visitation
-   */
-  protected abstract void endVisit(Visitor visitor);
-
-  void visit(Visitor visitor) {
-    // First, we visit ourselves.
-    startVisit(visitor);
-    // Second, we visit our flags.
-    flags.stream()
-         .sorted()
-         .forEach(flag -> visitor.visitFlag(flag));
-    // Third, we visit our commands.
-    children.stream()
-            .filter(node -> !node.isList())
-            .sorted()
-            .forEach(command -> command.visit(visitor));
-    // Fourth, we visit our lists.
-    children.stream()
-            .filter(node -> node.isList())
-            .sorted()
-            .forEach(list -> list.visit(visitor));
-    endVisit(visitor);
-  }
-
-  @Override
-  public int compareTo(ListOrCommandImpl other) {
-    return name.compareTo(other.name);
+  protected void visitFlags(Visitor visitor) {
+    flags.stream().sorted().forEach((flag) -> visitor.visitFlag(flag));
   }
 }
