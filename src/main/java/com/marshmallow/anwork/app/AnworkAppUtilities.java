@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.app;
 
+import com.marshmallow.anwork.journal.JournalEntry;
 import com.marshmallow.anwork.task.Task;
 
 import java.text.DateFormat;
@@ -22,7 +23,7 @@ public class AnworkAppUtilities {
   /**
    * This is the common date format that should be used in displaying {@link Date} objects.
    */
-  public static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm:ss");
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm:ss");
 
   /**
    * Turn a {@link Task} into a human-readable one-line {@link String} that describes it.
@@ -31,11 +32,24 @@ public class AnworkAppUtilities {
    * @return A human-readable one-line {@link String} that describes the provided {@link Task}
    */
   public static String taskToString(Task task) {
-    StringBuilder builder = new StringBuilder();
-    builder.append(task.getName());
-    builder.append(" (").append(task.getPriority()).append(")");
-    builder.append(':');
-    builder.append(" created ").append(DATE_FORMAT.format(task.getStartDate()));
-    return builder.toString();
+    return String.format("%s (%d): created %s, priority %d",
+                         task.getName(),
+                         task.getId(),
+                         DATE_FORMAT.format(task.getStartDate()),
+                         task.getPriority());
+  }
+
+  /**
+   * Turn a {@link JournalEntry} into a human-readable one-line {@link String} that describes it.
+   *
+   * @param entry The {@link JournalEntry} to turn into a {@link String}
+   * @return A human-readable one-line {@link String} that describes the provided
+   *     {@link JournalEntry}
+   */
+  public static String journalEntryToString(JournalEntry entry) {
+    return String.format("[%s]: %s - %s",
+                         DATE_FORMAT.format(entry.getDate()),
+                         entry.getTitle(),
+                         entry.getDescription());
   }
 }

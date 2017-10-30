@@ -5,10 +5,9 @@ import com.marshmallow.anwork.app.cli.ActionCreator;
 import com.marshmallow.anwork.app.cli.ArgumentType;
 import com.marshmallow.anwork.app.cli.ArgumentValues;
 import com.marshmallow.anwork.journal.Journal;
+import com.marshmallow.anwork.journal.JournalEntry;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskManagerJournalEntry;
-
-import java.util.Arrays;
 
 /**
  * This is a {@link ActionCreator} for the journal commands in the ANWORK app.
@@ -31,7 +30,7 @@ public class JournalCliActionCreator implements ActionCreator {
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
-            System.out.println(Arrays.toString(manager.getJournal().getEntries()));
+            printJournal(manager.getJournal());
           }
         };
       case "show":
@@ -46,12 +45,21 @@ public class JournalCliActionCreator implements ActionCreator {
             if (journal == null) {
               System.out.println("No entries for task named " + name);
             } else {
-              System.out.println(Arrays.toString(journal.getEntries()));
+              printJournal(journal);
             }
           }
         };
       default:
         return null; // error!
+    }
+  }
+
+  private static void printJournal(Journal<?> journal) {
+    // Journal#getEntries returns the entries as they were added, so we should reverse them when we
+    // display the journal (see Journal#getEntries javadoc).
+    JournalEntry[] entries = journal.getEntries();
+    for (int i = entries.length - 1; i >= 0; i--) {
+      System.out.println(AnworkAppUtilities.journalEntryToString(entries[i]));
     }
   }
 }

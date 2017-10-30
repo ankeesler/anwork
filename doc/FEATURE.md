@@ -5,7 +5,6 @@ into sections below.
 
 ## Application
 - Add note command for adding a note to a task.
-- Fix show-all journal printing - it is hideous.
 - Add ability to reference tasks by UID number.
 
 ## CLI

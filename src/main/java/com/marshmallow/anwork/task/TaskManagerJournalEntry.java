@@ -52,7 +52,7 @@ public class TaskManagerJournalEntry implements JournalEntry,
 
   @Override
   public String getTitle() {
-    return String.format("%s:%s:%s", date, task.getName(), actionType.name());
+    return String.format("%s:%s", task.getName(), actionType.name());
   }
 
   @Override
