@@ -19,7 +19,7 @@ import com.marshmallow.anwork.task.TaskState;
  */
 public class TaskCliActionCreator implements ActionCreator {
 
-  private static class SetStateCliAction extends TaskManagerCliAction implements Action {
+  private static class SetStateCliAction extends TaskManagerCliAction {
 
     private TaskState taskState;
 
@@ -35,6 +35,31 @@ public class TaskCliActionCreator implements ActionCreator {
                     TaskManager manager) {
       String taskName = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
       manager.setState(taskName, taskState);
+    }
+  }
+
+  private static class ShowCliAction extends TaskManagerCliAction {
+
+    public static final ShowCliAction INSTANCE = new ShowCliAction();
+
+    @Override
+    public void run(AnworkAppConfig config,
+                    ArgumentValues flags,
+                    ArgumentValues arguments,
+                    TaskManager manager) {
+      printTasksForState(TaskState.RUNNING, manager);
+      printTasksForState(TaskState.BLOCKED, manager);
+      printTasksForState(TaskState.WAITING, manager);
+      printTasksForState(TaskState.FINISHED, manager);
+    }
+
+    private void printTasksForState(TaskState state, TaskManager manager) {
+      System.out.println(state.name() + " tasks:");
+      for (Task task : manager.getTasks()) {
+        if (task.getState().equals(state)) {
+          System.out.println("  " + AnworkAppUtilities.taskToString(task));
+        }
+      }
     }
   }
 
@@ -93,17 +118,7 @@ public class TaskCliActionCreator implements ActionCreator {
           }
         };
       case "show":
-        return new TaskManagerCliAction() {
-          @Override
-          public void run(AnworkAppConfig config,
-                          ArgumentValues flags,
-                          ArgumentValues arguments,
-                          TaskManager manager) {
-            for (Task task : manager.getTasks()) {
-              System.out.println(task);
-            }
-          }
-        };
+        return ShowCliAction.INSTANCE;
       default:
         return null; // error!
     }
