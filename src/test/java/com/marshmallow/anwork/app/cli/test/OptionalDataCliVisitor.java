@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import com.marshmallow.anwork.app.cli.Argument;
 import com.marshmallow.anwork.app.cli.Command;
 import com.marshmallow.anwork.app.cli.Flag;
 import com.marshmallow.anwork.app.cli.List;
@@ -21,6 +22,7 @@ public class OptionalDataCliVisitor implements Visitor {
 
   private final java.util.List<String> flagsWithDescriptions = new ArrayList<String>();
   private final java.util.List<String> commandsWithDescriptions = new ArrayList<String>();
+  private final java.util.List<String> commandArgumentsWithDescriptions = new ArrayList<String>();
   private final java.util.List<String> listsWithDescriptions = new ArrayList<String>();
 
   /**
@@ -45,6 +47,19 @@ public class OptionalDataCliVisitor implements Visitor {
    */
   public String[] getCommandsWithDescriptions() {
     return commandsWithDescriptions.toArray(new String[0]);
+  }
+
+  /**
+   * Get an ordered list of the {@link Argument}'s (denoted by their names) that do have a
+   * description, i.e., the {@link Argument}'s that belong to {@link Command}'s in the CLI where
+   * {@link Argument#hasDescription()} returns <code>true</code>. The {@link Argument}'s appear in
+   * the order in which they were added to each {@link Command}.
+   *
+   * @return The {@link Argument}'s in the CLI where {@link Argument#hasDescription()} returns
+   *     <code>true</code>
+   */
+  public String[] getCommandArgumentsWithDescriptions() {
+    return commandArgumentsWithDescriptions.toArray(new String[0]);
   }
 
   /**
@@ -82,6 +97,11 @@ public class OptionalDataCliVisitor implements Visitor {
   public void visitCommand(Command command) {
     if (command.hasDescription()) {
       commandsWithDescriptions.add(command.getName());
+    }
+    for (Argument argument : command.getArguments()) {
+      if (argument.hasDescription()) {
+        commandArgumentsWithDescriptions.add(argument.getName());
+      }
     }
   }
 }

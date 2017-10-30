@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import com.marshmallow.anwork.app.cli.Argument;
 import com.marshmallow.anwork.app.cli.Command;
 import com.marshmallow.anwork.app.cli.Flag;
 import com.marshmallow.anwork.app.cli.List;
@@ -23,6 +24,7 @@ public class TestCliVisitor implements Visitor {
   private java.util.List<String> visitedLongFlags = new ArrayList<String>();
   private java.util.List<String> visitedLongFlagsWithParameters = new ArrayList<String>();
   private java.util.List<String> visitedCommands = new ArrayList<String>();
+  private java.util.List<String> visitedCommandArguments = new ArrayList<String>();
   private java.util.List<String> visitedLists = new ArrayList<String>();
   private java.util.List<String> leftLists = new ArrayList<String>();
 
@@ -89,6 +91,17 @@ public class TestCliVisitor implements Visitor {
   }
 
   /**
+   * Get the arguments that were visited by this {@link Visitor}. The arguments appear in the order
+   * in which they were added to each command. The order of commands follows the same pattern as
+   * {@link #getVisitedCommands()}.
+   *
+   * @return The arguments that were visited by this {@link Visitor}
+   */
+  public String[] getVisitedCommandArguments() {
+    return visitedCommandArguments.toArray(new String[0]);
+  }
+
+  /**
    * Get the lists that were visited by this {@link Visitor}. Note that the order of the lists
    * may not match the order in which they were added to a list!
    *
@@ -138,5 +151,8 @@ public class TestCliVisitor implements Visitor {
   @Override
   public void visitCommand(Command command) {
     visitedCommands.add(command.getName());
+    for (Argument argument : command.getArguments()) {
+      visitedCommandArguments.add(argument.getName());
+    }
   }
 }

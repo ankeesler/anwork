@@ -22,8 +22,8 @@ public class ArgumentValues {
   ArgumentValues() { }
 
   // This method is package-private and is meant to be used during parsing.
-  void addShortFlagValue(String shortFlag, Object value) {
-    values.put(shortFlag, value);
+  void addValue(String key, Object value) {
+    values.put(key, value);
   }
 
   /**

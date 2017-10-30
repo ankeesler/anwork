@@ -17,21 +17,27 @@
       <flag shortFlag="p" longFlag="priority" description="The priority of the task">
         <argument name="priority" description="The priority of the task" type="NUMBER" />
       </flag>
+      <argument name="task-name" description="The name of the task to create" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="set-waiting" description="Set a task as waiting">
+      <argument name="task-name" description="The name of the task to set as waiting" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="set-blocked" description="Set a task as blocked">
+      <argument name="task-name" description="The name of the task to set as blocked" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="set-running" description="Set a task as running">
+      <argument name="task-name" description="The name of the task to set as running" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="set-finished" description="Set a task as finished">
+      <argument name="task-name" description="The name of the task to set as finished" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="delete" description="Delete a task">
+      <argument name="task-name" description="The name of the task to delete" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
     <command name="delete-all" description="Delete all tasks">
@@ -47,6 +53,7 @@
       <actionCreator class="com.marshmallow.anwork.app.JournalCliActionCreator" />
     </command>
     <command name="show" description="Show the entries in the journal for a task">
+      <argument name="task-name" description="The name of the task whose journal entries will be shown" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.JournalCliActionCreator" />
     </command>
   </list>

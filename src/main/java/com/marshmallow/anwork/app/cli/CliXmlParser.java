@@ -103,7 +103,11 @@ class CliXmlParser extends DefaultHandler {
       String name = attributes.getValue(ARGUMENT_NAME);
       String description = attributes.getValue(ARGUMENT_DESCRIPTION);
       String type = attributes.getValue(ARGUMENT_TYPE);
-      addArgument(currentFlag, name, description, type);
+      if (currentFlag != null) {
+        addArgumentToFlag(currentFlag, name, description, type);
+      } else {
+        addArgumentToCommand(currentCommand, name, description, type);
+      }
     } else if (elementName.equals(FLAG)) {
       String shortFlag = attributes.getValue(FLAG_SHORTFLAG);
       String longFlag = attributes.getValue(FLAG_LONGFLAG);
@@ -184,9 +188,23 @@ class CliXmlParser extends DefaultHandler {
     }
   }
 
-  private static void addArgument(MutableFlag flag, String name, String description, String type) {
+  private static void addArgumentToFlag(MutableFlag flag,
+                                        String name,
+                                        String description,
+                                        String type) {
     ArgumentType<?> realType = getArgumentType(type);
     MutableArgument argument = flag.setArgument(name, realType);
+    if (description != null) {
+      argument.setDescription(description);
+    }
+  }
+
+  private static void addArgumentToCommand(MutableCommand command,
+                                           String name,
+                                           String description,
+                                           String type) {
+    ArgumentType<?> realType = getArgumentType(type);
+    MutableArgument argument = command.addArgument(name, realType);
     if (description != null) {
       argument.setDescription(description);
     }

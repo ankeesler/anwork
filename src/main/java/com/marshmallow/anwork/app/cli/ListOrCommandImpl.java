@@ -31,7 +31,7 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
    */
   static class ParseContext {
 
-    private final List<String> parameters = new ArrayList<String>();
+    private final List<String> arguments = new ArrayList<String>();
     private final ArgumentValues flagValues = new ArgumentValues();
 
     // This is a map from Flag#getShortFlag to Flag
@@ -55,12 +55,12 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
       reinitialize(activeNode);
     }
 
-    public String[] getParameters() {
-      return parameters.toArray(new String[0]);
+    public String[] getArguments() {
+      return arguments.toArray(new String[0]);
     }
 
-    public void addParameter(String parameter) {
-      parameters.add(parameter);
+    public void addArgument(String argument) {
+      arguments.add(argument);
     }
 
     public ArgumentValues getFlagValues() {
@@ -232,10 +232,10 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
       index += 1;
       String argument = args[index];
       Object argumentValue = flag.getArgument().getType().convert(argument);
-      context.getFlagValues().addShortFlagValue(shortFlag, argumentValue);
+      context.getFlagValues().addValue(shortFlag, argumentValue);
     } else {
       // By default, flags with no argument are set to Boolean.TRUE. See Action#run.
-      context.getFlagValues().addShortFlagValue(shortFlag, Boolean.TRUE);
+      context.getFlagValues().addValue(shortFlag, Boolean.TRUE);
     }
 
     return index + 1;

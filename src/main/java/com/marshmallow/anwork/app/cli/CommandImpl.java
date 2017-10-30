@@ -1,5 +1,8 @@
 package com.marshmallow.anwork.app.cli;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This is a {@link ListOrCommandImpl} that represents a {@link Command}.
  *
@@ -12,6 +15,7 @@ package com.marshmallow.anwork.app.cli;
 class CommandImpl extends ListOrCommandImpl implements MutableCommand {
 
   private Action action;
+  private final List<Argument> arguments = new ArrayList<Argument>();
 
   CommandImpl(ListImpl parent, String name, Action action) {
     super(parent, name);
@@ -41,28 +45,74 @@ class CommandImpl extends ListOrCommandImpl implements MutableCommand {
     return action;
   }
 
+  @Override
+  public <T> MutableArgument addArgument(String name, ArgumentType<T> type) {
+    ArgumentImpl argument = new ArgumentImpl(name, type);
+    arguments.add(argument);
+    return argument;
+  }
+
+  @Override
+  public Argument[] getArguments() {
+    return arguments.toArray(new Argument[0]);
+  }
+
   // This is package-private so that it can be called from List parsing.
   void parse(String[] args, int index, ParseContext context) {
+    List<String> arguments = new ArrayList<String>();
     context.setActiveNode(this);
     while (index < args.length) {
       if (isFlag(args[index])) {
         index = parseFlag(args, index, context);
       } else {
-        context.addParameter(args[index]);
+        arguments.add(args[index]);
         index += 1;
       }
     }
 
-    validateContext(context);
-    runActionFromContext(context);
+    ArgumentValues argumentValues = makeArgumentValues(arguments.toArray(new String[0]));
+    action.run(context.getFlagValues(), arguments.toArray(new String[0]));
   }
 
-  private void validateContext(ParseContext context) {
+  private ArgumentValues makeArgumentValues(String[] actualArguments) {
+    Argument[] expectedArguments = getArguments();
+    validateArgumentCount(expectedArguments, actualArguments);
 
+    ArgumentValues argumentValues = new ArgumentValues();
+    for (int i = 0; i < expectedArguments.length; i++) {
+      Argument expectedArgument = expectedArguments[i];
+      String actualArgument = actualArguments[i];
+      Object argumentValue = validateArgumentType(expectedArgument, actualArgument);
+      argumentValues.addValue(expectedArgument.getName(), argumentValue);
+    }
+    return argumentValues;
   }
 
-  private void runActionFromContext(ParseContext context) {
-    action.run(context.getFlagValues(), context.getParameters());
+  private void validateArgumentCount(Argument[] expectedArguments, String[] actualArguments) {
+    if (actualArguments.length != expectedArguments.length) {
+      StringBuilder builder = new StringBuilder("Incorrect number of arguments passed to "
+                                                + "'" + getName() + "' command. Expected "
+                                                + expectedArguments.length);
+      for (Argument expectedArgument : expectedArguments) {
+        builder.append(' ');
+        builder.append('<');
+        builder.append(expectedArgument.getType().getName());
+        builder.append(' ');
+        builder.append(expectedArgument.getName());
+        builder.append('>');
+      }
+      throw new IllegalArgumentException(builder.toString());
+    }
+  }
+
+  private Object validateArgumentType(Argument expectedArgument, String actualArgument) {
+    try {
+      return expectedArgument.getType().convert(actualArgument);
+    } catch (IllegalArgumentException iae) {
+      throw new IllegalArgumentException(("Cannot convert argument '" + actualArgument + "' "
+                                          + " to a " + expectedArgument.getType().getName()),
+                                         iae);
+    }
   }
 
   // This is package-private so that it can be called from List visitation.

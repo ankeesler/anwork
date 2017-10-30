@@ -23,4 +23,13 @@ public interface Command extends ListOrCommand {
    * @return The {@link Action} associated with this {@link Command}
    */
   public Action getAction();
+
+  /**
+   * Get the {@link Argument}'s associated with this {@link Command}. This API must return the
+   * {@link Argument}'s in the same order in which they are added (see
+   * {@link MutableCommand#addArgument}).
+   *
+   * @return The {@link Argument}'s associated with this {@link Command}
+   */
+  public Argument[] getArguments();
 }

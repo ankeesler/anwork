@@ -25,4 +25,19 @@ public interface MutableCommand extends MutableListOrCommand, Command {
    * @return <code>this</code> {@link Command} currently being edited
    */
   public MutableCommand setAction(Action action);
+
+  /**
+   * Add an {@link Argument} to this {@link Command}. Note that the order in which these
+   * {@link Argument}'s are added matters. If a {@link Command} "tuna" has 3 {@link Argument}'s
+   * of type {@link ArgumentType#STRING}, {@link ArgumentType#NUMBER}, and
+   * {@link ArgumentType#STRING}, then they will be validated that way upon
+   * {@link Cli#parse(String[])}.
+   *
+   * @param <T> the backing Java type of the {@link ArgumentType} for this new {@link Argument}
+   * @param name The name of the new {@link Argument} to add to this {@link Command}
+   * @param type The {@link ArgumentType} of the new {@link Argument} to add to this
+   *     {@link Command}
+   * @return The {@link Argument} created from calling this method
+   */
+  public <T> MutableArgument addArgument(String name, ArgumentType<T> type);
 }

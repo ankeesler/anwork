@@ -53,13 +53,14 @@ public class CliXmlTest extends BaseCliTest {
 
   @Test
   public void testCommands() {
-    parse("fish");
-    parse("fish", "-o", "15");
+    parse("fish", "25", "steve");
+    parse("fish", "-o", "15", "25", "steve");
     parse("marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
     TestCliAction fishAction = TestCliActionCreator.getCreatedAction("fish");
     assertNotNull(fishAction);
     assertTrue(fishAction.getRan());
+    assertArrayEquals(new String[] { "25", "steve" }, fishAction.getArguments());
     TestCliAction marlinAction = TestCliActionCreator.getCreatedAction("marlin");
     assertNotNull(marlinAction);
     assertTrue(marlinAction.getRan());
@@ -67,8 +68,8 @@ public class CliXmlTest extends BaseCliTest {
 
   @Test
   public void testCommandsAndFlags() {
-    parse("-a", "--bacon", "-c", "fish", "--dog", "25", "fish");
-    parse("-a", "-b", "-c", "fish", "-d", "5", "fish");
+    parse("-a", "--bacon", "-c", "fish", "--dog", "25", "fish", "25", "steve");
+    parse("-a", "-b", "-c", "fish", "-d", "5", "fish", "25", "steve");
     parse("-a", "--bacon", "-c", "fish", "--dog", "15", "marlin");
     parse("-a", "-b", "-c", "fish", "-d", "35", "marlin");
     assertEquals(0, BringHomeBaconTestCliAction.getRunCount());
@@ -76,10 +77,11 @@ public class CliXmlTest extends BaseCliTest {
 
   @Test
   public void testLists() {
-    parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon");
+    parse("list-a", "-m", "--dad", "moving-the-grass", "bring-home-bacon", "hey", "ho");
     parse("list-b", "shake-it-up", "--andrew", "-o", "foo");
     assertEquals(1, BringHomeBaconTestCliAction.getRunCount());
-    assertArrayEquals(new String[0], BringHomeBaconTestCliAction.getRunArguments(0));
+    assertArrayEquals(new String[] { "hey", "ho" },
+                      BringHomeBaconTestCliAction.getRunArguments(0));
   }
 
   @Test
@@ -113,6 +115,8 @@ public class CliXmlTest extends BaseCliTest {
                                             "dog", "no-description-long-flag", "dad", "output");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommands(),
                                             "fish", "marlin", "bring-home-bacon", "shake-it-up");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommandArguments(),
+                                            "number", "name", "arg0", "arg1");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLists(),
                                             "tuna", "list-a", "dumb-list", "list-b");
     TestUtilities.assertVariadicArrayEquals(visitor.getLeftLists(),
@@ -127,6 +131,8 @@ public class CliXmlTest extends BaseCliTest {
                                             "a", "b", "c", "d", "e", "o", "m", "o");
     TestUtilities.assertVariadicArrayEquals(visitor.getCommandsWithDescriptions(),
                                             "fish", "marlin", "shake-it-up");
+    TestUtilities.assertVariadicArrayEquals(visitor.getCommandArgumentsWithDescriptions(),
+                                            "number");
     TestUtilities.assertVariadicArrayEquals(visitor.getListsWithDescriptions(),
                                             "tuna", "list-a", "list-b");
   }

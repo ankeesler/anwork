@@ -67,6 +67,11 @@ public class BasicCliTest extends BaseCliTest {
     // ^^^ this makes sure that we can change the short flag on a flag and parse the correct flag
     tunaMarlinCommand.addFlag("t").setLongFlag("donut");
     tunaMarlinCommand.addFlag("t").setLongFlag("duplicate");
+    tunaMarlinCommand.addArgument("number", ArgumentType.NUMBER);
+    tunaMarlinCommand.addArgument("wrong", ArgumentType.STRING)
+                     .setName("name")
+                     .setDescription("hey");
+    // ^^^ this makes sure that we can change the name of an argument when building the CLI
 
     // Change the name of the command here to make sure the changed command name will be parsed.
     root.addCommand("wrong", mayoAction)
@@ -152,7 +157,7 @@ public class BasicCliTest extends BaseCliTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testBadGetFlagValue() throws IllegalArgumentException {
-    parse("-e", "15", "tuna", "marlin");
+    parse("-e", "15", "tuna", "marlin", "25", "steve");
     assertTrue(tunaMarlinAction.getRan());
     assertTrue(tunaMarlinAction.getFlags().containsKey("e"));
     tunaMarlinAction.getFlags().getValue("e", ArgumentType.STRING);
@@ -160,7 +165,7 @@ public class BasicCliTest extends BaseCliTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testDuplicateFlagsNegative() {
-    parse("tuna", "marlin", "--donut");
+    parse("tuna", "marlin", "--donut", "25", "steve");
   }
 
   @Test(expected = IllegalStateException.class)
@@ -201,7 +206,7 @@ public class BasicCliTest extends BaseCliTest {
 
   @Test
   public void testDuplicateFlagsPositive() {
-    parse("tuna", "marlin", "--duplicate");
+    parse("tuna", "marlin", "--duplicate", "25", "steve");
     assertTrue(tunaMarlinAction.getRan());
     assertTrue(tunaMarlinAction.getFlags().containsKey("t"));
     Boolean b = tunaMarlinAction.getFlags().getValue("t", ArgumentType.BOOLEAN);
@@ -210,7 +215,7 @@ public class BasicCliTest extends BaseCliTest {
 
   @Test
   public void testNonexistentFlagValues() {
-    parse("tuna", "marlin", "-t");
+    parse("tuna", "marlin", "-t", "25", "steve");
     assertFalse(tunaMarlinAction.getFlags().containsKey(""));
     assertFalse(tunaMarlinAction.getFlags().containsKey("a"));
     assertFalse(tunaMarlinAction.getFlags().containsKey("b"));
@@ -237,6 +242,36 @@ public class BasicCliTest extends BaseCliTest {
     parse("tuna", "hello", "marlin");
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testMarlinCommandMissingArguments() {
+    parse("tuna", "marlin");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMarlinCommandWithFlagButMissingArguments() {
+    parse("tuna", "marlin", "-z");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMarlinCommandWithTooFewArguments() {
+    parse("tuna", "marlin", "25");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMarlinCommandWithTooManyArguments() {
+    parse("tuna", "marlin", "25", "steve", "bacon");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMarlinCommandWithBadArgumentTypes() {
+    parse("tuna", "marlin", "steve", "25");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMayoCommandWithArguments() {
+    parse("mayo", "hey");
+  }
+
   /*
    * Subsection - Positive Commands
    */
@@ -254,47 +289,27 @@ public class BasicCliTest extends BaseCliTest {
   }
 
   @Test
-  public void testMarlinCommandWithoutArgument() {
-    parse("tuna", "marlin");
-    assertTrue(tunaMarlinAction.getRan());
-    ArgumentValues flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(new String[0], flags.getAllKeys());
-    assertNull(flags.getValue("z", ArgumentType.BOOLEAN));
-    assertEquals(0, tunaMarlinAction.getArguments().length);
-  }
-
-  @Test
-  public void testMarlinCommandWithFlag() {
-    parse("tuna", "marlin", "-z");
-    assertTrue(tunaMarlinAction.getRan());
-    ArgumentValues flags = tunaMarlinAction.getFlags();
-    assertArrayEquals(new String[] { "z" }, flags.getAllKeys());
-    assertEquals(Boolean.TRUE, flags.getValue("z", ArgumentType.BOOLEAN));
-    assertArrayEquals(tunaMarlinAction.getArguments(), new String[0]);
-  }
-
-  @Test
   public void testMarlinCommandWithArguments() {
-    parse("tuna", "marlin", "hello", "world");
+    parse("tuna", "marlin", "25", "steve");
     assertTrue(tunaMarlinAction.getRan());
     ArgumentValues flags = tunaMarlinAction.getFlags();
     assertArrayEquals(flags.getAllKeys(), new String[0]);
     assertNull(flags.getValue("z", ArgumentType.BOOLEAN));
-    assertArrayEquals(new String[] { "hello", "world" }, tunaMarlinAction.getArguments());
+    assertArrayEquals(new String[] { "25", "steve" }, tunaMarlinAction.getArguments());
   }
 
   @Test
   public void testMarlinCommandWithArgumentsAndFlag() {
-    parse("tuna", "marlin", "-z", "hello", "world");
+    parse("tuna", "marlin", "-z", "25", "steve");
     ArgumentValues flags = tunaMarlinAction.getFlags();
     assertArrayEquals(flags.getAllKeys(), new String[] { "z" });
     assertEquals(Boolean.TRUE, flags.getValue("z", ArgumentType.BOOLEAN));
-    assertArrayEquals(new String[] { "hello", "world" }, tunaMarlinAction.getArguments());
+    assertArrayEquals(new String[] { "25", "steve" }, tunaMarlinAction.getArguments());
   }
 
   @Test
   public void testMarlinCommandWitPreFlagsAndArguments() {
-    parse("tuna", "-w", "15", "-f", "marlin", "hello", "world");
+    parse("tuna", "-w", "15", "-f", "marlin", "25", "steve");
     assertTrue(tunaMarlinAction.getRan());
     ArgumentValues flags = tunaMarlinAction.getFlags();
     assertArrayEquals(new String[] { "f", "w" }, flags.getAllKeys());
@@ -304,11 +319,11 @@ public class BasicCliTest extends BaseCliTest {
 
   @Test
   public void testMayoCommand() {
-    parse("mayo", "a", "b", "c");
+    parse("mayo");
     assertTrue(mayoAction.getRan());
     ArgumentValues flags = mayoAction.getFlags();
     assertArrayEquals(new String[0], flags.getAllKeys());
-    assertArrayEquals(new String[] { "a", "b", "c" }, mayoAction.getArguments());
+    assertArrayEquals(new String[0], mayoAction.getArguments());
   }
 
   @Test
@@ -341,6 +356,8 @@ public class BasicCliTest extends BaseCliTest {
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommands(),
                                             "command-without-description", "mayo",
                                             "foo", "marlin");
+    TestUtilities.assertVariadicArrayEquals(visitor.getVisitedCommandArguments(),
+                                            "number", "name");
     TestUtilities.assertVariadicArrayEquals(visitor.getVisitedLists(),
                                             "cli-test", "duplicate-list",
                                             "list-without-description", "tuna");
@@ -359,6 +376,8 @@ public class BasicCliTest extends BaseCliTest {
                                             "a", "b", "d", "e", "f", "z");
     TestUtilities.assertVariadicArrayEquals(visitor.getCommandsWithDescriptions(),
                                             "mayo", "marlin");
+    TestUtilities.assertVariadicArrayEquals(visitor.getCommandArgumentsWithDescriptions(),
+                                            "name");
     TestUtilities.assertVariadicArrayEquals(visitor.getListsWithDescriptions(),
                                             "cli-test", "tuna");
   }

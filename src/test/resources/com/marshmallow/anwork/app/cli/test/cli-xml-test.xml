@@ -23,6 +23,8 @@
     <flag shortFlag="o" description="The number of fish that you desire">
       <argument name="number" type="NUMBER" />
     </flag>
+    <argument name="number" description="The number of the fish" type="NUMBER" />
+    <argument name="name" type="STRING" />
     <actionCreator class="com.marshmallow.anwork.app.cli.test.TestCliActionCreator" />
   </command>
   <!-- Add a duplicate command to make sure that we use the second one! -->
@@ -41,6 +43,8 @@
       <argument name="activity" description="This is the activity that dad is doing" type="STRING" />
     </flag>
     <command name="bring-home-bacon">
+      <argument name="arg0" type="STRING" />
+      <argument name="arg1" type="STRING" />
       <action class="com.marshmallow.anwork.app.cli.test.BringHomeBaconTestCliAction" />
     </command>
     <list name="dumb-list" />

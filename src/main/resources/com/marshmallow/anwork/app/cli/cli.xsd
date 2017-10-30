@@ -47,6 +47,7 @@
   <xs:complexType name="commandType">
     <xs:sequence>
       <xs:element name="flag" type="flagType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="argument" type="argumentType" minOccurs="0" maxOccurs="unbounded" />
       <xs:choice>
         <xs:element name="action" type="classType" />
         <xs:element name="actionCreator" type="classType" />
