@@ -12,8 +12,7 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- Add regex checking for smoketest output. Add an "assertOutput" API that takes a regular
-  expression and a CLI invocation. 
+- We need a test for the debug ouput and that the ID of each task is different.
 
 ## Journaling
 

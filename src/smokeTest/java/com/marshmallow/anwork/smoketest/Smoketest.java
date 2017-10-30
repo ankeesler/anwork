@@ -1,6 +1,5 @@
 package com.marshmallow.anwork.smoketest;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -52,97 +51,76 @@ public class Smoketest {
 
   @Before
   public void deleteAllTasks() throws Exception {
-    run(true, "task", "delete-all");
+    run("task", "delete-all");
   }
 
   @Test
   public void showNoTasksTest() throws Exception {
-    run(true, "task", "show");
+    run("task", "show");
   }
 
   @Test
   public void showSomeTasksTest() throws Exception {
-    run(true, "task", "create", "task-a",
+    run("task", "create", "task-a",
         "-e", "This is task-a",
         "-p", "1");
-    run(true, "task", "create", "task-b",
+    run("task", "create", "task-b",
         "--description", "This is task-b",
         "--priority", "1");
-    run(true, "task", "create", "task-c");
-    run(true, "task", "show");
+    run("task", "create", "task-c");
+    run("RUNNING tasks:", new String[] { "task", "show" });
   }
 
   @Test
   public void deleteSomeTasksTest() throws Exception {
-    run(true, "task", "create", "task-a");
-    run(true, "task", "create", "task-b");
-    run(true, "task", "delete", "task-a");
-    run(true, "task", "show");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "delete", "task-a");
+    run("task", "show");
   }
 
   @Test
   public void setStateOnSomeTasks() throws Exception {
-    run(true, "task", "create", "task-a");
-    run(true, "task", "create", "task-b");
-    run(true, "task", "create", "task-c");
-    run(true, "task", "set-running", "task-c");
-    run(true, "task", "set-blocked", "task-b");
-    run(true, "task", "set-finished", "task-a");
-    run(true, "task", "show");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "create", "task-c");
+    run("task", "set-running", "task-c");
+    run("task", "set-blocked", "task-b");
+    run("task", "set-finished", "task-a");
+    run("task", "show");
   }
 
   @Test
   public void showAllEmptyJournalTest() throws Exception {
-    run(true, "journal", "show-all");
+    run("journal", "show-all");
   }
 
   @Test
   public void showJournalTest() throws Exception {
-    run(true, "task", "create", "task-a");
-    run(true, "task", "create", "task-b");
-    run(true, "task", "create", "task-c");
-    run(true, "journal", "show", "task-a");
-    run(true, "journal", "show", "task-b");
-    run(true, "journal", "show", "task-c");
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "create", "task-c");
+    run("journal", "show", "task-a");
+    run("journal", "show", "task-b");
+    run("journal", "show", "task-c");
   }
 
-  private void run(boolean debug, String...args) throws Exception {
+  private void run(String...args) throws Exception {
+    run(null, args);
+  }
+
+  private void run(String expectRegex, String[] args) throws Exception {
     List<String> commands = new ArrayList<String>();
     commands.add(anworkBinary.getAbsolutePath());
-    if (debug) {
-      commands.add("-d");
-    }
     commands.addAll(Arrays.asList(args));
 
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     configureProcess(processBuilder);
-    int exitCode = runProcess(processBuilder);
-    assertEquals("ANWORK process " + processBuilder.command()
-                 + " failed with exit code " + exitCode, 0, exitCode);
+    SmoketestExpecter.expect(expectRegex, processBuilder);
   }
 
   private void configureProcess(ProcessBuilder processBuilder) {
     processBuilder.directory(smoketestDirectory);
     processBuilder.inheritIO();
-  }
-
-  // Runs the process for a maximum of 1 second before saying that it failed
-  // Returns the exit code from the underlying process
-  private int runProcess(ProcessBuilder processBuilder) throws Exception {
-    System.out.println("Running " + processBuilder.command() + "...");
-    Process process = processBuilder.start();
-    long startMillis = System.currentTimeMillis();
-    while (process.isAlive()) {
-      long nowMillis = System.currentTimeMillis();
-      if (nowMillis - startMillis > 1000) {
-        process.destroy();
-        if (process.isAlive()) {
-          process.destroyForcibly();
-        }
-        fail("Process " + processBuilder.command() + " took longer than 1 second"
-             + " and was destroyed.");
-      }
-    }
-    return process.exitValue();
   }
 }
