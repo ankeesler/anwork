@@ -58,6 +58,33 @@ public abstract class TaskManagerCliAction implements Action {
                            ArgumentValues arguments,
                            TaskManager manager);
 
+  protected static String getTaskNameArgument(TaskManager manager, ArgumentValues arguments) {
+    String taskNameArgument = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
+
+    // First we check if the argument is parsable as an integer.
+    Integer taskId;
+    try {
+      taskId = Integer.parseInt(taskNameArgument);
+    } catch (NumberFormatException nfe) {
+      taskId = null;
+    }
+
+    // If it is, then let's try to find the task in the manager with that ID.
+    Task foundTask = null;
+    if (taskId != null) {
+      for (Task task : manager.getTasks()) {
+        if (task.getId() == taskId) {
+          foundTask = task;
+          break;
+        }
+      }
+    }
+
+    // If we found the task, then return that name. Otherwise, we default back to the provided
+    // argument.
+    return (foundTask != null ? foundTask.getName() : taskNameArgument);
+  }
+
   private TaskManager loadTaskManager(AnworkAppConfig config) throws Exception {
     String context = config.getContext();
     File persistenceRoot = config.getPersistenceRoot();

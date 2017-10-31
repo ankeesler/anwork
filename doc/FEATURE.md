@@ -4,10 +4,10 @@ This document contains feature requests for the ANWORK project. The feature requ
 into sections below.
 
 ## Application
-- Add ability to reference tasks by UID number.
 
 ## CLI
 - Add support for CliArgumentType.FILE.
+- Add examples into the CLI schema.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
