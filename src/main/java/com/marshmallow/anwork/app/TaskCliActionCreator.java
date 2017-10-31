@@ -119,6 +119,18 @@ public class TaskCliActionCreator implements ActionCreator {
         };
       case "show":
         return ShowCliAction.INSTANCE;
+      case "note":
+        return new TaskManagerCliAction() {
+          @Override
+          public void run(AnworkAppConfig config,
+                          ArgumentValues flags,
+                          ArgumentValues arguments,
+                          TaskManager manager) {
+            String name = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
+            String note = arguments.getValue("note", ArgumentType.STRING);
+            manager.addNote(name, note);
+          }
+        };
       default:
         return null; // error!
     }

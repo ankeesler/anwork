@@ -46,6 +46,11 @@
     <command name="show" description="Show all tasks">
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
+    <command name="note" description="Add a note to a task">
+      <argument name="task-name" description="The name of the task to which to add a note" type="STRING" />
+      <argument name="note" description="The note to add to a task" type="STRING" />
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
   </list>
 
   <list name="journal" description="Journal commands...">

@@ -39,14 +39,16 @@ public class TaskManagerJournalSerializerTest extends BaseSerializerTest<TaskMan
     manager.createTask("Task0", "This is task 0", 0);
     manager.createTask("Task1", "This is task 1", 1);
     manager.createTask("Task2", "This is task 2", 2);
+    manager.createTask("Task3", "This is task 3", 2);
     Task[] tasks = manager.getTasks();
-    assertEquals(3, tasks.length);
+    assertEquals(4, tasks.length);
 
     TaskManagerJournalEntry[] entries = new TaskManagerJournalEntry[tasks.length];
     assertTrue(TaskManagerActionType.values().length >= tasks.length);
     for (int i = 0; i < tasks.length; i++) {
-      entries[i]
-          = new TaskManagerJournalEntry(tasks[i], TaskManagerActionType.values()[i]);
+      entries[i] = new TaskManagerJournalEntry(tasks[i],
+                                               TaskManagerActionType.values()[i],
+                                               tasks[i].getName());
     }
 
     for (int i = 0; i < tasks.length; i++) {
@@ -55,11 +57,12 @@ public class TaskManagerJournalSerializerTest extends BaseSerializerTest<TaskMan
 
     TaskManagerJournal deserializedJournal = runSerialization(journal);
     TaskManagerJournalEntry[] deserializedEntries = deserializedJournal.getEntries();
-    assertEquals(3, deserializedEntries.length);
+    assertEquals(4, deserializedEntries.length);
     for (int i = 0; i < tasks.length; i++) {
       assertEquals(entries[i].getTitle(), deserializedEntries[i].getTitle());
       assertEquals(entries[i].getDescription(), deserializedEntries[i].getDescription());
       assertEquals(entries[i].getDate(), deserializedEntries[i].getDate());
+      assertEquals(entries[i].getDetail(), deserializedEntries[i].getDetail());
     }
   }
 }

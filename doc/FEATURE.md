@@ -4,7 +4,6 @@ This document contains feature requests for the ANWORK project. The feature requ
 into sections below.
 
 ## Application
-- Add note command for adding a note to a task.
 - Add ability to reference tasks by UID number.
 
 ## CLI

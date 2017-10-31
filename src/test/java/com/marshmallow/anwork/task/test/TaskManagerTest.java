@@ -158,6 +158,27 @@ public class TaskManagerTest {
     assertJournalEntrySize("ask", 3);
   }
 
+  @Test
+  public void testAddingNotes() {
+    manager.createTask("Task1", "", 1);
+    manager.createTask("Task2", "", 2);
+
+    manager.addNote("Task1", "Note1");
+    assertJournalEntriesEqual("Task1", "Task2", "Task1");
+    assertJournalEntrySize("Task1", 2);
+    assertJournalEntrySize("Task2", 1);
+
+    manager.addNote("Task2", "Note2");
+    assertJournalEntriesEqual("Task1", "Task2", "Task1", "Task2");
+    assertJournalEntrySize("Task1", 2);
+    assertJournalEntrySize("Task2", 2);
+
+    manager.addNote("Task1", "Note3");
+    assertJournalEntriesEqual("Task1", "Task2", "Task1", "Task2", "Task1");
+    assertJournalEntrySize("Task1", 3);
+    assertJournalEntrySize("Task2", 2);
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void testDuplicateTask() {
     manager.createTask("Task1", "This is task 1.", 1);
@@ -174,6 +195,12 @@ public class TaskManagerTest {
   public void setBadState() {
     manager.createTask("Task1", "This is task 1.", 1);
     manager.setState("Task2", null);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void addBadNote() {
+    manager.createTask("Task1", "", 1);
+    manager.addNote("Task2", "hey");
   }
 
   // This method asserts that the provided list of expectedNames matches what is actually in the

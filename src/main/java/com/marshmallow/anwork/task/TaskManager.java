@@ -51,7 +51,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
     }
     Task task = new Task(name, description, priority);
     tasks.add(task);
-    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.CREATE));
+    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.CREATE, ""));
   }
 
   /**
@@ -66,7 +66,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
     tasks.remove(task);
-    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.DELETE));
+    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.DELETE, ""));
   }
 
   /**
@@ -98,7 +98,26 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
       throw new IllegalArgumentException("Task " + name + " does not exist");
     }
     task.setState(state);
-    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.SET_STATE));
+    journal.addEntry(new TaskManagerJournalEntry(task,
+                                                 TaskManagerActionType.SET_STATE,
+                                                 state.name()));
+  }
+
+  /**
+   * Add a note to a task.
+   *
+   * @param name The name of the task
+   * @param note The note to add to the task
+   * @throws IllegalArgumentException If this task does not exists
+   */
+  public void addNote(String name, String note) throws IllegalArgumentException {
+    Task task = findTask(name);
+    if (task == null) {
+      throw new IllegalArgumentException("Task " + name + " does not exist");
+    }
+    journal.addEntry(new TaskManagerJournalEntry(task,
+                                                 TaskManagerActionType.NOTE,
+                                                 note));
   }
 
   /**

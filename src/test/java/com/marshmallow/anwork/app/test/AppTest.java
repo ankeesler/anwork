@@ -10,6 +10,7 @@ import com.marshmallow.anwork.app.AnworkApp;
 import com.marshmallow.anwork.core.FilePersister;
 import com.marshmallow.anwork.core.Persister;
 import com.marshmallow.anwork.core.test.TestUtilities;
+import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
@@ -165,6 +166,32 @@ public class AppTest {
     run("task", "show");
     run("task", "delete", "task-a");
     run("task", "show");
+  }
+
+  @Test
+  public void noteTest() throws IOException {
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "create", "task-c");
+    run("task", "note", "task-a", "hey task-a");
+    run("task", "note", "task-c", "hey task-c");
+    run("task", "note", "task-a", "hey task-a part 2");
+
+    TaskManager taskManager = readTaskManager();
+    assertEquals(3, taskManager.getTasks().length);
+    assertEquals(6, taskManager.getJournal().getEntries().length);
+
+    Journal<?> taskAJournal = taskManager.getJournal("task-a");
+    assertNotNull("No journal for task-a!", taskAJournal);
+    assertEquals(3, taskAJournal.getEntries().length);
+
+    Journal<?> taskBJournal = taskManager.getJournal("task-b");
+    assertNotNull("No journal for task-b!", taskBJournal);
+    assertEquals(1, taskBJournal.getEntries().length);
+
+    Journal<?> taskCJournal = taskManager.getJournal("task-c");
+    assertNotNull("No journal for task-c!", taskCJournal);
+    assertEquals(2, taskCJournal.getEntries().length);
   }
 
   @Test

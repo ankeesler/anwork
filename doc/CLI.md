@@ -18,6 +18,7 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 - anwork task *create* (STRING task-name: The name of the task to create): Create a task
 - anwork task *delete* (STRING task-name: The name of the task to delete): Delete a task
 - anwork task *delete-all*: Delete all tasks
+- anwork task *note* (STRING task-name: The name of the task to which to add a note) (STRING note: The note to add to a task): Add a note to a task
 - anwork task *set-blocked* (STRING task-name: The name of the task to set as blocked): Set a task as blocked
 - anwork task *set-finished* (STRING task-name: The name of the task to set as finished): Set a task as finished
 - anwork task *set-running* (STRING task-name: The name of the task to set as running): Set a task as running

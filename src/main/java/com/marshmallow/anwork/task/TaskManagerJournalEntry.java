@@ -30,6 +30,7 @@ public class TaskManagerJournalEntry implements JournalEntry,
 
   private Task task;
   private TaskManagerActionType actionType;
+  private String detail;
   private Date date;
 
   // Default constructor for the factory in SERIALIZER and use in TaskManagerJournal.
@@ -43,21 +44,26 @@ public class TaskManagerJournalEntry implements JournalEntry,
    *     taken
    * @param actionType The {@link TaskManagerActionType} of action that was taken on the
    *     {@link Task}
+   * @param detail A {@link String} containing detail of the event related to a {@link Task}
    */
-  public TaskManagerJournalEntry(Task task, TaskManagerActionType actionType) {
+  public TaskManagerJournalEntry(Task task, TaskManagerActionType actionType, String detail) {
     this.task = task;
     this.actionType = actionType;
+    this.detail = detail;
     this.date = new Date();
   }
 
   @Override
   public String getTitle() {
-    return String.format("%s:%s", task.getName(), actionType.name());
+    return String.format("%s:%s:%s", task.getName(), actionType.name(), detail);
   }
 
   @Override
   public String getDescription() {
-    return getTitle();
+    return String.format("Action %s was performed on task '%s'. Detail: %s",
+                         actionType.name(),
+                         task.getName(),
+                         detail);
   }
 
   @Override
@@ -89,12 +95,22 @@ public class TaskManagerJournalEntry implements JournalEntry,
     return actionType;
   }
 
+  /**
+   * Get the detail {@link String} for this {@link TaskManagerJournalEntry}.
+   *
+   * @return The detail {@link String} for this {@link TaskManagerJournalEntry}
+   */
+  public String getDetail() {
+    return detail;
+  }
+
   @Override
   public TaskManagerJournalEntryProtobuf marshall() throws IOException {
     TaskProtobuf taskProtobuf = task.marshall();
     TaskManagerJournalEntryProtobuf.Builder builder = TaskManagerJournalEntryProtobuf.newBuilder();
     builder.setTask(taskProtobuf);
     builder.setActionType(TaskManagerActionTypeProtobuf.forNumber(actionType.ordinal()));
+    builder.setDetail(detail);
     builder.setDate(date.getTime());
     return builder.build();
   }
@@ -103,9 +119,8 @@ public class TaskManagerJournalEntry implements JournalEntry,
   public void unmarshall(TaskManagerJournalEntryProtobuf t) throws IOException {
     task = Task.FACTORY.makeBlankInstance();
     task.unmarshall(t.getTask());
-
     actionType = TaskManagerActionType.values()[t.getActionType().ordinal()];
-
+    detail = t.getDetail();
     date = new Date(t.getDate());
   }
 }

@@ -39,11 +39,12 @@ public class TaskManagerJournalEntrySerializerTest
     manager.createTask("Task1", "This is task 1", 5);
     Task task = manager.getTasks()[0];
     TaskManagerJournalEntry entry
-        = new TaskManagerJournalEntry(task, TaskManagerActionType.CREATE);
+        = new TaskManagerJournalEntry(task, TaskManagerActionType.CREATE, "hey");
     TaskManagerJournalEntry deserializedEntry = runSerialization(entry);
     assertEquals(entry.getTitle(), deserializedEntry.getTitle());
     assertEquals(entry.getDescription(), deserializedEntry.getDescription());
     assertEquals(entry.getDate(), deserializedEntry.getDate());
+    assertEquals(entry.getDetail(), deserializedEntry.getDetail());
   }
 
   @Test
@@ -51,14 +52,16 @@ public class TaskManagerJournalEntrySerializerTest
     manager.createTask("Task0", "This is task 0", 0);
     manager.createTask("Task1", "This is task 1", 1);
     manager.createTask("Task2", "This is task 2", 2);
+    manager.createTask("Task3", "This is task 3", 2);
     Task[] tasks = manager.getTasks();
-    assertEquals(3, tasks.length);
+    assertEquals(4, tasks.length);
 
     TaskManagerJournalEntry[] entries = new TaskManagerJournalEntry[tasks.length];
     assertTrue(TaskManagerActionType.values().length >= tasks.length);
     for (int i = 0; i < tasks.length; i++) {
-      entries[i]
-          = new TaskManagerJournalEntry(tasks[i], TaskManagerActionType.values()[i]);
+      entries[i] = new TaskManagerJournalEntry(tasks[i],
+                                               TaskManagerActionType.values()[i],
+                                               tasks[i].getName());
     }
 
     TaskManagerJournalEntry[] deserializedEntries = new TaskManagerJournalEntry[tasks.length];
@@ -66,10 +69,12 @@ public class TaskManagerJournalEntrySerializerTest
       deserializedEntries[i] = runSerialization(entries[i]);
     }
 
+    assertEquals(4, deserializedEntries.length);
     for (int i = 0; i < tasks.length; i++) {
       assertEquals(entries[i].getTitle(), deserializedEntries[i].getTitle());
       assertEquals(entries[i].getDescription(), deserializedEntries[i].getDescription());
       assertEquals(entries[i].getDate(), deserializedEntries[i].getDate());
+      assertEquals(entries[i].getDetail(), deserializedEntries[i].getDetail());
     }
   }
 
@@ -81,5 +86,7 @@ public class TaskManagerJournalEntrySerializerTest
                  TaskManagerActionTypeProtobuf.DELETE.ordinal());
     assertEquals(TaskManagerActionType.SET_STATE.ordinal(),
                  TaskManagerActionTypeProtobuf.SET_STATE.ordinal());
+    assertEquals(TaskManagerActionType.NOTE.ordinal(),
+                 TaskManagerActionTypeProtobuf.NOTE.ordinal());
   }
 }

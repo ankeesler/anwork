@@ -23,12 +23,14 @@ enum TaskManagerActionTypeProtobuf {
   CREATE = 0;
   DELETE = 1;
   SET_STATE = 2;
+  NOTE = 3;
 }
 
 message TaskManagerJournalEntryProtobuf {
   TaskProtobuf task = 1;
   TaskManagerActionTypeProtobuf actionType = 2;
   int64 date = 3;
+  string detail = 4;
 }
 
 message TaskManagerJournalProtobuf {
