@@ -55,7 +55,18 @@ public class TaskManagerJournalEntry implements JournalEntry,
 
   @Override
   public String getTitle() {
-    return String.format("%s:%s:%s", task.getName(), actionType.name(), detail);
+    switch (actionType) {
+      case CREATE:
+        return String.format("Created task '%s'", task.getName());
+      case DELETE:
+        return String.format("Deleted task '%s'", task.getName());
+      case SET_STATE:
+        return String.format("Set %s state on task '%s'", detail, task.getName());
+      case NOTE:
+        return String.format("Added note to task '%s': %s", task.getName(), detail);
+      default:
+        return null;
+    }
   }
 
   @Override

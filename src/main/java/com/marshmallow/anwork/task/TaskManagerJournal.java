@@ -61,7 +61,7 @@ public class TaskManagerJournal implements Journal<TaskManagerJournalEntry>,
     for (TaskManagerJournalEntry entry : entries) {
       if (entry.getTask().getName().equals(key)) {
         if (entry.getActionType().equals(TaskManagerActionType.DELETE)) {
-          journal.entries = new ArrayList<TaskManagerJournalEntry>();
+          journal.entries.clear();
         } else {
           journal.entries.add(entry);
         }
