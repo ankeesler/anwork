@@ -78,9 +78,8 @@ public class AnworkAppUtilities {
    *     {@link JournalEntry}
    */
   public static String makeJournalEntryShortString(JournalEntry entry) {
-    return String.format("[%s]: %s - %s",
+    return String.format("[%s]: %s",
                          DATE_FORMAT.format(entry.getDate()),
-                         entry.getTitle(),
-                         entry.getDescription());
+                         entry.getTitle());
   }
 }
