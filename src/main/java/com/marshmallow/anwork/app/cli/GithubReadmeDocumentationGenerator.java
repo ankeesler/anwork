@@ -75,15 +75,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
       lineBuilder.append("|--" + flag.getLongFlag());
     }
     if (flag.hasArgument()) {
-      lineBuilder.append(" (")
-                 .append(flag.getArgument().getType().getName())
-                 .append(" ")
-                 .append(flag.getArgument().getName());
-      if (flag.getArgument().hasDescription()) {
-        lineBuilder.append(": ")
-                   .append(flag.getArgument().getDescription());
-      }
-      lineBuilder.append(")");
+      lineBuilder.append(' ').append(makeArgumentText(flag.getArgument()));
     }
     lineBuilder.append(": ").append((flag.hasDescription()
                                      ? flag.getDescription()
@@ -114,11 +106,29 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
   public void visitCommand(Command command) {
     checkCommandState();
     String prefix = listStack.stream().collect(Collectors.joining(" "));
-    writer.println(String.format("- %s *%s*: %s",
+    writer.print(String.format("- %s *%s*",
                                  prefix,
-                                 command.getName(),
+                                 command.getName()));
+    for (Argument argument : command.getArguments()) {
+      writer.print(" " + makeArgumentText(argument));
+    }
+    writer.println(String.format(": %s",
                                  (command.hasDescription()
                                   ? command.getDescription()
                                   : NO_DESCRIPTION)));
+  }
+
+  private static String makeArgumentText(Argument argument) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("(")
+           .append(argument.getType().getName())
+           .append(" ")
+           .append(argument.getName());
+    if (argument.hasDescription()) {
+      builder.append(": ")
+             .append(argument.getDescription());
+    }
+    builder.append(')');
+    return builder.toString();
   }
 }

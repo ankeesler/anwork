@@ -9,7 +9,6 @@ into sections below.
 
 ## CLI
 - Add support for CliArgumentType.FILE.
-- Update CLI documentation generators with CLI command arguments.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?

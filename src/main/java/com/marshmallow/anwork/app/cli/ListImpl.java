@@ -64,13 +64,14 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
 
   void parse(String[] args) {
     ArgumentValues flagValues = new ArgumentValues();
-    if (!parseList(args, 0, flagValues)) {
-      printUsage();
+    ListImpl list = parseList(args, 0, flagValues);
+    if (list != null) {
+      list.printUsage();
     }
   }
 
-  // Returns true iff a command was run.
-  private boolean parseList(String[] args, int index, ArgumentValues flagValues) {
+  // Returns the last list that was parsed, or null if a command was run
+  private ListImpl parseList(String[] args, int index, ArgumentValues flagValues) {
     while (index < args.length) {
       String arg = args[index];
       if (isFlag(arg)) {
@@ -79,7 +80,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
         return findList(arg).parseList(args, index + 1, flagValues);
       } else if (hasCommand(arg)) {
         findCommand(arg).parse(args, index + 1, flagValues);
-        return true;
+        return null;
       } else {
         // This is not a list or a command, so let's call it an unknown command!
         throwBadArgException("Unknown command/list '" + arg + "' for list " + getName(),
@@ -87,7 +88,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
                              index);
       }
     }
-    return false;
+    return this;
   }
 
   private boolean hasList(String name) {

@@ -17,14 +17,14 @@ import java.util.stream.Stream;
  *     -d|--debug                  : Description for debug flag
  *     -f|--file (filename:STRING) : Description for file flag
  *   Commands
- *     command-1      : Description for command-1
- *     command-2      : Description for command-2
- *     long-command-3 : Description for long-command-3
+ *     command-1     (arg0:STRING) (arg1:NUMBER) : Description for command-1
+ *     command-2     (name:STRING)               : Description for command-2
+ *     long-command-3                            : Description for long-command-3
  *
  * root-list list-a ... : Description for root-list
  *   Commands
- *     command-abc : Description for command-abc
- *     foo         : Description for foo
+ *     command-abc               : Description for command-abc
+ *     foo         (name:STRING) : Description for foo
  *
  * root-list list-b ... : Description for list-b
  *   Commands
@@ -200,13 +200,7 @@ class TextDocumentationGenerator implements DocumentationGenerator, Visitor {
              .append(flag.getLongFlag());
     }
     if (flag.hasArgument()) {
-      Argument argument = flag.getArgument();
-      builder.append(' ')
-             .append('(')
-             .append(argument.getName())
-             .append(':')
-             .append(argument.getType().getName())
-             .append(')');
+      builder.append(' ').append(getArgumentDisplayString(flag.getArgument()));
     }
     return builder.toString();
   }
@@ -230,7 +224,7 @@ class TextDocumentationGenerator implements DocumentationGenerator, Visitor {
     builder.append(COMMANDS);
     for (Command command : commands) {
       String format = "    %-" + longestCommandName + "s";
-      builder.append(String.format(format, command.getName()));
+      builder.append(String.format(format, getCommandDisplayString(command)));
       if (command.hasDescription()) {
         writeDescription(command.getDescription(), builder);
       }
@@ -238,11 +232,25 @@ class TextDocumentationGenerator implements DocumentationGenerator, Visitor {
     }
   }
 
+  private static String getCommandDisplayString(Command command) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(command.getName());
+    for (Argument argument : command.getArguments()) {
+      builder.append(' ').append(getArgumentDisplayString(argument));
+    }
+    return builder.toString();
+  }
+
   private static int getLongestCommandName(Command[] commands) {
     return Stream.of(commands)
-                 .map(command -> command.getName().length())
+                 .map(TextDocumentationGenerator::getCommandDisplayString)
+                 .map(String::length)
                  .max((a, b) -> a - b)
                  .get();
+  }
+
+  private static String getArgumentDisplayString(Argument argument) {
+    return String.format("(%s:%s)", argument.getName(), argument.getType().getName());
   }
 
   private static void writeDescription(String description, StringBuilder builder) {
