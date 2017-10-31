@@ -57,7 +57,7 @@ public class TaskCliActionCreator implements ActionCreator {
       System.out.println(state.name() + " tasks:");
       for (Task task : manager.getTasks()) {
         if (task.getState().equals(state)) {
-          System.out.println("  " + AnworkAppUtilities.taskToString(task));
+          System.out.println(AnworkAppUtilities.makeTaskLongString(task, manager, "  "));
         }
       }
     }

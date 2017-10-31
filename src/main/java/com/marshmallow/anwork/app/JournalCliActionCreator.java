@@ -59,7 +59,7 @@ public class JournalCliActionCreator implements ActionCreator {
     // display the journal (see Journal#getEntries javadoc).
     JournalEntry[] entries = journal.getEntries();
     for (int i = entries.length - 1; i >= 0; i--) {
-      System.out.println(AnworkAppUtilities.journalEntryToString(entries[i]));
+      System.out.println(AnworkAppUtilities.makeJournalEntryShortString(entries[i]));
     }
   }
 }
