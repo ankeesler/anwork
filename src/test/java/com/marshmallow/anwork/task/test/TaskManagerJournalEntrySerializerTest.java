@@ -88,5 +88,7 @@ public class TaskManagerJournalEntrySerializerTest
                  TaskManagerActionTypeProtobuf.SET_STATE.ordinal());
     assertEquals(TaskManagerActionType.NOTE.ordinal(),
                  TaskManagerActionTypeProtobuf.NOTE.ordinal());
+    assertEquals(TaskManagerActionType.SET_PRIORITY.ordinal(),
+                 TaskManagerActionTypeProtobuf.SET_PRIORITY.ordinal());
   }
 }

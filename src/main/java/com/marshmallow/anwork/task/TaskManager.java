@@ -108,7 +108,7 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    *
    * @param name The name of the task
    * @param note The note to add to the task
-   * @throws IllegalArgumentException If this task does not exists
+   * @throws IllegalArgumentException If this task does not exist
    */
   public void addNote(String name, String note) throws IllegalArgumentException {
     Task task = findTask(name);
@@ -118,6 +118,24 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
     journal.addEntry(new TaskManagerJournalEntry(task,
                                                  TaskManagerActionType.NOTE,
                                                  note));
+  }
+
+  /**
+   * Set a {@link Task}'s priority.
+   *
+   * @param name The name of the task
+   * @param priority The priority to set on the task
+   * @throws IllegalArgumentException If this task does not exist
+   */
+  public void setPriority(String name, int priority) throws IllegalArgumentException {
+    Task task = findTask(name);
+    if (task == null) {
+      throw new IllegalArgumentException("Task " + name + " does not exist");
+    }
+    journal.addEntry(new TaskManagerJournalEntry(task,
+                                                 TaskManagerActionType.SET_PRIORITY,
+                                                 Integer.toString(priority)));
+    task.setPriority(priority);
   }
 
   /**

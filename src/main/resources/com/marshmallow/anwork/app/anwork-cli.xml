@@ -36,6 +36,11 @@
       <argument name="task-name" description="The name of the task to set as finished" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
     </command>
+    <command name="set-priority" description="Set the priority of a task">
+      <argument name="task-name" description="The name of the task to set as finished" type="STRING" />
+      <argument name="priority" description="The priority to set on the task" type="NUMBER" />
+      <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />
+    </command>
     <command name="delete" description="Delete a task">
       <argument name="task-name" description="The name of the task to delete" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.TaskCliActionCreator" />

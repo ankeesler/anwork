@@ -120,6 +120,21 @@ public class Smoketest {
   }
 
   @Test
+  public void setPriorityTest() throws Exception {
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "set-priority", "task-a", "20");
+    run("task", "set-priority", "task-b", "21");
+    run("task", "set-priority", "task-a", "22");
+    expect(new String[] { "task", "show", },
+           new String[] { "WAITING tasks:",
+                          "  task-b \\(\\d+\\)",
+                          "    priority 21",
+                          "  task-a \\(\\d+\\)",
+                          "    priority 22", });
+  }
+
+  @Test
   public void makeSureDebugPrintingWorks() throws Exception {
     expect(new String[] { "-d", "task", "create", "task-a" },
            new String[] { ".*created task.*"});

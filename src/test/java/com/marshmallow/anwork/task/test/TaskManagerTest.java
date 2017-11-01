@@ -179,6 +179,18 @@ public class TaskManagerTest {
     assertJournalEntrySize("Task2", 2);
   }
 
+  @Test
+  public void testChangingPriorities() {
+    manager.createTask("Task1", "", 1);
+    manager.setPriority("Task1", 3);
+    assertEquals(3, manager.getTasks()[0].getPriority());
+    manager.setPriority("Task1", 5);
+    assertEquals(5, manager.getTasks()[0].getPriority());
+
+    assertJournalEntriesEqual("Task1", "Task1", "Task1");
+    assertJournalEntrySize("Task1", 3);
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void testDuplicateTask() {
     manager.createTask("Task1", "This is task 1.", 1);

@@ -14,5 +14,6 @@ public enum TaskManagerActionType {
   DELETE,
   SET_STATE,
   NOTE,
+  SET_PRIORITY,
   ;
 }

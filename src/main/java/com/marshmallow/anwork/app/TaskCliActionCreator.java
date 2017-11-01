@@ -92,6 +92,18 @@ public class TaskCliActionCreator implements ActionCreator {
         return new SetStateCliAction(TaskState.RUNNING);
       case "set-finished":
         return new SetStateCliAction(TaskState.FINISHED);
+      case "set-priority":
+        return new TaskManagerCliAction() {
+          @Override
+          public void run(AnworkAppConfig config,
+                          ArgumentValues flags,
+                          ArgumentValues arguments,
+                          TaskManager manager) {
+            String name = getTaskNameArgument(manager, arguments);
+            Long priority = arguments.getValue("priority", ArgumentType.NUMBER);
+            manager.setPriority(name, priority.intValue());
+          }
+        };
       case "delete":
         return new TaskManagerCliAction() {
           @Override

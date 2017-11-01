@@ -64,6 +64,8 @@ public class TaskManagerJournalEntry implements JournalEntry,
         return String.format("Set %s state on task '%s'", detail, task.getName());
       case NOTE:
         return String.format("Added note to task '%s': %s", task.getName(), detail);
+      case SET_PRIORITY:
+        return String.format("Set priority %s on task '%s'", detail, task.getName());
       default:
         return null;
     }

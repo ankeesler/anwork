@@ -195,6 +195,16 @@ public class AppTest {
   }
 
   @Test
+  public void setPriorityTest() throws IOException {
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "set-priority", "task-a", "20");
+    run("task", "set-priority", "task-b", "20");
+    run("task", "set-priority", "task-a", "21");
+    run("task", "show");
+  }
+
+  @Test
   public void showAllJournalTest() throws IOException {
     run("journal", "show-all");
     run("task", "create", "task-a");

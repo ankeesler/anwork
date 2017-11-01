@@ -138,4 +138,20 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
     manager = runSerialization(manager);
     assertTaskManagerEquals(manager, tasks, entries);
   }
+
+  @Test
+  public void testChangingPriorities() throws IOException {
+    manager.createTask("Task1", "", 867);
+
+    manager.setPriority("Task1", 123);
+    manager = runSerialization(manager);
+    assertEquals(123, manager.getTasks()[0].getPriority());
+
+    manager.setPriority("Task1", 999);
+    manager = runSerialization(manager);
+    assertEquals(999, manager.getTasks()[0].getPriority());
+
+    manager = runSerialization(manager);
+    assertEquals(999, manager.getTasks()[0].getPriority());
+  }
 }
