@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -22,6 +24,33 @@ import org.junit.Test;
  */
 public class FilePersisterTest extends BasePersisterTest {
 
+  private File unreadableFile;
+
+  /**
+   * Create the unreadable file for {@link #loadUnreadableFile()} below.
+   *
+   * @throws IOException if something goes wrong
+   */
+  @Before
+  public void setupUnreadableFile() throws IOException {
+    URI unreadableFileDirectory = TestUtilities.getFile(".", FilePersisterTest.class).toURI();
+    Path unreadableFilePath = Files.createTempFile(Paths.get(unreadableFileDirectory),
+                                                   "FilePersisterTest",
+                                                   "");
+    unreadableFile = unreadableFilePath.toFile();
+    unreadableFile.setReadable(false);
+  }
+
+  /**
+   * Delete the unreadable file used in {@link #loadUnreadableFile()} below.
+   *
+   * @throws IOException if something goes wrong
+   */
+  @After
+  public void deleteUnreadableFile() throws IOException {
+    unreadableFile.delete(); // I am very confused why this doesn't delete automatically...
+  }
+
   /**
    * Instantiate this class as a {@link PersisterTest}.
    */
@@ -32,12 +61,6 @@ public class FilePersisterTest extends BasePersisterTest {
 
   @Test(expected = IOException.class)
   public void loadUnreadableFile() throws IOException {
-    URI unreadableFileDirectory = TestUtilities.getFile(".", FilePersisterTest.class).toURI();
-    Path unreadableFilePath = Files.createTempFile(Paths.get(unreadableFileDirectory),
-                                                   "FilePersisterTest",
-                                                   "");
-    File unreadableFile = unreadableFilePath.toFile();
-    unreadableFile.setReadable(false);
     persister.load(unreadableFile.getName(), serializer);
   }
 }
