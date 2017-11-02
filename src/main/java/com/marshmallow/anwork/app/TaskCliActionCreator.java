@@ -47,17 +47,22 @@ public class TaskCliActionCreator implements ActionCreator {
                     ArgumentValues flags,
                     ArgumentValues arguments,
                     TaskManager manager) {
-      printTasksForState(TaskState.RUNNING, manager);
-      printTasksForState(TaskState.BLOCKED, manager);
-      printTasksForState(TaskState.WAITING, manager);
-      printTasksForState(TaskState.FINISHED, manager);
+      Boolean showShort = flags.getValue("s", ArgumentType.BOOLEAN);
+      boolean reallyShortShort = showShort != null && showShort;
+      printTasksForState(TaskState.RUNNING, manager, reallyShortShort);
+      printTasksForState(TaskState.BLOCKED, manager, reallyShortShort);
+      printTasksForState(TaskState.WAITING, manager, reallyShortShort);
+      printTasksForState(TaskState.FINISHED, manager, reallyShortShort);
     }
 
-    private void printTasksForState(TaskState state, TaskManager manager) {
+    private void printTasksForState(TaskState state, TaskManager manager, boolean showShort) {
       System.out.println(state.name() + " tasks:");
       for (Task task : manager.getTasks()) {
         if (task.getState().equals(state)) {
-          System.out.println(AnworkAppUtilities.makeTaskLongString(task, manager, "  "));
+          String stuff = (showShort
+                          ? AnworkAppUtilities.makeTaskShortString(task, manager, "  ")
+                          : AnworkAppUtilities.makeTaskLongString(task, manager, "  "));
+          System.out.println(stuff);
         }
       }
     }

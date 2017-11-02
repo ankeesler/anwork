@@ -166,6 +166,8 @@ public class AppTest {
     run("task", "show");
     run("task", "delete", "task-a");
     run("task", "show");
+    run("task", "show", "-s");
+    run("task", "show", "--short");
   }
 
   @Test

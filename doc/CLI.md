@@ -24,4 +24,7 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 - anwork task *set-priority* (STRING task-name: The name of the task to set as finished) (NUMBER priority: The priority to set on the task): Set the priority of a task
 - anwork task *set-running* (STRING task-name: The name of the task to set as running): Set a task as running
 - anwork task *set-waiting* (STRING task-name: The name of the task to set as waiting): Set a task as waiting
+## Flags
+- -s|--short: Show a shorter description of all of the tasks
+## Commands
 - anwork task *show*: Show all tasks

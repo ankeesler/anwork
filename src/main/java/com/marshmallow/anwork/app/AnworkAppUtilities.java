@@ -28,6 +28,19 @@ public class AnworkAppUtilities {
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm:ss");
 
   /**
+   * Turn a {@link Task} into a human-readable single-line {@link String} that describes it.
+   *
+   * @param task The {@link Task} to turn into a {@link String}
+   * @param manager The {@link TaskManager} associated with this {@link Task}
+   * @param indent The indentation to apply to each line of the human-readable {@link String}
+   *     returned by this function
+   * @return A human-readable single-line {@link String} that describes the provided {@link Task}
+   */
+  public static String makeTaskShortString(Task task, TaskManager manager, String indent) {
+    return String.format("%s%s (%s)", indent, task.getName(), task.getId());
+  }
+
+  /**
    * Turn a {@link Task} into a human-readable multi-line {@link String} that describes it.
    *
    * @param task The {@link Task} to turn into a {@link String}

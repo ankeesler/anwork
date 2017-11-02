@@ -79,6 +79,9 @@ public class Smoketest {
     nexpect(new String[] { "task", "show" },
             new String[] { "  task-b \\(1\\).*",
                            "  task-c \\(1\\).*"});
+    nexpect(new String[] { "task", "show", "--short", },
+            new String[] { "    created.*",
+                           "    priority.*", });
   }
 
   @Test
