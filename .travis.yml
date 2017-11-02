@@ -12,6 +12,7 @@ script:
   - ./gradlew check
   - ./gradlew smoke
   - ./gradlew jacocoTestReport
+  - ./gradlew installDist
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
