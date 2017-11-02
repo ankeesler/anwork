@@ -31,8 +31,8 @@ public class BasePersisterTest {
   private static final String CONTEXT_A = "context-a";
   private static final String CONTEXT_B = "context-b";
 
-  private Persister<Student> persister;
-  private Serializer<Student> serializer;
+  protected Persister<Student> persister;
+  protected Serializer<Student> serializer;
 
   /**
    * Instatiate this class with a persister and a serializer to test.
