@@ -1,11 +1,17 @@
 language: java
 
+# This takes a little bit of pressure off of the git clone of this repo.
+git:
+  depth: 3
+
 # I think we can skip the installation step completely because dependencies are
 # downloaded automatically as part of our script phase.
 install: true
 
-script: ./gradlew smoke
+script:
+  - ./gradlew check
+  - ./gradlew smoke
+  - ./gradlew jacocoTestReport
 
-# This takes a little bit of pressure off of the git clone of this repo.
-git:
-  depth: 3
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -18,6 +18,9 @@ apply plugin: 'checkstyle'
 // Apply the Protocol Buffers plugin
 apply plugin: 'com.google.protobuf'
 
+// Apply the JaCoCo plugin
+apply plugin: 'jacoco'
+
 // Set the default task
 defaultTasks 'check'
 
@@ -106,8 +109,8 @@ applicationDistribution.from('.') {
   include 'doc/CLI.md'
 }
 
-// Creating a distribution package should depend on tests and documentation generation
-installDist.dependsOn([check, doc])
+// Creating a distribution package should depend on documentation generation
+installDist.dependsOn doc
 
 // ------------------------------------------------------------------------------------------------
 // Section - Testing
@@ -142,4 +145,11 @@ task smoke(dependsOn: stageSmoke, type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
   environment "ANWORK_SMOKETEST_DIR", smoketestDir
   outputs.upToDateWhen { false }
+}
+
+jacocoTestReport {
+  reports {
+    html.enabled = true
+    xml.enabled = true
+  }
 }
