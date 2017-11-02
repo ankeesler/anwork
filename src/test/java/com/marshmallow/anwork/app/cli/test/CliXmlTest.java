@@ -174,8 +174,13 @@ public class CliXmlTest extends BaseCliTest {
   }
 
   @Test(expected = Exception.class)
-  public void testBadClassType() throws Exception {
-    read("bad-class-type.xml");
+  public void testActionBadClassType() throws Exception {
+    read("bad-action-class-type.xml");
+  }
+
+  @Test(expected = Exception.class)
+  public void testActionCreatorBadClassType() throws Exception {
+    read("bad-action-creator-class-type.xml");
   }
 
   @Test(expected = Exception.class)

@@ -279,6 +279,16 @@ public class BasicCliTest extends BaseCliTest {
     arguments.getValue("number", ArgumentType.STRING);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testUnkownRootedCommand() {
+    parse("moo");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testUnkownNestedCommand() {
+    parse("tuna", "marlin");
+  }
+
   /*
    * Subsection - Positive Commands
    */

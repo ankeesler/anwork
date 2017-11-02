@@ -11,6 +11,7 @@ import com.marshmallow.anwork.task.protobuf.TaskProtobuf;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.PriorityQueue;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -61,12 +62,10 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    * @throws IllegalArgumentException If this task does not exist.
    */
   public void deleteTask(String name) throws IllegalArgumentException {
-    Task task = findTask(name);
-    if (task == null) {
-      throw new IllegalArgumentException("Task " + name + " does not exist");
-    }
-    tasks.remove(task);
-    journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.DELETE, ""));
+    doWithTask(name, (task) -> {
+      tasks.remove(task);
+      journal.addEntry(new TaskManagerJournalEntry(task, TaskManagerActionType.DELETE, ""));
+    });
   }
 
   /**
@@ -77,11 +76,11 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    * @throws IllegalArgumentException If the task does not exist
    */
   public TaskState getState(String name) throws IllegalArgumentException {
-    Task task = findTask(name);
-    if (task == null) {
-      throw new IllegalArgumentException("Task " + name + " does not exist");
-    }
-    return task.getState();
+    final TaskState[] stateHolder = new TaskState[1];
+    doWithTask(name, (task) -> {
+      stateHolder[0] = task.getState();
+    });
+    return stateHolder[0];
   }
 
   /**
@@ -93,14 +92,12 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    *     is invalid.
    */
   public void setState(String name, TaskState state) throws IllegalArgumentException {
-    Task task = findTask(name);
-    if (task == null) {
-      throw new IllegalArgumentException("Task " + name + " does not exist");
-    }
-    task.setState(state);
-    journal.addEntry(new TaskManagerJournalEntry(task,
-                                                 TaskManagerActionType.SET_STATE,
-                                                 state.name()));
+    doWithTask(name, (task) -> {
+      task.setState(state);
+      journal.addEntry(new TaskManagerJournalEntry(task,
+                                                   TaskManagerActionType.SET_STATE,
+                                                   state.name()));
+    });
   }
 
   /**
@@ -111,13 +108,11 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    * @throws IllegalArgumentException If this task does not exist
    */
   public void addNote(String name, String note) throws IllegalArgumentException {
-    Task task = findTask(name);
-    if (task == null) {
-      throw new IllegalArgumentException("Task " + name + " does not exist");
-    }
-    journal.addEntry(new TaskManagerJournalEntry(task,
-                                                 TaskManagerActionType.NOTE,
-                                                 note));
+    doWithTask(name, (task) -> {
+      journal.addEntry(new TaskManagerJournalEntry(task,
+                                                   TaskManagerActionType.NOTE,
+                                                   note));
+    });
   }
 
   /**
@@ -128,14 +123,12 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
    * @throws IllegalArgumentException If this task does not exist
    */
   public void setPriority(String name, int priority) throws IllegalArgumentException {
-    Task task = findTask(name);
-    if (task == null) {
-      throw new IllegalArgumentException("Task " + name + " does not exist");
-    }
-    journal.addEntry(new TaskManagerJournalEntry(task,
-                                                 TaskManagerActionType.SET_PRIORITY,
-                                                 Integer.toString(priority)));
-    task.setPriority(priority);
+    doWithTask(name, (task) -> {
+      journal.addEntry(new TaskManagerJournalEntry(task,
+                                                   TaskManagerActionType.SET_PRIORITY,
+                                                   Integer.toString(priority)));
+      task.setPriority(priority);
+    });
   }
 
   /**
@@ -160,6 +153,14 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
     StringBuilder builder = new StringBuilder();
     Stream.of(tasks.toArray(new Task[0])).forEach(task -> builder.append(task));
     return builder.toString();
+  }
+
+  private void doWithTask(String name, Consumer<Task> doer) {
+    Task task = findTask(name);
+    if (task == null) {
+      throw new IllegalArgumentException("Task " + name + " does not exist");
+    }
+    doer.accept(task);
   }
 
   private Task findTask(String name) {

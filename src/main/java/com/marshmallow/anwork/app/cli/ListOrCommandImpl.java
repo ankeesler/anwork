@@ -165,15 +165,7 @@ abstract class ListOrCommandImpl implements MutableListOrCommand, Comparable<Lis
 
   protected int parseFlag(String[] args, int index, ArgumentValues flagValues) {
     String arg = args[index];
-
-    // Is it valid flag syntax?
-    boolean isLongFlag = false;
-    if (arg.charAt(0) != Flag.FLAG_START) {
-      throwBadArgException("Expected flag syntax", args, index);
-    }
-    if (arg.charAt(1) == Flag.FLAG_START) {
-      isLongFlag = true;
-    }
+    boolean isLongFlag = (arg.charAt(1) == Flag.FLAG_START);
 
     // Is it a valid flag?
     String flagString = arg.substring(isLongFlag ? 2 : 1);
