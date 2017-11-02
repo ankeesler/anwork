@@ -24,7 +24,7 @@ To run the stage 1 tests, try the following.
 $ ./gradlew check
 ```
 
-To run the stage 1 and 2 tests, try the following.
+To run the stage 2 tests, try the following.
 ```
 $ ./gradlew smoke
 ```
