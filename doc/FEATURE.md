@@ -22,6 +22,5 @@ into sections below.
 - We need a more defined way to get a class' Serializer.
 
 ## Tasks
-- Write our own heap so that we can easily get the tasks in their sorted order.
 - Cache the TaskManagerJournal per-task instances so we don't keep creating new objects.
 - Update ARCH.md with this new architecture.

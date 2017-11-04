@@ -132,13 +132,15 @@ public class TaskManager implements Serializable<TaskManagerProtobuf>,
   }
 
   /**
-   * Get the tasks associated with this task manager.
+   * Get the {@link Task}'s associated with this {@link TaskManager}. The {@link Task}'s are
+   * returned sorted by priority (lowest priority number to highest priority number).
    *
-   * @return The tasks associated with this manager
+   * @return The {@link Task}'s associated with this {@link TaskManager}
    */
   public Task[] getTasks() {
-    // TODO: this should be improved! We should write our own heap that can
-    // return the elements to us in order.
+    // Eh, this is a bummer that we have to sort an array that should really already be sorted.
+    // But, Java's PriorityQueue doesn't do this for us by default. We could write our own, but
+    // that seems silly.
     Task[] taskArray = tasks.toArray(new Task[0]);
     Arrays.sort(taskArray);
     return taskArray;
