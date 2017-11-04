@@ -22,4 +22,3 @@ into sections below.
 - We need a more defined way to get a class' Serializer.
 
 ## Tasks
-- Update ARCH.md with this new architecture.

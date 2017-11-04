@@ -62,6 +62,18 @@ that they occured. Here are the major ideas.
 - A **MultiJournaled** is a **Journaled** that has multiple Journal instances that can be acquired
   based on a key. This key type is implementation specific in order to support all types as a key.
 
+## Task
+
+The task framework defines the application layer objects, storage mechanisms, and logging for the
+"WORK" in ANWORK.
+- A **Task** is a thing you are working on. A Task may be "write test case for new foo feature" or
+  "scope new features for next release" or "go to the grocery store."
+- A **TaskManager** holds onto **Task**s and serves as the main interface for an application that
+  uses **Task**s. You can create, find, and delete **Task**s with a **TaskManager**.
+
+The **TaskManager** also handles persisting the **Task**s to file as well as keeping a
+*com.marshmallow.anwork.journal.Journal* of what happens to each **Task**.
+
 ## CLI
 
 ### Public Interface
