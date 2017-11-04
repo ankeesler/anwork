@@ -22,5 +22,4 @@ into sections below.
 - We need a more defined way to get a class' Serializer.
 
 ## Tasks
-- Cache the TaskManagerJournal per-task instances so we don't keep creating new objects.
 - Update ARCH.md with this new architecture.

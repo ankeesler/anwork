@@ -8,7 +8,7 @@ import com.marshmallow.anwork.task.protobuf.TaskManagerJournalEntryProtobuf;
 import com.marshmallow.anwork.task.protobuf.TaskManagerJournalProtobuf;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,7 +28,9 @@ public class TaskManagerJournal implements Journal<TaskManagerJournalEntry>,
                                TaskManagerJournal>(() -> new TaskManagerJournal(),
                                                    TaskManagerJournalProtobuf.parser());
 
-  private List<TaskManagerJournalEntry> entries = new ArrayList<TaskManagerJournalEntry>();
+  // Using a LinkedLst here cuts down on the potentially large chunk of ArrayList memory that
+  // would be leftover from a call to #filter.
+  private List<TaskManagerJournalEntry> entries = new LinkedList<TaskManagerJournalEntry>();
 
   @Override
   public void addEntry(TaskManagerJournalEntry entry) {
@@ -56,7 +58,6 @@ public class TaskManagerJournal implements Journal<TaskManagerJournalEntry>,
    * @return A {@link Journal} for this key (i.e., task name)
    */
   public Journal<TaskManagerJournalEntry> filter(String key) {
-    // TODO: cache me!
     TaskManagerJournal journal = new TaskManagerJournal();
     for (TaskManagerJournalEntry entry : entries) {
       if (entry.getTask().getName().equals(key)) {
