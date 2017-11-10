@@ -9,6 +9,11 @@
   </flag>
   <flag shortFlag="n" longFlag="no-persist" description="Do not persist any task information" />
 
+  <command name="summary" description="Show a summary of the past days of work">
+    <argument name="days" description="Number of days to look back for work" type="NUMBER" />
+    <action class="com.marshmallow.anwork.app.AnworkSummaryAction" />
+  </command>
+
   <list name="task" description="Task commands...">
     <command name="create" description="Create a task">
       <flag shortFlag="e" longFlag="description" description="The description of the task">

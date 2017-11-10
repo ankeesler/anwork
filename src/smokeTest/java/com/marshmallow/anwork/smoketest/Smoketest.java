@@ -138,6 +138,25 @@ public class Smoketest {
   }
 
   @Test
+  public void summaryTest() throws Exception {
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "set-running", "task-b");
+    run("task", "set-blocked", "task-b");
+    run("task", "note", "task-b", "tuna");
+    run("task", "set-running", "task-a");
+    run("task", "set-finished", "task-a");
+    run("task", "set-running", "task-b");
+    run("task", "note", "task-b", "fish");
+    run("task", "set-finished", "task-b");
+    expect(new String[] { "summary", "2" },
+           new String[] { "\\[.*\\]: Finished 'task-b'",
+                          "  took \\d+ seconds",
+                          "\\[.*\\]: Finished 'task-a'",
+                          "  took \\d+ seconds", });
+  }
+
+  @Test
   public void makeSureDebugPrintingWorks() throws Exception {
     expect(new String[] { "-d", "task", "create", "task-a" },
            new String[] { ".*created task.*"});

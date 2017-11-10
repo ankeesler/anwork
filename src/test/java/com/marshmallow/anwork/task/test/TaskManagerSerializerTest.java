@@ -33,6 +33,7 @@ public class TaskManagerSerializerTest extends BaseSerializerTest<TaskManager> {
       assertEquals(expectedTasks[i].getName(), tasks[i].getName());
       assertEquals(expectedTasks[i].getDescription(), tasks[i].getDescription());
       assertEquals(expectedTasks[i].getPriority(), tasks[i].getPriority());
+      assertEquals(expectedTasks[i].getStartDate(), tasks[i].getStartDate());
     }
 
     JournalEntry[] entries = manager.getJournal().getEntries();

@@ -25,7 +25,7 @@ public class AnworkAppUtilities {
   /**
    * This is the common date format that should be used in displaying {@link Date} objects.
    */
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm");
+  public static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM dd HH:mm");
 
   /**
    * Turn a {@link Task} into a human-readable single-line {@link String} that describes it.

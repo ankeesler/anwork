@@ -233,6 +233,21 @@ public class AppTest {
   }
 
   @Test
+  public void summaryTest() throws IOException {
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    run("task", "set-finished", "task-b");
+    run("task", "create", "task-c");
+    run("task", "note", "task-c", "hey");
+    run("task", "set-blocked", "task-a");
+    run("task", "set-running", "task-c");
+    run("task", "set-running", "task-a");
+    run("task", "set-finished", "task-a");
+    run("task", "set-finished", "task-c");
+    run("summary", "1");
+  }
+
+  @Test
   public void testNoPersist() throws IOException {
     run("--no-persist", "task", "create", "task-a");
     assertFalse(new FilePersister<TaskManager>(PERSISTENCE_ROOT).exists(CONTEXT));

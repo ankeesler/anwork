@@ -132,7 +132,7 @@ public class Task implements Comparable<Task>, Serializable<TaskProtobuf> {
                        .setId(id)
                        .setName(name)
                        .setDescription(description)
-                       .setStartDate(startDate.toInstant().getEpochSecond())
+                       .setStartDate(startDate.getTime())
                        .setPriority(priority)
                        .setState(TaskStateProtobuf.forNumber(state.ordinal()))
                        .build();

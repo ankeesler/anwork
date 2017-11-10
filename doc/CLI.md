@@ -6,6 +6,8 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 - -d|--debug: Turn on debug printing
 - -n|--no-persist: Do not persist any task information
 - -o|--output (STRING directory: The directory at which to output the persistence data): Set persistence output directory
+## Commands
+- anwork *summary* (NUMBER days: Number of days to look back for work): Show a summary of the past days of work
 # anwork *journal*: Journal commands...
 ## Commands
 - anwork journal *show* (STRING task-name: The name of the task whose journal entries will be shown): Show the entries in the journal for a task
