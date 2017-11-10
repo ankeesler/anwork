@@ -16,3 +16,10 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email:
+    recipients:
+      - ankeesler1@gmail.com
+    on_success: always
+    on_failure: always
