@@ -104,10 +104,6 @@ public class AnworkAppConfig {
     return doPersist;
   }
 
-  public boolean getDebug() {
-    return debug;
-  }
-
   public Consumer<String> getDebugPrinter() {
     return debugPrinter;
   }

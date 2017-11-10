@@ -253,6 +253,21 @@ public class AppTest {
     assertFalse(new FilePersister<TaskManager>(PERSISTENCE_ROOT).exists(CONTEXT));
   }
 
+  @Test
+  public void testNoFlags() {
+    AnworkApp.main(new String[] { "task", "delete-all" });
+    AnworkApp.main(new String[] { "summary", "10" });
+    AnworkApp.main(new String[] { "task", "create", "task-a" });
+    AnworkApp.main(new String[] { "task", "create", "task-b" });
+    AnworkApp.main(new String[] { "task", "set-finished", "task-b" });
+    AnworkApp.main(new String[] { "task", "set-running", "task-a" });
+    AnworkApp.main(new String[] { "task", "note", "task-a", "hey" });
+    AnworkApp.main(new String[] { "journal", "show", "task-b" });
+    AnworkApp.main(new String[] { "task", "set-finished", "task-a" });
+    AnworkApp.main(new String[] { "journal", "show-all" });
+    AnworkApp.main(new String[] { "summary", "10" });
+  }
+
   private void run(String...args) {
     String[] baseArgs = new String[] {
       "-d",
