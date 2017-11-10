@@ -5,8 +5,6 @@ into sections below.
 
 ## Application
 - Add the ability for a Task to have a category and display that category on the screen.
-- Add the ability to generate a report for what you did the last N days (look at all
-  finished tasks, tell how long they took).
 
 ## CLI
 - Add support for CliArgumentType.FILE.
