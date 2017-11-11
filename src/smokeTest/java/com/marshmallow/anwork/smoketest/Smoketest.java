@@ -1,6 +1,7 @@
 package com.marshmallow.anwork.smoketest;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,8 +51,15 @@ public class Smoketest {
   }
 
   @Before
-  public void deleteAllTasks() throws Exception {
-    run("task", "delete-all");
+  public void deleteContext() throws Exception {
+    ProcessBuilder processBuilder = new ProcessBuilder();
+    processBuilder.directory(smoketestDirectory);
+    processBuilder.command("rm", "-f", "default-context");
+    Process process = processBuilder.start();
+    while (process.isAlive()) {
+      // wait...
+    }
+    assertEquals(0, process.exitValue());
   }
 
   @Test
@@ -160,6 +168,24 @@ public class Smoketest {
   public void makeSureDebugPrintingWorks() throws Exception {
     expect(new String[] { "-d", "task", "create", "task-a" },
            new String[] { ".*created task.*"});
+  }
+
+  // We need both this method and makeSureTasksAreActuallyDeletedBetweenMethodsPart2 so that we can
+  // ensure we are running this check _after_ the first @Test method has run.
+  @Test
+  public void makeSureTasksAreActuallyDeletedBetweenMethodsPart1() throws Exception {
+    nexpect(new String[] { "journal", "show-all" },
+            new String[] { ".*", } );
+    run("task", "create", "task-a");
+  }
+
+  // We need both this method and makeSureTasksAreActuallyDeletedBetweenMethodsPart1 so that we can
+  // ensure we are running this check _after_ the first @Test method has run.
+  @Test
+  public void makeSureTasksAreActuallyDeletedBetweenMethodsPart2() throws Exception {
+    nexpect(new String[] { "journal", "show-all" },
+            new String[] { ".*", } );
+    run("task", "create", "task-a");
   }
 
   private void run(String...args) throws Exception {

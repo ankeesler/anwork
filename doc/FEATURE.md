@@ -13,7 +13,6 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- We need to clear the context between smoketest methods because there are leftover journal entries!
 
 ## Journaling
 
