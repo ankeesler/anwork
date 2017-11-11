@@ -1,33 +1,52 @@
 This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadmeDocumentationGenerator
 
-`anwork [-d|--debug] [-c|--context <name:STRING>] [-o|--output <directory:STRING>] [-n|--no-persist]` ... : ANWORK CLI commands
+# `anwork [-d|--debug] [-c|--context <name:STRING>] [-o|--output <directory:STRING>] [-n|--no-persist]` ... : ANWORK CLI commands
+* * `[-d|--debug]` : Turn on debug printing
+* * `[-c|--context <name:STRING>]` : Set the persistence context
+* * `[-o|--output <directory:STRING>]` : Set persistence output directory
+* * `[-n|--no-persist]` : Do not persist any task information
 * `anwork summary <days:NUMBER>`
 * * Show a summary of the past days of work
+* * `<days:NUMBER>` : Number of days to look back for work
 
-`anwork journal` ... : Journal commands...
+# `anwork journal` ... : Journal commands...
 * `anwork journal show <task-name:STRING>`
 * * Show the entries in the journal for a task
+* * `<task-name:STRING>` : The name of the task whose journal entries will be shown
 * `anwork journal show-all`
 * * Show all of the entries in the journal
 
-`anwork journal task` ... : Task commands...
+# `anwork journal task` ... : Task commands...
 * `anwork journal task create [-e|--description <description:STRING>] [-p|--priority <priority:NUMBER>] <task-name:STRING>`
 * * Create a task
+* * `[-e|--description <description:STRING>]` : The description of the task
+* * `[-p|--priority <priority:NUMBER>]` : The priority of the task
+* * `<task-name:STRING>` : The name of the task to create
 * `anwork journal task delete <task-name:STRING>`
 * * Delete a task
+* * `<task-name:STRING>` : The name of the task to delete
 * `anwork journal task delete-all`
 * * Delete all tasks
 * `anwork journal task note <task-name:STRING> <note:STRING>`
 * * Add a note to a task
+* * `<task-name:STRING>` : The name of the task to which to add a note
+* * `<note:STRING>` : The note to add to a task
 * `anwork journal task set-blocked <task-name:STRING>`
 * * Set a task as blocked
+* * `<task-name:STRING>` : The name of the task to set as blocked
 * `anwork journal task set-finished <task-name:STRING>`
 * * Set a task as finished
+* * `<task-name:STRING>` : The name of the task to set as finished
 * `anwork journal task set-priority <task-name:STRING> <priority:NUMBER>`
 * * Set the priority of a task
+* * `<task-name:STRING>` : The name of the task to set as finished
+* * `<priority:NUMBER>` : The priority to set on the task
 * `anwork journal task set-running <task-name:STRING>`
 * * Set a task as running
+* * `<task-name:STRING>` : The name of the task to set as running
 * `anwork journal task set-waiting <task-name:STRING>`
 * * Set a task as waiting
+* * `<task-name:STRING>` : The name of the task to set as waiting
 * `anwork journal task show [-s|--short]`
 * * Show all tasks
+* * `[-s|--short]` : Show a shorter description of all of the tasks

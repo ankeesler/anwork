@@ -64,19 +64,17 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
   @Override
   public void visitList(List list) {
     writer.println();
-
-    StringBuilder lineBuilder = new StringBuilder();
-    lineBuilder.append('`');
-    lineBuilder.append(makeListPrefix());
-    lineBuilder.append(list.getName());
-    lineBuilder.append(makeFlagText(list.getFlags()));
-    lineBuilder.append('`');
-    lineBuilder.append(" ...");
+    writer.print("# `");
+    writer.print(makeListPrefix());
+    writer.print(list.getName());
+    writeFlagsText(list.getFlags());
+    writer.print("` ...");
     if (list.hasDescription()) {
-      lineBuilder.append(" : ");
-      lineBuilder.append(list.getDescription());
+      writer.print(" : ");
+      writer.print(list.getDescription());
     }
-    writer.println(lineBuilder.toString());
+    writer.println();
+    writeFlagsDescriptions(list.getFlags());
     listStack.push(list.getName());
   }
 
@@ -86,20 +84,31 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
 
   @Override
   public void visitCommand(Command command) {
-    StringBuilder lineBuilder = new StringBuilder();
-    lineBuilder.append("* ");
-    lineBuilder.append('`');
-    lineBuilder.append(makeListPrefix());
-    lineBuilder.append(command.getName());
-    lineBuilder.append(makeFlagText(command.getFlags()));
-    for (Argument argument : command.getArguments()) {
-      lineBuilder.append(makeArgumentText(argument));
-    }
-    lineBuilder.append('`');
-    writer.println(lineBuilder.toString());
+    writer.print("* ");
+    writer.print('`');
+    writer.print(makeListPrefix());
+    writer.print(command.getName());
+    writeFlagsText(command.getFlags());
+    writeArgumentsText(command.getArguments());
+    writer.print('`');
+    writer.println();
 
     if (command.hasDescription()) {
-      writer.println("* * " + command.getDescription());
+      writer.print("* * ");
+      writer.print(command.getDescription());
+      writer.println();
+    }
+
+    writeFlagsDescriptions(command.getFlags());
+
+    for (Argument argument : command.getArguments()) {
+      if (argument.hasDescription()) {
+        writer.print("* * `");
+        writeArgumentText(argument);
+        writer.print("` : ");
+        writer.print(argument.getDescription());
+        writer.println();
+      }
     }
   }
 
@@ -108,33 +117,54 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
             + (listStack.empty() ? "" : " "));
   }
 
-  private String makeFlagText(Flag[] flags) {
-    StringBuilder textBuilder = new StringBuilder();
+  private void writeFlagsDescriptions(Flag[] flags) {
     for (Flag flag : flags) {
-      textBuilder.append(' ');
-      textBuilder.append('[');
-      textBuilder.append(Flag.FLAG_START).append(flag.getShortFlag());
-      if (flag.hasLongFlag()) {
-        textBuilder.append('|')
-                   .append(Flag.FLAG_START)
-                   .append(Flag.FLAG_START)
-                   .append(flag.getLongFlag());
+      if (flag.hasDescription()) {
+        writer.print("* * `");
+        writeFlagText(flag);
+        writer.print("` : ");
+        writer.print(flag.getDescription());
+        writer.println();
       }
-      if (flag.hasArgument()) {
-        textBuilder.append(makeArgumentText(flag.getArgument()));
-      }
-      textBuilder.append(']');
     }
-    return textBuilder.toString();
   }
 
-  private static String makeArgumentText(Argument argument) {
-    return new StringBuilder().append(' ')
-                              .append('<')
-                              .append(argument.getName())
-                              .append(':')
-                              .append(argument.getType().getName())
-                              .append('>')
-                              .toString();
+  private void writeFlagsText(Flag[] flags) {
+    for (Flag flag : flags) {
+      writer.print(' ');
+      writeFlagText(flag);
+    }
+  }
+
+  private void writeFlagText(Flag flag) {
+    writer.print('[');
+    writer.print(Flag.FLAG_START);
+    writer.print(flag.getShortFlag());
+    if (flag.hasLongFlag()) {
+      writer.print('|');
+      writer.print(Flag.FLAG_START);
+      writer.print(Flag.FLAG_START);
+      writer.print(flag.getLongFlag());
+    }
+    if (flag.hasArgument()) {
+      writer.print(' ');
+      writeArgumentText(flag.getArgument());
+    }
+    writer.print(']');
+  }
+
+  private void writeArgumentsText(Argument[] arguments) {
+    for (Argument argument : arguments) {
+      writer.print(' ');
+      writeArgumentText(argument);
+    }
+  }
+
+  private void writeArgumentText(Argument argument) {
+    writer.print('<');
+    writer.print(argument.getName());
+    writer.print(':');
+    writer.print(argument.getType().getName());
+    writer.print('>');
   }
 }
