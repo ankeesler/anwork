@@ -64,7 +64,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
   @Override
   public void visitList(List list) {
     writer.println();
-    writer.print("# `");
+    writer.print("# # `");
     writer.print(makeListPrefix());
     writer.print(list.getName());
     writeFlagsText(list.getFlags());
@@ -80,11 +80,12 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
 
   @Override
   public void leaveList(List list) {
+    listStack.pop();
   }
 
   @Override
   public void visitCommand(Command command) {
-    writer.print("* ");
+    writer.print("# # #");
     writer.print('`');
     writer.print(makeListPrefix());
     writer.print(command.getName());
@@ -94,7 +95,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
     writer.println();
 
     if (command.hasDescription()) {
-      writer.print("* * ");
+      writer.print("* ");
       writer.print(command.getDescription());
       writer.println();
     }
@@ -103,7 +104,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
 
     for (Argument argument : command.getArguments()) {
       if (argument.hasDescription()) {
-        writer.print("* * `");
+        writer.print("* `");
         writeArgumentText(argument);
         writer.print("` : ");
         writer.print(argument.getDescription());
@@ -120,7 +121,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
   private void writeFlagsDescriptions(Flag[] flags) {
     for (Flag flag : flags) {
       if (flag.hasDescription()) {
-        writer.print("* * `");
+        writer.print("* `");
         writeFlagText(flag);
         writer.print("` : ");
         writer.print(flag.getDescription());
