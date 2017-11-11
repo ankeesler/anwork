@@ -64,7 +64,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
   @Override
   public void visitList(List list) {
     writer.println();
-    writer.print("# # `");
+    writer.print("## `");
     writer.print(makeListPrefix());
     writer.print(list.getName());
     writeFlagsText(list.getFlags());
@@ -85,8 +85,7 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
 
   @Override
   public void visitCommand(Command command) {
-    writer.print("# # #");
-    writer.print('`');
+    writer.print("### `");
     writer.print(makeListPrefix());
     writer.print(command.getName());
     writeFlagsText(command.getFlags());
