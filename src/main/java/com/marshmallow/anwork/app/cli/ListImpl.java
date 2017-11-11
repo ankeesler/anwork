@@ -83,7 +83,7 @@ class ListImpl extends ListOrCommandImpl implements MutableList {
         return null;
       } else {
         // This is not a list or a command, so let's call it an unknown command!
-        throwBadArgException("Unknown command/list '" + arg + "' for list " + getName(),
+        throwBadArgException("Unknown command/list '" + arg + "' for list '" + getName() + "'",
                              args,
                              index);
       }
