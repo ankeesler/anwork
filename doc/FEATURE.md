@@ -8,8 +8,6 @@ into sections below.
 
 ## CLI
 - Add support for CliArgumentType.FILE.
-- Add examples into the CLI schema (an example should have "text" and a "description" of what the
-  example actually does).
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
