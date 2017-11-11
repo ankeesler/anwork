@@ -1,7 +1,7 @@
 package com.marshmallow.anwork.smoketest;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,6 +50,12 @@ public class Smoketest {
     }
   }
 
+  /**
+   * Clear the persistence context inbetween runs so that we start from a fresh state every time we
+   * run a test.
+   *
+   * @throws Exception if the process fails
+   */
   @Before
   public void deleteContext() throws Exception {
     ProcessBuilder processBuilder = new ProcessBuilder();
@@ -175,7 +181,7 @@ public class Smoketest {
   @Test
   public void makeSureTasksAreActuallyDeletedBetweenMethodsPart1() throws Exception {
     nexpect(new String[] { "journal", "show-all" },
-            new String[] { ".*", } );
+            new String[] { ".*", });
     run("task", "create", "task-a");
   }
 
@@ -184,7 +190,7 @@ public class Smoketest {
   @Test
   public void makeSureTasksAreActuallyDeletedBetweenMethodsPart2() throws Exception {
     nexpect(new String[] { "journal", "show-all" },
-            new String[] { ".*", } );
+            new String[] { ".*", });
     run("task", "create", "task-a");
   }
 
