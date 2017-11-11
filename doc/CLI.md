@@ -1,6 +1,6 @@
 This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadmeDocumentationGenerator
 
-## `anwork [-d|--debug] [-c|--context <name:STRING>] [-o|--output <directory:STRING>] [-n|--no-persist]` ... : ANWORK CLI commands
+## _anwork_ ... : ANWORK CLI commands
 * `[-d|--debug]` : Turn on debug printing
 * `[-c|--context <name:STRING>]` : Set the persistence context
 * `[-o|--output <directory:STRING>]` : Set persistence output directory
@@ -9,14 +9,14 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 * Show a summary of the past days of work
 * `<days:NUMBER>` : Number of days to look back for work
 
-## `anwork journal` ... : Journal commands...
+## _anwork journal_ ... : Journal commands...
 ### `anwork journal show <task-name:STRING>`
 * Show the entries in the journal for a task
 * `<task-name:STRING>` : The name of the task whose journal entries will be shown
 ### `anwork journal show-all`
 * Show all of the entries in the journal
 
-## `anwork task` ... : Task commands...
+## _anwork task_ ... : Task commands...
 ### `anwork task create [-e|--description <description:STRING>] [-p|--priority <priority:NUMBER>] <task-name:STRING>`
 * Create a task
 * `[-e|--description <description:STRING>]` : The description of the task

@@ -64,11 +64,10 @@ class GithubReadmeDocumentationGenerator implements DocumentationGenerator, Visi
   @Override
   public void visitList(List list) {
     writer.println();
-    writer.print("## `");
+    writer.print("## _");
     writer.print(makeListPrefix());
     writer.print(list.getName());
-    writeFlagsText(list.getFlags());
-    writer.print("` ...");
+    writer.print("_ ...");
     if (list.hasDescription()) {
       writer.print(" : ");
       writer.print(list.getDescription());
