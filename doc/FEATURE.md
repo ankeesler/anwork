@@ -10,6 +10,7 @@ into sections below.
     "set-running" $finished
   which would set all of the tasks that are finished as running.
 - We need to add a version number to every package! And a version command.
+- By default, the persistence context should be the home directory.
 
 ## CLI
 - Add support for CliArgumentType.FILE.
@@ -18,6 +19,7 @@ into sections below.
 - Can we mandate that protocol buffer classes are named accordingly?
 - Where is that mysterious "default-context" coming from at the root of the repo? We need to get rid
   of it.
+- What is this mysterious failure on Travis with the Smoketest?
 
 ## Journaling
 
