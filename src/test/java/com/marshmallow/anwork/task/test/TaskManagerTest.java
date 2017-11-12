@@ -3,7 +3,6 @@ package com.marshmallow.anwork.task.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.journal.JournalEntry;
@@ -215,15 +214,8 @@ public class TaskManagerTest {
     manager.addNote("Task2", "hey");
   }
 
-  // This method asserts that the provided list of expectedNames matches what is actually in the
-  // manager's journal.
   private void assertJournalEntriesEqual(String...expectedNames) {
-    // See TaskManagerJournalCache for more discussion on this weird logic.
-    JournalEntry[] entries = manager.getJournal().getEntries();
-    assertEquals(expectedNames.length, entries.length);
-    for (int i = 0; i < expectedNames.length; i++) {
-      assertTrue(entries[i].getTitle().contains(expectedNames[i]));
-    }
+    TaskManagerTestUtilities.assertJournalEntriesEqual(manager, expectedNames);
   }
 
   // This method asserts that the journal for the provided key is of length size.

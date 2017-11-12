@@ -5,12 +5,19 @@ into sections below.
 
 ## Application
 - Add the ability for a Task to have a category and display that category on the screen.
+- Add the ability to specify variables like "finished" and "running" in "task-name" CLI arguments.
+  Also, add the ability to specify task ids and officially test this. It can be like
+    "set-running" $finished
+  which would set all of the tasks that are finished as running.
+- We need to add a version number to every package! And a version command.
 
 ## CLI
 - Add support for CliArgumentType.FILE.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
+- Where is that mysterious "default-context" coming from at the root of the repo? We need to get rid
+  of it.
 
 ## Journaling
 

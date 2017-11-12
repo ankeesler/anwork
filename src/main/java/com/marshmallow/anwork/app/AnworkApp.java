@@ -22,14 +22,13 @@ public class AnworkApp {
    * ANWORK main method.
    *
    * @param args Command line argument
+   * @throws Exception for any runtime error
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     try {
       createCli().parse(args);
     } catch (Exception e) {
-      System.out.print("Error: ");
-      e.printStackTrace();
-      System.exit(1);
+      throw e;
     }
   }
 

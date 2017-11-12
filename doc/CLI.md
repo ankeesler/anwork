@@ -10,9 +10,9 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 * `<days:NUMBER>` : Number of days to look back for work
 
 ## _anwork journal_ ... : Journal commands...
-### `anwork journal show <task-name:STRING>`
+### `anwork journal show <task-specifier:STRING>`
 * Show the entries in the journal for a task
-* `<task-name:STRING>` : The name of the task whose journal entries will be shown
+* `<task-specifier:STRING>` : The name of the task whose journal entries will be shown
 ### `anwork journal show-all`
 * Show all of the entries in the journal
 
@@ -22,31 +22,31 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 * `[-e|--description <description:STRING>]` : The description of the task
 * `[-p|--priority <priority:NUMBER>]` : The priority of the task
 * `<task-name:STRING>` : The name of the task to create
-### `anwork task delete <task-name:STRING>`
+### `anwork task delete <task-specifier:STRING>`
 * Delete a task
-* `<task-name:STRING>` : The name of the task to delete
+* `<task-specifier:STRING>` : The task-specifier for the task(s) to delete
 ### `anwork task delete-all`
 * Delete all tasks
-### `anwork task note <task-name:STRING> <note:STRING>`
+### `anwork task note <task-specifier:STRING> <note:STRING>`
 * Add a note to a task
-* `<task-name:STRING>` : The name of the task to which to add a note
+* `<task-specifier:STRING>` : The task-specifier for the task(s) to which to add a note
 * `<note:STRING>` : The note to add to a task
-### `anwork task set-blocked <task-name:STRING>`
+### `anwork task set-blocked <task-specifier:STRING>`
 * Set a task as blocked
-* `<task-name:STRING>` : The name of the task to set as blocked
-### `anwork task set-finished <task-name:STRING>`
+* `<task-specifier:STRING>` : The task-specifier for the task(s) to set blocked
+### `anwork task set-finished <task-specifier:STRING>`
 * Set a task as finished
-* `<task-name:STRING>` : The name of the task to set as finished
-### `anwork task set-priority <task-name:STRING> <priority:NUMBER>`
+* `<task-specifier:STRING>` : The task-specifier for the task(s) to set finished
+### `anwork task set-priority <task-specifier:STRING> <priority:NUMBER>`
 * Set the priority of a task
-* `<task-name:STRING>` : The name of the task to set as finished
+* `<task-specifier:STRING>` : The task-specifier for the task(s) on which to set the priority
 * `<priority:NUMBER>` : The priority to set on the task
-### `anwork task set-running <task-name:STRING>`
+### `anwork task set-running <task-specifier:STRING>`
 * Set a task as running
-* `<task-name:STRING>` : The name of the task to set as running
-### `anwork task set-waiting <task-name:STRING>`
+* `<task-specifier:STRING>` : The task-specifier for the task(s) to set running
+### `anwork task set-waiting <task-specifier:STRING>`
 * Set a task as waiting
-* `<task-name:STRING>` : The name of the task to set as waiting
+* `<task-specifier:STRING>` : The task-specifier for the task(s) to set waiting
 ### `anwork task show [-s|--short]`
 * Show all tasks
 * `[-s|--short]` : Show a shorter description of all of the tasks

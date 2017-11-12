@@ -31,7 +31,7 @@ public abstract class TaskManagerCliAction implements Action {
    * This is the name of the {@link Argument} used to specify the name of a {@link Task}. It is of
    * type {@link ArgumentType#STRING}.
    */
-  protected static final String TASK_NAME_ARGUMENT = "task-name";
+  protected static final String TASK_SPECIFIER_ARGUMENT = "task-specifier";
 
   @Override
   public void run(ArgumentValues flags, ArgumentValues arguments) {
@@ -58,31 +58,13 @@ public abstract class TaskManagerCliAction implements Action {
                            ArgumentValues arguments,
                            TaskManager manager);
 
-  protected static String getTaskNameArgument(TaskManager manager, ArgumentValues arguments) {
-    String taskNameArgument = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
+  protected static String getTaskSpecifierArgument(TaskManager manager, ArgumentValues arguments) {
+    TaskSpecifierParser taskSpecifierParser = new TaskSpecifierParser(manager);
+    String taskSpecifier = arguments.getValue(TASK_SPECIFIER_ARGUMENT, ArgumentType.STRING);
 
-    // First we check if the argument is parsable as an integer.
-    Integer taskId;
-    try {
-      taskId = Integer.parseInt(taskNameArgument);
-    } catch (NumberFormatException nfe) {
-      taskId = null;
-    }
-
-    // If it is, then let's try to find the task in the manager with that ID.
-    Task foundTask = null;
-    if (taskId != null) {
-      for (Task task : manager.getTasks()) {
-        if (task.getId() == taskId) {
-          foundTask = task;
-          break;
-        }
-      }
-    }
-
-    // If we found the task, then return that name. Otherwise, we default back to the provided
-    // argument.
-    return (foundTask != null ? foundTask.getName() : taskNameArgument);
+    // See the javadoc for TaskSpecifierArgumentType#convert for the reason why we know this
+    // variable is non-null and not empty.
+    return taskSpecifierParser.parse(taskSpecifier)[0];
   }
 
   private TaskManager loadTaskManager(AnworkAppConfig config) throws Exception {

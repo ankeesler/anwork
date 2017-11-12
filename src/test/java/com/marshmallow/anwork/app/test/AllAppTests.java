@@ -11,6 +11,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
     BasicCliTest.class,
     CliXmlTest.class,
+    TaskSpecifierParserTest.class,
     AppTest.class,
   })
 /**

@@ -33,7 +33,7 @@ public class TaskCliActionCreator implements ActionCreator {
                     ArgumentValues flags,
                     ArgumentValues arguments,
                     TaskManager manager) {
-      String taskName = getTaskNameArgument(manager, arguments);
+      String taskName = getTaskSpecifierArgument(manager, arguments);
       manager.setState(taskName, taskState);
     }
   }
@@ -78,7 +78,7 @@ public class TaskCliActionCreator implements ActionCreator {
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
-            String name = arguments.getValue(TASK_NAME_ARGUMENT, ArgumentType.STRING);
+            String name = arguments.getValue("task-name", ArgumentType.STRING);
             String description = (flags.containsKey("e")
                                   ? flags.getValue("e", ArgumentType.STRING)
                                   : "");
@@ -104,7 +104,7 @@ public class TaskCliActionCreator implements ActionCreator {
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
-            String name = getTaskNameArgument(manager, arguments);
+            String name = getTaskSpecifierArgument(manager, arguments);
             Long priority = arguments.getValue("priority", ArgumentType.NUMBER);
             manager.setPriority(name, priority.intValue());
           }
@@ -116,7 +116,7 @@ public class TaskCliActionCreator implements ActionCreator {
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
-            String name = getTaskNameArgument(manager, arguments);
+            String name = getTaskSpecifierArgument(manager, arguments);
             manager.deleteTask(name);
             config.getDebugPrinter().accept("deleted task '" + name + "'");
           }
@@ -143,7 +143,7 @@ public class TaskCliActionCreator implements ActionCreator {
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
-            String name = getTaskNameArgument(manager, arguments);
+            String name = getTaskSpecifierArgument(manager, arguments);
             String note = arguments.getValue("note", ArgumentType.STRING);
             manager.addNote(name, note);
           }

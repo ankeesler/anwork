@@ -14,6 +14,7 @@ import com.marshmallow.anwork.journal.Journal;
 import com.marshmallow.anwork.task.Task;
 import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
+import com.marshmallow.anwork.task.test.TaskManagerTestUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,12 +49,12 @@ public class AppTest {
   }
 
   @Test
-  public void emptyArgsTest() {
+  public void emptyArgsTest() throws Exception {
     run();
   }
 
   @Test
-  public void createTest() throws IOException {
+  public void createTest() throws Exception {
     run("task", "create", "task-a",
         "-e", "This is the description for task A",
         "-p", "15");
@@ -91,7 +92,7 @@ public class AppTest {
   }
 
   @Test
-  public void setStateTest() throws IOException {
+  public void setStateTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "set-running", "task-a");
     run("task", "create", "task-b");
@@ -127,7 +128,7 @@ public class AppTest {
   }
 
   @Test
-  public void deleteTest() throws IOException {
+  public void deleteTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "delete", "task-a");
@@ -148,7 +149,7 @@ public class AppTest {
   }
 
   @Test
-  public void deleteAllTest() throws IOException {
+  public void deleteAllTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "create", "task-c");
@@ -160,7 +161,7 @@ public class AppTest {
   }
 
   @Test
-  public void showTest() throws IOException {
+  public void showTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "show");
@@ -171,7 +172,7 @@ public class AppTest {
   }
 
   @Test
-  public void noteTest() throws IOException {
+  public void noteTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "create", "task-c");
@@ -197,7 +198,7 @@ public class AppTest {
   }
 
   @Test
-  public void setPriorityTest() throws IOException {
+  public void setPriorityTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "set-priority", "task-a", "20");
@@ -207,7 +208,7 @@ public class AppTest {
   }
 
   @Test
-  public void showAllJournalTest() throws IOException {
+  public void showAllJournalTest() throws Exception {
     run("journal", "show-all");
     run("task", "create", "task-a");
     run("task", "create", "task-b");
@@ -217,23 +218,20 @@ public class AppTest {
   }
 
   @Test
-  public void showJournalTest() throws IOException {
-    run("journal", "show", "task-a");
+  public void showJournalTest() throws Exception {
     run("task", "create", "task-a");
     run("journal", "show", "task-a");
-    run("journal", "show", "task-b");
     run("task", "create", "task-b");
     run("journal", "show", "task-a");
     run("journal", "show", "task-b");
     run("task", "delete", "task-a");
-    run("journal", "show", "task-a");
     run("journal", "show", "task-b");
     run("task", "set-finished", "task-b");
     run("journal", "show", "task-b");
   }
 
   @Test
-  public void summaryTest() throws IOException {
+  public void summaryTest() throws Exception {
     run("task", "create", "task-a");
     run("task", "create", "task-b");
     run("task", "set-finished", "task-b");
@@ -248,13 +246,13 @@ public class AppTest {
   }
 
   @Test
-  public void testNoPersist() throws IOException {
+  public void testNoPersist() throws Exception {
     run("--no-persist", "task", "create", "task-a");
     assertFalse(new FilePersister<TaskManager>(PERSISTENCE_ROOT).exists(CONTEXT));
   }
 
   @Test
-  public void testNoFlags() {
+  public void testNoFlags() throws Exception {
     AnworkApp.main(new String[] { "task", "delete-all" });
     AnworkApp.main(new String[] { "summary", "10" });
     AnworkApp.main(new String[] { "task", "create", "task-a" });
@@ -268,7 +266,56 @@ public class AppTest {
     AnworkApp.main(new String[] { "summary", "10" });
   }
 
-  private void run(String...args) {
+  @Test
+  public void testTaskIdArgument() throws Exception {
+    run("task", "create", "task-a");
+    run("task", "create", "task-b");
+    TaskManager manager = readTaskManager();
+    assertEquals(2, manager.getTasks().length);
+    int taskAId = manager.getTasks()[0].getId();
+    int taskBId = manager.getTasks()[1].getId();
+
+    run("task", "set-blocked", "@" + taskAId);
+    run("task", "set-running", "@" + taskBId);
+
+    manager = readTaskManager();
+    assertEquals(2, manager.getTasks().length);
+    for (Task task : manager.getTasks()) {
+      if (task.getName().equals("task-a")) {
+        assertEquals(TaskState.BLOCKED, task.getState());
+      } else {
+        assertEquals("task-b", task.getName());
+        assertEquals(TaskState.RUNNING, task.getState());
+      }
+    }
+  }
+
+  @Test
+  public void testTaskNameIdMismatch() throws Exception {
+    run("task", "create", "2", "-p", "20");
+    run("task", "create", "1", "-p", "25");
+    run("task", "set-blocked", "2");
+    run("task", "set-running", "1");
+
+    TaskManager manager = readTaskManager();
+    int task2Id = manager.getTasks()[0].getId();
+    int task1Id = manager.getTasks()[1].getId();
+    run("task", "note", "@" + task2Id, "hey");
+    run("task", "note", "@" + task1Id, "ho");
+    TaskManagerTestUtilities.assertJournalEntriesEqual(readTaskManager(),
+                                                       "2", "1", "2", "1", "2", "1");
+  }
+
+  @Test(expected = Exception.class)
+  public void testBadId() throws Exception {
+    run("task", "create", "a");
+    TaskManager manager = readTaskManager();
+    int taskAId = manager.getTasks()[0].getId();
+    int wrongId = taskAId + 5;
+    run("task", "set-running", "@" + wrongId);
+  }
+
+  private void run(String...args) throws Exception {
     String[] baseArgs = new String[] {
       "-d",
       "--context", CONTEXT,

@@ -64,7 +64,7 @@ public class ArgumentValues {
     Object value = values.get(key);
     Class<T> conversionClass = valueType.getConversionClass();
     if (!conversionClass.isInstance(value)) {
-      throw new IllegalArgumentException("Incorrect flag value type. Got " + conversionClass
+      throw new IllegalArgumentException("Incorrect value type. Got " + conversionClass
                                          + " but expected " + value.getClass());
     }
     return conversionClass.cast(value);
