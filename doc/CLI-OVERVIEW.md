@@ -1,10 +1,10 @@
 # ANWORK CLI OVERVIEW
 
-The ANWORK CLI API is fully documented in [CLI.md](doc/CLI.md). Here are some tips and tricks.
+The ANWORK CLI API is fully documented in [CLI.md](CLI.md). Below are some tips and tricks.
 
 ## Creating a task
 
-To create a task named weigh-tuna, here is the command.
+To create a task named _weigh-tuna_, here is the command.
 ```
 $ anwork task create weigh-tuna
 ```
@@ -25,6 +25,13 @@ $ anwork task set-blocked weigh-tuna
 $ anwork task set-finished weigh-tuna
 ```
 
+## Adding a note to a task
+
+To add a note to a task, here is the command.
+```
+$ anwork task note weigh-tuna 'I tried weighing the tuna, but the scale is currently broken'
+```
+
 ## Showing the status of all tasks
 
 To print out the status of all current tasks, here is the command.
@@ -32,7 +39,7 @@ To print out the status of all current tasks, here is the command.
 $ anwork task show
 ```
 
-To print out a shortened status of the tasks, here is the command.
+To print out a shortened status of all current tasks, here is the command.
 ```
 $ anwork task show -s
 ```
@@ -58,10 +65,11 @@ $ anwork task delete weigh-tuna
 
 ## Using task specifiers
 
-A task specifier starts with an '@' symbol and can refer to one or more tasks. It can be passed to
+A task specifier starts with the '@' symbol and can refer to one or more tasks. It can be passed to
 the CLI commands that take an argument named _task-specifier_. Here are some examples.
 ```
 $ anwork task set-waiting @1 # set the task with ID 1 to the waiting state
+$ anwork task note @42 'Here is a note' # add a note to the task with ID 42
 ``` 
 
 ## Setting a persistence context
