@@ -26,7 +26,7 @@ public class AnworkApp {
    */
   public static void main(String[] args) throws Exception {
     try {
-      createCli().parse(args);
+      new AnworkApp().createCli().parse(args);
     } catch (Exception e) {
       throw e;
     }
@@ -38,7 +38,7 @@ public class AnworkApp {
    * @return The CLI for the ANWORK app.
    * @throws Exception if something goes wrong with creating the CLI
    */
-  public static Cli createCli() throws Exception {
+  public Cli createCli() throws Exception {
     try (InputStream xmlStream = AnworkApp.class.getResourceAsStream(CLI_XML_RESOURCE)) {
       return new CliXmlReader(xmlStream).read();
     }

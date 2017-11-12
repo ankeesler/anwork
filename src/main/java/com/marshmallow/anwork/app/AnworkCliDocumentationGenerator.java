@@ -27,7 +27,7 @@ public class AnworkCliDocumentationGenerator {
     try (PrintWriter writer = new PrintWriter(FILENAME)) {
       DocumentationGeneratorFactory.getInstance()
                                    .createGenerator(DocumentationType.GITHUB_MARKDOWN)
-                                   .generate(AnworkApp.createCli(), writer);
+                                   .generate(new AnworkApp().createCli(), writer);
     } catch (Exception e) {
       System.out.println("Error: " + e);
     }

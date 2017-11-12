@@ -39,13 +39,11 @@ public class JournalCliActionCreator implements ActionCreator {
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
+            // We know this task name is legitimate because #getTaskSpecifierArgument would have
+            // thrown an Exception if it wasn't.
             String name = getTaskSpecifierArgument(manager, arguments);
             Journal<TaskManagerJournalEntry> journal = manager.getJournal(name);
-            if (journal == null) {
-              System.out.println("No entries for task named " + name);
-            } else {
-              printJournal(journal);
-            }
+            printJournal(journal);
           }
         };
       default:
