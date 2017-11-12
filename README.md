@@ -15,7 +15,7 @@ $ anwork task create 'hello world'
 $ anwork task show
 ```
 
-See [CLI.md](doc/CLI.md) for full CLI documentation.
+See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 ## Developing
 

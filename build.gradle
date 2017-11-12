@@ -107,6 +107,7 @@ jar {
 // Include the ANWORK CLI documentation file in distributions
 applicationDistribution.from('.') {
   include 'doc/CLI.md'
+  include 'doc/CLI-OVERVIEW.md'
 }
 
 // Creating a distribution package should depend on documentation generation

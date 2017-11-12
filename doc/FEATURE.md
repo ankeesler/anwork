@@ -10,7 +10,6 @@ into sections below.
     "set-running" $finished
   which would set all of the tasks that are finished as running.
 - We need to add a version number to every package! And a version command.
-- We need some way of specifying the task specifier format externally.
 
 ## CLI
 - Add support for CliArgumentType.FILE.

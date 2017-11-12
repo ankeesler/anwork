@@ -69,7 +69,7 @@
       <actionCreator class="com.marshmallow.anwork.app.JournalCliActionCreator" />
     </command>
     <command name="show" description="Show the entries in the journal for a task">
-      <argument name="task-specifier" description="The name of the task whose journal entries will be shown" type="STRING" />
+      <argument name="task-specifier" description="The task-specifier for the task(s) for which to show journal entries" type="STRING" />
       <actionCreator class="com.marshmallow.anwork.app.JournalCliActionCreator" />
     </command>
   </list>

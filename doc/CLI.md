@@ -12,7 +12,7 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 ## _anwork journal_ ... : Journal commands...
 ### `anwork journal show <task-specifier:STRING>`
 * Show the entries in the journal for a task
-* `<task-specifier:STRING>` : The name of the task whose journal entries will be shown
+* `<task-specifier:STRING>` : The task-specifier for the task(s) for which to show journal entries
 ### `anwork journal show-all`
 * Show all of the entries in the journal
 
