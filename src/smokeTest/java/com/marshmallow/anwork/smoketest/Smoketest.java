@@ -1,6 +1,5 @@
 package com.marshmallow.anwork.smoketest;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -51,21 +50,14 @@ public class Smoketest {
   }
 
   /**
-   * Clear the persistence context inbetween runs so that we start from a fresh state every time we
+   * Clear the persistence context in-between runs so that we start from a fresh state every time we
    * run a test.
    *
    * @throws Exception if the process fails
    */
   @Before
   public void deleteContext() throws Exception {
-    ProcessBuilder processBuilder = new ProcessBuilder();
-    processBuilder.directory(smoketestDirectory);
-    processBuilder.command("rm", "-f", "default-context");
-    Process process = processBuilder.start();
-    while (process.isAlive()) {
-      // wait...
-    }
-    assertEquals(0, process.exitValue());
+    run("reset", "--force");
   }
 
   @Test

@@ -29,12 +29,13 @@ public class TaskCliActionCreator implements ActionCreator {
     }
 
     @Override
-    public void run(AnworkAppConfig config,
-                    ArgumentValues flags,
-                    ArgumentValues arguments,
-                    TaskManager manager) {
+    public boolean run(AnworkAppConfig config,
+                       ArgumentValues flags,
+                       ArgumentValues arguments,
+                       TaskManager manager) {
       String taskName = getTaskSpecifierArgument(manager, arguments);
       manager.setState(taskName, taskState);
+      return true;
     }
   }
 
@@ -43,16 +44,17 @@ public class TaskCliActionCreator implements ActionCreator {
     public static final ShowCliAction INSTANCE = new ShowCliAction();
 
     @Override
-    public void run(AnworkAppConfig config,
-                    ArgumentValues flags,
-                    ArgumentValues arguments,
-                    TaskManager manager) {
+    public boolean run(AnworkAppConfig config,
+                       ArgumentValues flags,
+                       ArgumentValues arguments,
+                       TaskManager manager) {
       Boolean showShort = flags.getValue("s", ArgumentType.BOOLEAN);
       boolean reallyShortShort = showShort != null && showShort;
       printTasksForState(TaskState.RUNNING, manager, reallyShortShort);
       printTasksForState(TaskState.BLOCKED, manager, reallyShortShort);
       printTasksForState(TaskState.WAITING, manager, reallyShortShort);
       printTasksForState(TaskState.FINISHED, manager, reallyShortShort);
+      return true;
     }
 
     private void printTasksForState(TaskState state, TaskManager manager, boolean showShort) {
@@ -74,10 +76,10 @@ public class TaskCliActionCreator implements ActionCreator {
       case "create":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
-                          ArgumentValues flags,
-                          ArgumentValues arguments,
-                          TaskManager manager) {
+          public boolean run(AnworkAppConfig config,
+                             ArgumentValues flags,
+                             ArgumentValues arguments,
+                             TaskManager manager) {
             String name = arguments.getValue("task-name", ArgumentType.STRING);
             String description = (flags.containsKey("e")
                                   ? flags.getValue("e", ArgumentType.STRING)
@@ -87,6 +89,7 @@ public class TaskCliActionCreator implements ActionCreator {
                                  : Task.DEFAULT_PRIORITY);
             manager.createTask(name, description, priority);
             config.getDebugPrinter().accept("created task '" + name + "'");
+            return true;
           }
         };
       case "set-waiting":
@@ -100,31 +103,33 @@ public class TaskCliActionCreator implements ActionCreator {
       case "set-priority":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
-                          ArgumentValues flags,
-                          ArgumentValues arguments,
-                          TaskManager manager) {
+          public boolean run(AnworkAppConfig config,
+                             ArgumentValues flags,
+                             ArgumentValues arguments,
+                             TaskManager manager) {
             String name = getTaskSpecifierArgument(manager, arguments);
             Long priority = arguments.getValue("priority", ArgumentType.NUMBER);
             manager.setPriority(name, priority.intValue());
+            return true;
           }
         };
       case "delete":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
-                          ArgumentValues flags,
-                          ArgumentValues arguments,
-                          TaskManager manager) {
+          public boolean run(AnworkAppConfig config,
+                             ArgumentValues flags,
+                             ArgumentValues arguments,
+                             TaskManager manager) {
             String name = getTaskSpecifierArgument(manager, arguments);
             manager.deleteTask(name);
             config.getDebugPrinter().accept("deleted task '" + name + "'");
+            return true;
           }
         };
       case "delete-all":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
+          public boolean run(AnworkAppConfig config,
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
@@ -132,6 +137,7 @@ public class TaskCliActionCreator implements ActionCreator {
               manager.deleteTask(task.getName());
             }
             config.getDebugPrinter().accept("deleted all tasks");
+            return true;
           }
         };
       case "show":
@@ -139,13 +145,14 @@ public class TaskCliActionCreator implements ActionCreator {
       case "note":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
-                          ArgumentValues flags,
-                          ArgumentValues arguments,
-                          TaskManager manager) {
+          public boolean run(AnworkAppConfig config,
+                             ArgumentValues flags,
+                             ArgumentValues arguments,
+                             TaskManager manager) {
             String name = getTaskSpecifierArgument(manager, arguments);
             String note = arguments.getValue("note", ArgumentType.STRING);
             manager.addNote(name, note);
+            return true;
           }
         };
       default:

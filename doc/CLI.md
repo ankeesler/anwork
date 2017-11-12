@@ -5,6 +5,9 @@ This documentation is generated from com.marshmallow.anwork.app.cli.GithubReadme
 * `[-c|--context <name:STRING>]` : Set the persistence context
 * `[-o|--output <directory:STRING>]` : Set persistence output directory
 * `[-n|--no-persist]` : Do not persist any task information
+### `anwork reset [-f|--force]`
+* Completely delete all ANWORK stuff related to this persistence context
+* `[-f|--force]` : Force the persistence context to be deleted, i.e., don't prompt the user for approval
 ### `anwork summary <days:NUMBER>`
 * Show a summary of the past days of work
 * `<days:NUMBER>` : Number of days to look back for work

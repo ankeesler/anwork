@@ -23,15 +23,16 @@ import java.util.Date;
  */
 public class AnworkSummaryAction extends TaskManagerCliAction {
   @Override
-  public void run(AnworkAppConfig config,
-                  ArgumentValues flags,
-                  ArgumentValues arguments,
-                  TaskManager manager) {
+  public boolean run(AnworkAppConfig config,
+                     ArgumentValues flags,
+                     ArgumentValues arguments,
+                     TaskManager manager) {
     Long days = arguments.getValue("days", ArgumentType.NUMBER);
     Journal<TaskManagerJournalEntry> journal = manager.getJournal();
     TaskManagerJournalEntry[] entries = journal.getEntries();
     int recentEntriesCount = getRecentJournalEntriesCount(entries, days.intValue());
     printFinishedTasks(entries, recentEntriesCount);
+    return true;
   }
 
   // This method returns an integer describing how many of the journal entries happened in the last

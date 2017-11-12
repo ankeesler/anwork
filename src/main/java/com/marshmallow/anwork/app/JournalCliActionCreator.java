@@ -25,17 +25,18 @@ public class JournalCliActionCreator implements ActionCreator {
       case "show-all":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
+          public boolean run(AnworkAppConfig config,
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
             printJournal(manager.getJournal());
+            return true;
           }
         };
       case "show":
         return new TaskManagerCliAction() {
           @Override
-          public void run(AnworkAppConfig config,
+          public boolean run(AnworkAppConfig config,
                           ArgumentValues flags,
                           ArgumentValues arguments,
                           TaskManager manager) {
@@ -44,6 +45,7 @@ public class JournalCliActionCreator implements ActionCreator {
             String name = getTaskSpecifierArgument(manager, arguments);
             Journal<TaskManagerJournalEntry> journal = manager.getJournal(name);
             printJournal(journal);
+            return true;
           }
         };
       default:

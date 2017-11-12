@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,14 +39,16 @@ public class AppTest {
   private static final File PERSISTENCE_ROOT = TestUtilities.getFile(".", AppTest.class);
 
   /**
-   * Hack-ish-ly clean up any existing context so we run our test cases fresh.
+   * Reset our persistence contexts so that our tests are able to start and finish in a known good
+   * state.
+   *
+   * @throws Exception if something goes wrong
    */
   @Before
-  public void removePreviousContext() throws IOException {
-    Persister<TaskManager> persister = new FilePersister<TaskManager>(PERSISTENCE_ROOT);
-    if (persister.exists(CONTEXT)) {
-      persister.clear(CONTEXT);
-    }
+  @After
+  public void resetPersistenceContexts() throws Exception {
+    AnworkApp.main(new String[] { "reset", "--force" });
+    run("reset", "--force");
   }
 
   @Test
@@ -315,7 +318,7 @@ public class AppTest {
     run("task", "set-running", "@" + wrongId);
   }
 
-  private void run(String...args) throws Exception {
+  private static void run(String...args) throws Exception {
     String[] baseArgs = new String[] {
       "-d",
       "--context", CONTEXT,

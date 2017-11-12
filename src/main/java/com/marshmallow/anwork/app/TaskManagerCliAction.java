@@ -38,8 +38,9 @@ public abstract class TaskManagerCliAction implements Action {
     AnworkAppConfig config = new AnworkAppConfig(flags);
     try {
       TaskManager manager = loadTaskManager(config);
-      run(config, flags, arguments, manager);
-      saveTaskManager(config, manager);
+      if (run(config, flags, arguments, manager)) {
+        saveTaskManager(config, manager);
+      }
     } catch (Exception e) {
       throw new IllegalStateException("Failed task manager action!", e);
     }
@@ -52,11 +53,12 @@ public abstract class TaskManagerCliAction implements Action {
    * @param flags The {@link Flag} {@link ArgumentValues} passed to this {@link Command}
    * @param arguments The {@link ArgumentValues} passed to this {@link Command}
    * @param manager The task manager
+   * @return Whether or not the {@code manager} should be persisted to file.
    */
-  public abstract void run(AnworkAppConfig config,
-                           ArgumentValues flags,
-                           ArgumentValues arguments,
-                           TaskManager manager);
+  public abstract boolean run(AnworkAppConfig config,
+                              ArgumentValues flags,
+                              ArgumentValues arguments,
+                              TaskManager manager);
 
   protected static String getTaskSpecifierArgument(TaskManager manager, ArgumentValues arguments) {
     TaskSpecifierParser taskSpecifierParser = new TaskSpecifierParser(manager);
@@ -67,10 +69,16 @@ public abstract class TaskManagerCliAction implements Action {
     return taskSpecifierParser.parse(taskSpecifier)[0];
   }
 
+  protected static Persister<TaskManager> getPersister(AnworkAppConfig config) {
+    File persistenceRoot = config.getPersistenceRoot();
+    Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
+    return persister;
+  }
+
   private TaskManager loadTaskManager(AnworkAppConfig config) throws Exception {
     String context = config.getContext();
     File persistenceRoot = config.getPersistenceRoot();
-    Persister<TaskManager> persister = new FilePersister<TaskManager>(persistenceRoot);
+    Persister<TaskManager> persister = getPersister(config);
     if (!config.getDoPersist()) {
       config.getDebugPrinter().accept("not loading task manager because"
                                       + " persist command line option set to false");
@@ -92,7 +100,7 @@ public abstract class TaskManagerCliAction implements Action {
   }
 
   private void saveTaskManager(AnworkAppConfig config, TaskManager taskManager) throws Exception {
-    Persister<TaskManager> persister = new FilePersister<TaskManager>(config.getPersistenceRoot());
+    Persister<TaskManager> persister = getPersister(config);
     if (!config.getDoPersist()) {
       config.getDebugPrinter().accept("not saving task manager because"
                                       + " no-persist command line option set");

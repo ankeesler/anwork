@@ -14,6 +14,11 @@
     <action class="com.marshmallow.anwork.app.AnworkSummaryAction" />
   </command>
 
+  <command name="reset" description="Completely delete all ANWORK stuff related to this persistence context">
+    <flag shortFlag="f" longFlag="force" description="Force the persistence context to be deleted, i.e., don't prompt the user for approval" />
+    <action class="com.marshmallow.anwork.app.AnworkResetAction" />
+  </command>
+
   <list name="task" description="Task commands...">
     <command name="create" description="Create a task">
       <flag shortFlag="e" longFlag="description" description="The description of the task">

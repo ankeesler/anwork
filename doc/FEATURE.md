@@ -17,8 +17,6 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- Where is that mysterious "default-context" coming from at the root of the repo? We need to get rid
-  of it.
 - What is this mysterious failure on Travis with the Smoketest?
 
 ## Journaling
