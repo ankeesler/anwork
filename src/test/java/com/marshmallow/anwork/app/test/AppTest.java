@@ -16,8 +16,10 @@ import com.marshmallow.anwork.task.TaskManager;
 import com.marshmallow.anwork.task.TaskState;
 import com.marshmallow.anwork.task.test.TaskManagerTestUtilities;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 
 import org.junit.After;
@@ -318,6 +320,30 @@ public class AppTest {
     run("task", "set-running", "@" + wrongId);
   }
 
+  @Test
+  public void testResetInput() throws Exception {
+    run("task", "create", "task-a");
+    assertEquals(1, readTaskManager().getTasks().length);
+
+    InputStream realStdin = System.in;
+
+    // When we read in a "n" then we do not do a reset.
+    byte[] bytes = new byte[] { 'n', '\n' };
+    InputStream fakeStdin = new ByteArrayInputStream(bytes);
+    System.setIn(fakeStdin);
+    run("reset");
+    System.setIn(realStdin);
+    assertEquals(1, readTaskManager().getTasks().length);
+
+    // We read in an "a", which doesn't do anything, and the we read in a "y" which does a reset.
+    bytes = new byte[] { 'a', '\n', 'y', '\n' };
+    fakeStdin = new ByteArrayInputStream(bytes);
+    System.setIn(fakeStdin);
+    run("reset");
+    System.setIn(realStdin);
+    assertFalse(doesTaskManagerExist());
+  }
+
   private static void run(String...args) throws Exception {
     String[] baseArgs = new String[] {
       "-d",
@@ -335,5 +361,9 @@ public class AppTest {
     Collection<TaskManager> loadeds = persister.load(CONTEXT, TaskManager.SERIALIZER);
     assertEquals(1, loadeds.size());
     return loadeds.toArray(new TaskManager[0])[0];
+  }
+
+  private boolean doesTaskManagerExist() {
+    return new FilePersister<TaskManager>(PERSISTENCE_ROOT).exists(CONTEXT);
   }
 }

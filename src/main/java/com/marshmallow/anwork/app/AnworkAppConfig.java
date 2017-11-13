@@ -86,8 +86,7 @@ public class AnworkAppConfig {
       doPersist = false;
     }
 
-    Boolean debug = (Boolean)getFlagValue(flags, CliFlag.DEBUG);
-    if (debug != null && debug.equals(Boolean.TRUE)) {
+    if (flags.containsKey(CliFlag.DEBUG.getShortFlag())) {
       this.debug = true;
     }
   }

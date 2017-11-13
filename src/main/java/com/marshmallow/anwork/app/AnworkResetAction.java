@@ -25,7 +25,7 @@ public class AnworkResetAction extends TaskManagerCliAction {
                      ArgumentValues arguments,
                      TaskManager manager) {
     boolean force = flags.containsKey("f");
-    if (force || doReallyActionDeleteEveryting()) {
+    if (force || doReallyActuallyDeleteEveryting()) {
       String context = config.getContext();
       Persister<TaskManager> persister = getPersister(config);
       try {
@@ -44,12 +44,12 @@ public class AnworkResetAction extends TaskManagerCliAction {
     return false;
   }
 
-  private boolean doReallyActionDeleteEveryting() {
+  private boolean doReallyActuallyDeleteEveryting() {
     String answer;
     try (Scanner scanner = new Scanner(System.in)) {
       do {
         System.out.print("Are you sure you want to delete everything (y/n): ");
-        answer = scanner.next();
+        answer = scanner.nextLine();
       } while (!(answer.equals("y") || answer.equals("n")));
     }
     return answer.equals("y");

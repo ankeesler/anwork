@@ -48,12 +48,11 @@ public class TaskCliActionCreator implements ActionCreator {
                        ArgumentValues flags,
                        ArgumentValues arguments,
                        TaskManager manager) {
-      Boolean showShort = flags.getValue("s", ArgumentType.BOOLEAN);
-      boolean reallyShortShort = showShort != null && showShort;
-      printTasksForState(TaskState.RUNNING, manager, reallyShortShort);
-      printTasksForState(TaskState.BLOCKED, manager, reallyShortShort);
-      printTasksForState(TaskState.WAITING, manager, reallyShortShort);
-      printTasksForState(TaskState.FINISHED, manager, reallyShortShort);
+      boolean showShort = flags.containsKey("s");
+      printTasksForState(TaskState.RUNNING, manager, showShort);
+      printTasksForState(TaskState.BLOCKED, manager, showShort);
+      printTasksForState(TaskState.WAITING, manager, showShort);
+      printTasksForState(TaskState.FINISHED, manager, showShort);
       return true;
     }
 
