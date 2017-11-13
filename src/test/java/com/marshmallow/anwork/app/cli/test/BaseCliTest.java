@@ -1,5 +1,6 @@
 package com.marshmallow.anwork.app.cli.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import com.marshmallow.anwork.app.cli.Cli;
@@ -96,6 +97,7 @@ public abstract class BaseCliTest {
     for (DocumentationType documentationType : DocumentationType.values()) {
       DocumentationGenerator generator
           = DocumentationGeneratorFactory.getInstance().createGenerator(documentationType);
+      assertEquals(documentationType, generator.getType());
       try {
         generator.generate(cli, new PrintWriter(new NoOpWriter(), false));
       } catch (Exception e) {

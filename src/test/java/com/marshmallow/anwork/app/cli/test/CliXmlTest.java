@@ -198,6 +198,11 @@ public class CliXmlTest extends BaseCliTest {
     read("too-many-flag-arguments.xml");
   }
 
+  @Test(expected = Exception.class)
+  public void badXml() throws Exception {
+    read("bad-xml.xml");
+  }
+
   private Cli read(String filename) throws Exception {
     File file = TestUtilities.getFile(filename, getClass());
     InputStream stream = new FileInputStream(file);
