@@ -86,6 +86,11 @@ public class TaskCliActionCreator implements ActionCreator {
             int priority = (int)(flags.containsKey("p")
                                  ? flags.getValue("p", ArgumentType.NUMBER)
                                  : Task.DEFAULT_PRIORITY);
+            if (name.charAt(0) == TaskSpecifierParser.SPECIAL_CHARACTER) {
+              String message = String.format("Task name cannot begin with special character '%c'",
+                                             TaskSpecifierParser.SPECIAL_CHARACTER);
+              throw new IllegalStateException(message);
+            }
             manager.createTask(name, description, priority);
             config.getDebugPrinter().accept("created task '" + name + "'");
             return true;

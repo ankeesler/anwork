@@ -344,6 +344,13 @@ public class AppTest {
     assertFalse(doesTaskManagerExist());
   }
 
+  @Test(expected = Exception.class)
+  public void testInvalidSpecialCharacterName() throws Exception {
+    // This test ensures that we don't allow ourselves to shoot ourselves in the foot with a task
+    // name that starts with the special character.
+    run("task", "create", "@hey");
+  }
+
   private static void run(String...args) throws Exception {
     String[] baseArgs = new String[] {
       "-d",
