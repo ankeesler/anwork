@@ -59,8 +59,10 @@ public class SmoketestExpecter {
     List<String> cliOutputLines = getCliOutputLines(process);
     Map<String, String> matches = findFirstMatches(expectedRegexes, cliOutputLines);
     if (matches == null) {
-      fail("Could not find regexes " + Arrays.toString(expectedRegexes) + " "
-           + "in output lines:\n" + makePrettyLines(cliOutputLines));
+      String message = ("Could not find regexes " + Arrays.toString(expectedRegexes) + " "
+                        + "in output lines:\n" + makePrettyLines(cliOutputLines));
+      System.out.println(message);
+      fail(message);
     } else {
       for (String regex : matches.keySet()) {
         System.out.println("Matched '" + regex + "' to '" + matches.get(regex));
@@ -92,8 +94,14 @@ public class SmoketestExpecter {
     List<String> cliOutputLines = getCliOutputLines(process);
     Map<String, String> matches = findFirstMatches(nexpectedRegexes, cliOutputLines);
     if (matches != null) {
-      fail("Found regexes " + Arrays.toString(nexpectedRegexes) + " "
-           + "in output lines:\n" + makePrettyLines(cliOutputLines));
+      String message = ("Found regexes " + Arrays.toString(nexpectedRegexes) + " "
+                        + "in output lines:\n" + makePrettyLines(cliOutputLines));
+      System.out.println(message);
+      fail(message);
+    } else {
+      for (String regex : nexpectedRegexes) {
+        System.out.println("Did not get " + regex + " in " + cliOutputLines);
+      }
     }
   }
 
