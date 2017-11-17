@@ -11,6 +11,11 @@ into sections below.
   which would set all of the tasks that are finished as running.
 - We need to add a version number to every package! And a version command.
 - By default, the persistence context should be the home directory.
+- Show the summary of a task. For example, the amount of times we moved from running to blocked and
+  running to waiting. Basically the amount of times we switched out of running to something other
+  than finished. We could create some sort of "stat" index.
+- We should really reorganize the CLI API. Do we really need the "journal" and "task" sub-lists?
+- We should use the new java.time package! It is much better and can fix our "elapsed date" issue.
 
 ## CLI
 - Add support for CliArgumentType.FILE.
@@ -18,6 +23,8 @@ into sections below.
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
 - What is this mysterious failure on Travis with the Smoketest?
+- The smoketests really need to be beefed up. We need to add in minute long waits to test the
+  different date stuffs.
 
 ## Journaling
 
