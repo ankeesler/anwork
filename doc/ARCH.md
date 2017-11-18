@@ -14,6 +14,10 @@ There are a lot of places where we use the java.lang.String type in a weak-typed
 experiment. We are curious whether or not using a java.lang.String is a better way forward than
 using a java.lang.Object or generic type.
 
+Versioning is done with a single 32-bit integer. Version names start with a lowercase 'v' and are
+then followed by the number of the release. For example, the first view of the release was named
+_v1_. The second version of the release will be _v2_. There are no minor version numbers.
+
 ## Core
 
 The com.marshmallow.anwork.core package contains utilities and interfaces that apply to the whole
