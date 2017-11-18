@@ -88,8 +88,6 @@ task updateVersion(type: Exec) {
   commandLine 'sed', '-i', '.bak', '-e', sedLine, versionClass
 }
 
-classes.dependsOn updateVersion
-
 // ------------------------------------------------------------------------------------------------
 // Section - Documentation
 
