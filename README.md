@@ -21,15 +21,16 @@ See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 ## Developing
 
-To run the stage 1 tests, try the following.
+To run the unit tests, try the following.
 ```
 $ ./gradlew check
 ```
 
-To run the stage 2 tests, try the following.
+To run the smoke tests, try the following.
 ```
 $ ./gradlew smoke
 ```
 
 - See [ARCH.md](doc/ARCH.md) for architecture information.
 - See [FEATURE.md](doc/FEATURE.md) for planned features.
+- See [anwork_testing](https://github.com/ankeesler/anwork_testing) for more testing
