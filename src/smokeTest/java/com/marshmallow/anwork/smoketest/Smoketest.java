@@ -206,10 +206,14 @@ public class Smoketest {
 
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     configureProcess(processBuilder);
-    if (expect) {
-      SmoketestExpecter.expect(expectRegexes, processBuilder);
-    } else {
-      SmoketestExpecter.nexpect(expectRegexes, processBuilder);
+    try {
+      if (expect) {
+        SmoketestExpecter.expect(expectRegexes, processBuilder);
+      } else {
+        SmoketestExpecter.nexpect(expectRegexes, processBuilder);
+      }
+    } catch (AssertionError error) {
+      fail(error.getMessage());
     }
   }
 
