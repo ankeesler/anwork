@@ -94,7 +94,8 @@ public abstract class TaskManagerCliAction implements Action {
     if (loadeds.size() != 1) {
       throw new IllegalStateException("Persistence root " + persistenceRoot
                                       + " and context " + context
-                                      + " contains 0 or more than 1 task manager.");
+                                      + " contains " + loadeds.size() + " task manager"
+                                      + " (expected 1).");
     }
     return loadeds.toArray(new TaskManager[0])[0];
   }
