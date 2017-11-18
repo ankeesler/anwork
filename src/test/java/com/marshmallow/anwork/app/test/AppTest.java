@@ -344,6 +344,11 @@ public class AppTest {
     assertFalse(doesTaskManagerExist());
   }
 
+  @Test
+  public void testVersionCommand() throws Exception {
+    run("version");
+  }
+
   @Test(expected = Exception.class)
   public void testInvalidSpecialCharacterName() throws Exception {
     // This test ensures that we don't allow ourselves to shoot ourselves in the foot with a task

@@ -24,6 +24,9 @@ apply plugin: 'jacoco'
 // Set the default task
 defaultTasks 'check'
 
+// Define the version
+version = 1
+
 // Define the main class for the application
 mainClassName = 'com.marshmallow.anwork.app.AnworkApp'
 
@@ -74,6 +77,18 @@ protobuf {
         artifact = 'com.google.protobuf:protoc:3.0.0'
     }
 }
+
+// ------------------------------------------------------------------------------------------------
+// Section - Building
+
+// Make sure the version number is up to date in the java code
+task updateVersion(type: Exec) {
+  def versionClass = 'src/main/java/com/marshmallow/anwork/app/AnworkVersionAction.java'
+  def sedLine = 's/^  private static final int VERSION = .*;$/  private static final int VERSION = ' + version + ';/'
+  commandLine 'sed', '-i', '.bak', '-e', sedLine, versionClass
+}
+
+classes.dependsOn updateVersion
 
 // ------------------------------------------------------------------------------------------------
 // Section - Documentation

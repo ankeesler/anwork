@@ -16,7 +16,9 @@ using a java.lang.Object or generic type.
 
 Versioning is done with a single 32-bit integer. Version names start with a lowercase 'v' and are
 then followed by the number of the release. For example, the first view of the release was named
-_v1_. The second version of the release will be _v2_. There are no minor version numbers.
+_v1_. The second version of the release will be _v2_. There are no minor version numbers. This
+version number is controlled via the "version" property in the gradle project. See the CLI command
+"anwork version" and the gradle task updateVersion for more information.
 
 ## Core
 

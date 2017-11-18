@@ -9,6 +9,9 @@
   </flag>
   <flag shortFlag="n" longFlag="no-persist" description="Do not persist any task information" />
 
+  <command name="version" description="Show the version information for this instance of ANWORK">
+    <action class="com.marshmallow.anwork.app.AnworkVersionAction" />
+  </command>
   <command name="summary" description="Show a summary of the past days of work">
     <argument name="days" description="Number of days to look back for work" type="NUMBER" />
     <action class="com.marshmallow.anwork.app.AnworkSummaryAction" />
