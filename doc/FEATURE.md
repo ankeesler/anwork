@@ -9,7 +9,7 @@ into sections below.
   Also, add the ability to specify task ids and officially test this. It can be like
     "set-running" $finished
   which would set all of the tasks that are finished as running.
-- We need to add a version number to every package! And a version command.
+- We need to add a version number to every package!
 - By default, the persistence context should be the home directory.
 - Show the summary of a task. For example, the amount of times we moved from running to blocked and
   running to waiting. Basically the amount of times we switched out of running to something other
