@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 public class SmoketestExpecter {
 
   private static final boolean DEBUG = true;
+  private static int PROCESS_TIMEOUT_MS = 3000;
 
   // Use #expect below.
   private SmoketestExpecter() { }
@@ -117,7 +118,7 @@ public class SmoketestExpecter {
     long startMillis = System.currentTimeMillis();
     while (process.isAlive()) {
       long nowMillis = System.currentTimeMillis();
-      if (nowMillis - startMillis > 1000) {
+      if (nowMillis - startMillis > PROCESS_TIMEOUT_MS) {
         process.destroy();
         if (process.isAlive()) {
           process.destroyForcibly();
