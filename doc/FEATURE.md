@@ -22,9 +22,6 @@ into sections below.
 
 ## Infrastructure
 - Can we mandate that protocol buffer classes are named accordingly?
-- What is this mysterious failure on Travis with the Smoketest?
-- The smoketests really need to be beefed up. We need to add in minute long waits to test the
-  different date stuffs.
 
 ## Journaling
 
