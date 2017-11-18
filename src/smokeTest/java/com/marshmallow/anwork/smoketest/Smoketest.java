@@ -79,7 +79,7 @@ public class Smoketest {
                           "BLOCKED tasks:",
                           "WAITING tasks:",
                           "  task-a.*",
-                          "  task-b .*",
+                          "  task-b.*",
                           "  task-c.*",
                           "FINISHED tasks:", });
     nexpect(new String[] { "task", "show" },
@@ -206,19 +206,32 @@ public class Smoketest {
 
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     configureProcess(processBuilder);
-    try {
-      if (expect) {
-        SmoketestExpecter.expect(expectRegexes, processBuilder);
-      } else {
-        SmoketestExpecter.nexpect(expectRegexes, processBuilder);
-      }
-    } catch (AssertionError error) {
-      fail(error.getMessage());
+    System.out.println("Running " + processBuilder.command());
+    String[] found = SmoketestExpecter.expect(expectRegexes, processBuilder);
+    if (expectRegexes[0] != null) {
+      processExpectResult(expectRegexes, found, expect);
     }
   }
 
   private void configureProcess(ProcessBuilder processBuilder) {
     processBuilder.directory(smoketestDirectory);
     processBuilder.inheritIO();
+  }
+
+  private void processExpectResult(String[] expectRegexes, String[] found, boolean expect) {
+    boolean foundAllRegexes = expectRegexes.length == found.length;
+    if (expect) {
+      if (!foundAllRegexes) {
+        fail("Could not find " + Arrays.toString(expectRegexes) + " in output");
+      } else {
+        // pass!
+      }
+    } else {
+      if (foundAllRegexes) {
+        fail("Found " + Arrays.toString(expectRegexes) + " in output");
+      } else {
+        // pass!
+      }
+    }
   }
 }
