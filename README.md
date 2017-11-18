@@ -33,4 +33,4 @@ $ ./gradlew smoke
 
 - See [ARCH.md](doc/ARCH.md) for architecture information.
 - See [FEATURE.md](doc/FEATURE.md) for planned features.
-- See [anwork_testing](https://github.com/ankeesler/anwork_testing) for more testing
+- See [anwork_testing](https://github.com/ankeesler/anwork_testing) repo for more testing.
