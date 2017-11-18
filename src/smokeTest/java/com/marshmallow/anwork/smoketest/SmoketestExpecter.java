@@ -33,9 +33,9 @@ public class SmoketestExpecter {
    * output will be individually matched against the next {@code expectRegexes}. This method will
    * return an ordered list of lines of output that were matches against the {@code expectRegexes}.
    *
-   * <p>Note that this means that if the length of the returned array does not match the length of the
-   * passed {@code expectRegexes}, then at least one provided {@code expectRegexes} was not found
-   * in the command output. Here is a sample call to this function.
+   * <p>Note that this means that if the length of the returned array does not match the length of
+   * the passed {@code expectRegexes}, then at least one provided {@code expectRegexes} was not
+   * found in the command output. Here is a sample call to this function.
    * <pre>
    * ProcessBuilder processBuilder = makeProcessBuilder();
    * String[] expected = new String[] { ".*foo.*", "^bar$" };
