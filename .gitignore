@@ -1,22 +1,4 @@
-.project
-.settings/
-.classpath
-.metadata/
-
-# Gradle stuff
-build
-.gradle
-
 untracked/
 
-# Unit test stuffs.
-src/test/resources/com/marshmallow/anwork/core/test/default-context
-src/test/resources/com/marshmallow/anwork/core/test/context-a
-src/test/resources/com/marshmallow/anwork/core/test/context-b
-src/test/resources/com/marshmallow/anwork/app/test/*
-
-# Generated Protocol Buffer files
-**/protobuf/*.java
-
-# Eclipse Oxygen added this...
-/bin/
+# Emacs leftovers
+*~
