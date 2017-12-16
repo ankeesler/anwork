@@ -1,0 +1,22 @@
+mode: set
+github.com/ankeesler/anwork/storage/persister.go:17.50,19.16 2 1
+github.com/ankeesler/anwork/storage/persister.go:23.2,25.16 3 1
+github.com/ankeesler/anwork/storage/persister.go:28.2,30.12 2 1
+github.com/ankeesler/anwork/storage/persister.go:19.16,21.3 1 0
+github.com/ankeesler/anwork/storage/persister.go:25.16,27.3 1 0
+github.com/ankeesler/anwork/storage/persister.go:35.49,39.2 3 1
+github.com/ankeesler/anwork/storage/persister.go:42.91,43.24 1 1
+github.com/ankeesler/anwork/storage/persister.go:47.2,49.16 3 1
+github.com/ankeesler/anwork/storage/persister.go:53.2,53.38 1 1
+github.com/ankeesler/anwork/storage/persister.go:43.24,45.3 1 1
+github.com/ankeesler/anwork/storage/persister.go:49.16,51.3 1 0
+github.com/ankeesler/anwork/storage/persister.go:58.93,59.24 1 1
+github.com/ankeesler/anwork/storage/persister.go:63.2,64.16 2 1
+github.com/ankeesler/anwork/storage/persister.go:68.2,70.16 3 1
+github.com/ankeesler/anwork/storage/persister.go:74.2,74.12 1 1
+github.com/ankeesler/anwork/storage/persister.go:59.24,61.3 1 1
+github.com/ankeesler/anwork/storage/persister.go:64.16,66.3 1 1
+github.com/ankeesler/anwork/storage/persister.go:70.16,72.3 1 0
+github.com/ankeesler/anwork/storage/persister.go:79.50,81.23 2 1
+github.com/ankeesler/anwork/storage/persister.go:85.2,85.12 1 1
+github.com/ankeesler/anwork/storage/persister.go:81.23,84.3 2 1
