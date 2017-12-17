@@ -104,7 +104,7 @@ func TestUnpersist(t *testing.T) {
 	expectTasksEqual(t, &unpersistedTask, &expectedTask, false) // expectTime
 }
 
-func TestTaskIdUniqueness(t *testing.T) {
+func TestLargerTaskIdUniqueness(t *testing.T) {
 	persister := storage.Persister{root}
 	if !persister.Exists(taskWithId5Context) {
 		t.Fatalf("Cannot run this test when context (%s) does not exist", taskWithId5Context)
@@ -125,6 +125,44 @@ func TestTaskIdUniqueness(t *testing.T) {
 		task := newTask(name)
 		if task.id == taskWithId5Id {
 			t.Errorf("New task %s has non-unique id %d", name, task.id)
+		}
+	}
+}
+
+func TestSmallerTaskIdUniqueness(t *testing.T) {
+	persister := storage.Persister{root}
+	if persister.Exists(tmpContext) {
+		t.Fatalf("Cannot run this test when context (%s) exists", tmpContext)
+	}
+	defer persister.Delete(tmpContext)
+
+	task := Task{}
+	task.id = 0
+	err := persister.Persist(tmpContext, &task)
+	if err != nil {
+		t.Fatalf("Got error when persisting task %#v to file: %s", task, err)
+	}
+
+	ids := make(map[int32]bool)
+	for i := 0; i < 25; i++ {
+		name := fmt.Sprintf("task-%d", i)
+		task := newTask(name)
+		ids[task.id] = true
+	}
+
+	err = persister.Unpersist(tmpContext, &task)
+	if err != nil {
+		t.Fatalf("Got error when unpersisting task %#v from file: %s", task, err)
+	} else if task.id != 0 {
+		t.Fatalf("Expected task id to be %d but was %d", 0, task.id)
+	}
+
+	for i := 0; i < 25; i++ {
+		name := fmt.Sprintf("task-%d", i)
+		task := newTask(name)
+		_, ok := ids[task.id]
+		if ok {
+			t.Errorf("Failure! Task ID %d already exists!", task.id)
 		}
 	}
 }

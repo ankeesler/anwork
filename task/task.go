@@ -78,7 +78,9 @@ func (t *Task) Unserialize(bytes []byte) error {
 
 	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
 	// unique ID.
-	nextTaskId = t.id + 1
+	if t.id >= nextTaskId {
+		nextTaskId = t.id + 1
+	}
 
 	return nil
 }
