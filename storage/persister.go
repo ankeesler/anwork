@@ -1,3 +1,14 @@
+// This package contains functionality for storing anwork data to file. This package is comprised of
+// two types that allow data to be persisted between anwork uses.
+//
+// A Serializable is an interface that represents a type that marshal and unmarshal itself to and
+// from an array of bytes, respectively.
+//
+// A Persister is a type that is able to take Serializable objects and read or write them to file.
+// A Persister cares about a special concept called a "context." A context is simply a specified as
+// to where data is being stored. This allows for users of anwork to have multiple different data
+// stores depending on what they are currently working on (i.e., an "at home" to-do list versus a
+// "at work" to-do list).
 package storage
 
 import (
