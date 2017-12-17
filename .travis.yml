@@ -6,6 +6,7 @@ git:
 
 script:
   - cd storage && go test -coverprofile=cover.out
+  - cd task && go test -coverprofile=cover.out
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
