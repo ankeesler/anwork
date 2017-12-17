@@ -91,6 +91,7 @@ func TestPersist(t *testing.T) {
 		serializable Serializable
 		success      bool
 	}{
+		{"BadRoot", "/this/file/doesnt/exist", tmpEmptyContext, &GoodSerializable{}, false},
 		{"BadSerializable", tmpRoot, tmpEmptyContext, &BadSerializable{}, false},
 		{"EmptyContext", tmpRoot, tmpEmptyContext, &GoodSerializable{}, true},
 		{"SingletonContext",
