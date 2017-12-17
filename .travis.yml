@@ -4,9 +4,6 @@ language: go
 git:
   depth: 3
 
-# Let's skip this for now, since we don't have any dependencies to install.
-install: true
-
 script:
   - go test ./... -race -coverprofile=coverage.txt -covermode=atomic
 

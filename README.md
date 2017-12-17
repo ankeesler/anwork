@@ -7,9 +7,15 @@ ANWORK is a personal task management system.
 
 Latest release: [v1](https://github.com/ankeesler/anwork/releases/tag/v1)
 
-## Quickstart
+## Running
 
 To get up and running with ANWORK, try the following.
+1. Clone this repo at a location that follows the directory structure described here: https://golang.org/doc/code.html#Workspaces.
+2. Run the following command to download the dependencies needed to run anwork.
+```
+$ go get ./...
+```
+3. Run anwork with the following command.
 ```
 $ go run cmd/anwork/anwork.go version
 ```
@@ -27,7 +33,7 @@ $ brew install protoc
 ```
 $ go get github.com/golang/protobuf/protoc-gen-go
 ```
-
+Make sure that the $GOPATH/bin directory is in your $PATH.
 
 To run the unit tests, try the following.
 ```
