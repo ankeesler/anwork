@@ -9,7 +9,7 @@ import (
 )
 
 // This is a test object used for serialization. It is serialized via the StudentProtobuf definition.
-// TODO: add a go generate call for the protobuf file generation.
+//go:generate protoc --proto_path=proto --go_out=proto proto/student.proto
 type Student struct {
 	Name string
 	Id   int32
