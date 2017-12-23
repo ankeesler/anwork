@@ -5,6 +5,7 @@ git:
   depth: 3
 
 script:
+  - ls $GOPATH/bin
   - ginkgo -r -cover
 
 after_success:
