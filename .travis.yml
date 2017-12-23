@@ -4,6 +4,10 @@ language: go
 git:
   depth: 3
 
+install:
+  - go get -t -v ./...
+  - go install github.com/onsi/ginkgo
+
 script:
   - ls $GOPATH/bin
   - ginkgo -r -cover
