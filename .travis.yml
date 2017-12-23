@@ -5,8 +5,7 @@ git:
   depth: 3
 
 script:
-  - cd storage && go test -coverprofile=cover.out && cd ..
-  - cd task && go test -coverprofile=cover.out && cd ..
+  - ginkgo -r -cover
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

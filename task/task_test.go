@@ -2,11 +2,11 @@ package task
 
 import (
 	"fmt"
-	"strings"
-	"testing"
 
 	"github.com/ankeesler/anwork/storage"
 	pb "github.com/ankeesler/anwork/task/proto"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 const (
@@ -26,156 +26,123 @@ const (
 	taskWithId5Id      = 5
 )
 
-func expectTasksEqual(t *testing.T, t0, t1 *Task, expectTime bool) {
-	if !strings.EqualFold(t0.name, t1.name) {
-		t.Fatalf("Task names do not match: %s vs %s", t0.name, t1.name)
-	} else if t0.id != t1.id {
-		t.Fatalf("Task ids do not match: %d vs %d", t0.id, t1.id)
-	} else if !strings.EqualFold(t0.description, t1.description) {
-		t.Fatalf("Task descriptions do not match: %s vs %s", t0.description, t1.description)
-	} else if expectTime && !t0.startDate.Equal(t1.startDate) {
-		t.Fatalf("Task start date do not match: %s vs %s", t0.startDate, t1.startDate)
-	} else if t0.priority != t1.priority {
-		t.Fatalf("Task priorities do not match: %d vs %d", t0.priority, t1.priority)
-	} else if t0.state != t1.state {
-		t.Fatalf("Task states do not match: %d vs %d", t0.state, t1.state)
-	}
-}
-
-func TestTaskStateProtobuf(t *testing.T) {
-	statePairs := [][]int32{
-		{TaskStateWaiting, int32(pb.TaskStateProtobuf_WAITING)},
-		{TaskStateBlocked, int32(pb.TaskStateProtobuf_BLOCKED)},
-		{TaskStateRunning, int32(pb.TaskStateProtobuf_RUNNING)},
-		{TaskStateFinished, int32(pb.TaskStateProtobuf_FINISHED)},
-	}
-	for i, statePair := range statePairs {
-		if statePair[0] != statePair[1] {
-			t.Errorf("TaskState at index %d (%d) does not match TaskStateProtobuf %d",
-				i, statePair[0], statePair[1])
+var _ = Describe("TaskState constants", func() {
+	It("should line up with Protobuf definitions", func() {
+		statePairs := [][]int32{
+			{TaskStateWaiting, int32(pb.TaskStateProtobuf_WAITING)},
+			{TaskStateBlocked, int32(pb.TaskStateProtobuf_BLOCKED)},
+			{TaskStateRunning, int32(pb.TaskStateProtobuf_RUNNING)},
+			{TaskStateFinished, int32(pb.TaskStateProtobuf_FINISHED)},
 		}
-	}
-}
-
-func TestPersist(t *testing.T) {
-	persister := storage.Persister{root}
-	if persister.Exists(tmpContext) {
-		t.Fatalf("Cannot run this test when context (%s) already exists", tmpContext)
-	}
-	defer persister.Delete(tmpContext)
-
-	task := newTask("this is my task")
-	task.description = "Yeah yeah yeah"
-	task.priority = 21
-	task.state = TaskStateBlocked
-	err := persister.Persist(tmpContext, task)
-	if err != nil {
-		t.Fatalf("Failed to persist task (%v) to file: %s", task, err)
-	}
-
-	unpersistedTask := &Task{}
-	err = persister.Unpersist(tmpContext, unpersistedTask)
-	if err != nil {
-		t.Fatalf("Failed to unpersist task (%v) from file: %s", task, err)
-	}
-
-	expectTasksEqual(t, task, unpersistedTask, true) // expectTime
-}
-
-func TestUnpersist(t *testing.T) {
-	persister := storage.Persister{root}
-	if !persister.Exists(goodContext) {
-		t.Fatalf("Cannot run this test when context (%s) does not exist", tmpContext)
-	}
-
-	unpersistedTask := Task{}
-	err := persister.Unpersist(goodContext, &unpersistedTask)
-	if err != nil {
-		t.Fatalf("Could not unpersist task from context %s: %s", goodContext, err)
-	}
-
-	expectedTask := Task{
-		name:        goodTaskName,
-		id:          goodTaskId,
-		description: goodTaskDescription,
-		priority:    goodTaskPriority,
-		state:       goodTaskState,
-	}
-	expectTasksEqual(t, &unpersistedTask, &expectedTask, false) // expectTime
-}
-
-func TestLargerTaskIdUniqueness(t *testing.T) {
-	persister := storage.Persister{root}
-	if !persister.Exists(taskWithId5Context) {
-		t.Fatalf("Cannot run this test when context (%s) does not exist", taskWithId5Context)
-	}
-
-	taskWithId5 := Task{}
-	persister.Unpersist(taskWithId5Context, &taskWithId5)
-	if taskWithId5.id != taskWithId5Id {
-		t.Errorf("Expected id %d from task %#v but got %d",
-			taskWithId5Id, taskWithId5, taskWithId5.id)
-	} else if !strings.EqualFold(taskWithId5Name, taskWithId5.name) {
-		t.Errorf("Expected name %s from task %s but got %s",
-			taskWithId5Name, taskWithId5Id, taskWithId5.name)
-	}
-
-	for i := 0; i < 10; i++ {
-		name := fmt.Sprintf("task-%d", i)
-		task := newTask(name)
-		if task.id == taskWithId5Id {
-			t.Errorf("New task %s has non-unique id %d", name, task.id)
+		for _, statePair := range statePairs {
+			Expect(statePair[0]).To(Equal(statePair[1]))
 		}
-	}
-}
+	})
+})
+var _ = Describe("Task's", func() {
+	It("are persistable", func() {
 
-func TestSmallerTaskIdUniqueness(t *testing.T) {
-	persister := storage.Persister{root}
-	if persister.Exists(tmpContext) {
-		t.Fatalf("Cannot run this test when context (%s) exists", tmpContext)
-	}
-	defer persister.Delete(tmpContext)
+		persister := storage.Persister{root}
+		Expect(persister.Exists(tmpContext)).To(BeFalse(),
+			"Cannot run this test when context (%s) already exists", tmpContext)
+		defer persister.Delete(tmpContext)
 
-	task := Task{}
-	task.id = 0
-	err := persister.Persist(tmpContext, &task)
-	if err != nil {
-		t.Fatalf("Got error when persisting task %#v to file: %s", task, err)
-	}
+		task := newTask("this is my task")
+		task.description = "Yeah yeah yeah"
+		task.priority = 21
+		task.state = TaskStateBlocked
+		err := persister.Persist(tmpContext, task)
+		Expect(err).ToNot(HaveOccurred(), "Failed to persist task (%v) to file: %s", task, err)
 
-	ids := make(map[int32]bool)
-	for i := 0; i < 25; i++ {
-		name := fmt.Sprintf("task-%d", i)
-		task := newTask(name)
-		ids[task.id] = true
-	}
+		unpersistedTask := &Task{}
+		err = persister.Unpersist(tmpContext, unpersistedTask)
+		Expect(err).ToNot(HaveOccurred(), "Failed to unpersist task (%v) from file: %s", task, err)
 
-	err = persister.Unpersist(tmpContext, &task)
-	if err != nil {
-		t.Fatalf("Got error when unpersisting task %#v from file: %s", task, err)
-	} else if task.id != 0 {
-		t.Fatalf("Expected task id to be %d but was %d", 0, task.id)
-	}
+		Expect(unpersistedTask).To(Equal(task))
+	})
+	It("are unpersistable", func() {
 
-	for i := 0; i < 25; i++ {
-		name := fmt.Sprintf("task-%d", i)
-		task := newTask(name)
-		_, ok := ids[task.id]
-		if ok {
-			t.Errorf("Failure! Task ID %d already exists!", task.id)
+		persister := storage.Persister{root}
+		Expect(persister.Exists(goodContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", tmpContext)
+
+		unpersistedTask := Task{}
+		err := persister.Unpersist(goodContext, &unpersistedTask)
+		Expect(err).ToNot(HaveOccurred(),
+			"Could not unpersist task from context %s: %s", goodContext, err)
+
+		expectedTask := Task{
+			name:        goodTaskName,
+			id:          goodTaskId,
+			description: goodTaskDescription,
+			priority:    goodTaskPriority,
+			state:       goodTaskState,
+
+			startDate: unpersistedTask.startDate,
 		}
-	}
-}
+		Expect(unpersistedTask).To(Equal(expectedTask))
+	})
+	Context("have unique ID's", func() {
+		It("that are larger", func() {
 
-func TestBadContext(t *testing.T) {
-	persister := storage.Persister{root}
-	if !persister.Exists(badContext) {
-		t.Fatalf("Cannot run this test when context (%s) does not exist", badContext)
-	}
+			persister := storage.Persister{root}
+			Expect(persister.Exists(taskWithId5Context)).To(BeTrue(),
+				"Cannot run this test when context (%s) does not exist", taskWithId5Context)
 
-	task := Task{}
-	err := persister.Unpersist(badContext, &task)
-	if err == nil {
-		t.Fatalf("Expected error from load from bad context (%s) but didn't get one", badContext)
-	}
-}
+			taskWithId5 := Task{}
+			persister.Unpersist(taskWithId5Context, &taskWithId5)
+			Expect(taskWithId5.id).To(BeEquivalentTo(taskWithId5Id))
+			Expect(taskWithId5.name).To(Equal(taskWithId5Name))
+
+			for i := 0; i < 10; i++ {
+				name := fmt.Sprintf("task-%d", i)
+				task := newTask(name)
+				Expect(task.id).ToNot(Equal(taskWithId5Id))
+			}
+		})
+		It("that are smaller", func() {
+
+			persister := storage.Persister{root}
+			Expect(persister.Exists(tmpContext)).To(BeFalse(),
+				"Cannot run this test when context (%s) exists", tmpContext)
+			defer persister.Delete(tmpContext)
+
+			task := Task{}
+			task.id = 0
+			err := persister.Persist(tmpContext, &task)
+			Expect(err).ToNot(HaveOccurred(),
+				"Got error when persisting task %#v to file: %s", task, err)
+
+			ids := make(map[int32]bool)
+			for i := 0; i < 25; i++ {
+				name := fmt.Sprintf("task-%d", i)
+				task := newTask(name)
+				ids[task.id] = true
+			}
+
+			err = persister.Unpersist(tmpContext, &task)
+			Expect(err).ToNot(HaveOccurred(),
+				"Got error when unpersisting task %#v from file: %s", task, err)
+			Expect(task.id).To(BeZero(),
+				"Expected task id to be %d but was %d", 0, task.id)
+
+			for i := 0; i < 25; i++ {
+				name := fmt.Sprintf("task-%d", i)
+				task := newTask(name)
+				_, ok := ids[task.id]
+				Expect(ok).To(BeFalse(), "Failure! Task ID %d already exists!", task.id)
+			}
+		})
+	})
+	It("fail gracefully from bad contexts", func() {
+
+		persister := storage.Persister{root}
+		Expect(persister.Exists(badContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", badContext)
+
+		task := Task{}
+		err := persister.Unpersist(badContext, &task)
+		Expect(err).To(HaveOccurred(),
+			"Expected error from load from bad context (%s) but didn't get one", badContext)
+	})
+})

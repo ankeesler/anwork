@@ -1,7 +1,4 @@
 // This package contains all of the task-related data and functionality in the anwork project.
-//
-// A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
-// sister a holiday present."
 package task
 
 import (
