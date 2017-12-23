@@ -6,7 +6,7 @@ git:
 
 install:
   - go get -t -v ./...
-  - go install github.com/onsi/ginkgo
+  - go install -v github.com/onsi/ginkgo/ginkgo
 
 script:
   - ls $GOPATH/bin
