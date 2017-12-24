@@ -13,7 +13,7 @@ script:
   - ginkgo -r -cover
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -f *.coverprofile
 
 notifications:
   email:
