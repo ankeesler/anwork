@@ -48,13 +48,20 @@ var _ = Describe("Manager", func() {
 	})
 
 	Context("when one task is added", func() {
+		var ret bool
 		BeforeEach(func() {
-			m.Create(taskAName)
+			ret = m.Create(taskAName)
+		})
+		It("returned true from the call to Create()", func() {
+			Expect(ret).To(BeTrue())
 		})
 		It("has one task with the expected name", func() {
 			Expect(m.Tasks()).To(HaveLen(1))
 			t := m.Tasks()[0]
 			Expect(t.name).To(Equal(taskAName))
+		})
+		It("fails to add a task with the same name", func() {
+			Expect(m.Create(taskAName)).To(BeFalse())
 		})
 		Context("when that one task is modified", func() {
 			BeforeEach(func() {
@@ -88,10 +95,14 @@ var _ = Describe("Manager", func() {
 	})
 
 	Context("when more than one task is added", func() {
+		var rets bool
 		BeforeEach(func() {
-			m.Create(taskAName)
-			m.Create(taskBName)
-			m.Create(taskCName)
+			rets = m.Create(taskAName)
+			rets = rets && m.Create(taskBName)
+			rets = rets && m.Create(taskCName)
+		})
+		It("returned true for all calls to Create()", func() {
+			Expect(rets).To(BeTrue())
 		})
 		It("has three tasks", func() {
 			Expect(m.Tasks()).To(HaveLen(3))
@@ -104,18 +115,23 @@ var _ = Describe("Manager", func() {
 			t = m.Tasks()[2]
 			Expect(t.name).To(Equal(taskCName))
 		})
+		It("fails to create tasks with the same names", func() {
+			Expect(m.Create(taskAName)).To(BeFalse())
+			Expect(m.Create(taskBName)).To(BeFalse())
+			Expect(m.Create(taskCName)).To(BeFalse())
+		})
 		Context("when tasks are updated", func() {
 			BeforeEach(func() {
-				taskA := findTaskByName(taskAName, m.Tasks())
+				taskA := m.Find(taskAName)
 				Expect(taskA).ToNot(BeNil())
 				taskA.priority = taskAPriority
 				taskA.state = taskAState
 
-				taskB := findTaskByName(taskBName, m.Tasks())
+				taskB := m.Find(taskBName)
 				Expect(taskB).ToNot(BeNil())
 				taskB.priority = taskBPriority
 
-				taskC := findTaskByName(taskCName, m.Tasks())
+				taskC := m.Find(taskCName)
 				Expect(taskC).ToNot(BeNil())
 				taskC.priority = taskCPriority
 				taskC.state = taskCState
@@ -148,7 +164,7 @@ var _ = Describe("Manager", func() {
 					Expect(m.Tasks()).To(HaveLen(2))
 				})
 				It("no longer store the deleted task", func() {
-					taskB := findTaskByName(taskBName, m.Tasks())
+					taskB := m.Find(taskBName)
 					Expect(taskB).To(BeNil())
 				})
 				It("continue to store the other tasks in the correct order", func() {
@@ -195,12 +211,3 @@ var _ = Describe("Manager", func() {
 		})
 	})
 })
-
-func findTaskByName(name string, tasks []*Task) *Task {
-	for _, task := range tasks {
-		if task.name == name {
-			return task
-		}
-	}
-	return nil
-}

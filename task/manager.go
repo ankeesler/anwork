@@ -15,9 +15,15 @@ func NewManager() *Manager {
 }
 
 // Create a Task with the provided name.
-func (m *Manager) Create(name string) {
-	t := newTask(name)
-	m.tasks = append(m.tasks, t)
+func (m *Manager) Create(name string) bool {
+	t := m.Find(name)
+	if t != nil {
+		return false
+	} else {
+		t = newTask(name)
+		m.tasks = append(m.tasks, t)
+		return true
+	}
 }
 
 // Delete a Task with the provided name. Returns true iff the deletion was successful.
@@ -49,6 +55,16 @@ func (m *Manager) Tasks() []*Task {
 		sort.Sort(m)
 	}
 	return m.tasks
+}
+
+// Find a Task with the provided name in this Manager, or return nil if there is no such Task.
+func (m *Manager) Find(name string) *Task {
+	for _, task := range m.tasks {
+		if task.name == name {
+			return task
+		}
+	}
+	return nil
 }
 
 // Return the length of the Task's held by this Manager.
