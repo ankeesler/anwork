@@ -9,7 +9,6 @@ install:
   - go install -v github.com/onsi/ginkgo/ginkgo
 
 script:
-  - ls $GOPATH/bin
   - ginkgo -r -cover
 
 after_success:
