@@ -28,11 +28,11 @@ const (
 
 var _ = Describe("TaskState constants", func() {
 	It("should line up with Protobuf definitions", func() {
-		statePairs := [][]int32{
-			{TaskStateWaiting, int32(pb.TaskStateProtobuf_WAITING)},
-			{TaskStateBlocked, int32(pb.TaskStateProtobuf_BLOCKED)},
-			{TaskStateRunning, int32(pb.TaskStateProtobuf_RUNNING)},
-			{TaskStateFinished, int32(pb.TaskStateProtobuf_FINISHED)},
+		statePairs := [][]State{
+			{TaskStateWaiting, State(pb.TaskStateProtobuf_WAITING)},
+			{TaskStateBlocked, State(pb.TaskStateProtobuf_BLOCKED)},
+			{TaskStateRunning, State(pb.TaskStateProtobuf_RUNNING)},
+			{TaskStateFinished, State(pb.TaskStateProtobuf_FINISHED)},
 		}
 		for _, statePair := range statePairs {
 			Expect(statePair[0]).To(Equal(statePair[1]))
@@ -81,6 +81,7 @@ var _ = Describe("Task's", func() {
 			startDate: unpersistedTask.startDate,
 		}
 		Expect(unpersistedTask).To(Equal(expectedTask))
+		Expect(unpersistedTask.State()).To(Equal(goodTaskState))
 	})
 	Context("have unique ID's", func() {
 		It("that are larger", func() {

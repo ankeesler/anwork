@@ -3,6 +3,8 @@
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present."
 //
+// Every Task is in one of a number of different State's: Waiting, Blocked, Running, or Finished.
+//
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
 package task
 
@@ -13,12 +15,15 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+// A State describes the status of some Task.
+type State uint32
+
 // These are the states that a Task could be in.
 const (
-	TaskStateWaiting  = 0
-	TaskStateBlocked  = 1
-	TaskStateRunning  = 2
-	TaskStateFinished = 3
+	TaskStateWaiting  = State(0)
+	TaskStateBlocked  = State(1)
+	TaskStateRunning  = State(2)
+	TaskStateFinished = State(3)
 )
 
 // This is the default priority that a Task gets when created.
@@ -46,10 +51,10 @@ type Task struct {
 	// This is the priority of the Task. The lower the number, the higher the importance.
 	priority int32
 
-	// This is the state of the Task. See TaskState* for possible values. A Task can go through any
-	// number of state changes over the course of its life. All Tasks start out in the TaskStateWaiting
-	// state.
-	state int32
+	// This is the State of the Task. See TaskState* for possible values. A Task can go through any
+	// number of State changes over the course of its life. All Tasks start out in the TaskStateWaiting
+	// State.
+	state State
 }
 
 func (t *Task) Serialize() ([]byte, error) {
@@ -76,7 +81,7 @@ func (t *Task) Unserialize(bytes []byte) error {
 	t.description = tProtobuf.Description
 	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
 	t.priority = tProtobuf.Priority
-	t.state = int32(tProtobuf.State)
+	t.state = State(tProtobuf.State)
 
 	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
 	// unique ID.
@@ -85,6 +90,11 @@ func (t *Task) Unserialize(bytes []byte) error {
 	}
 
 	return nil
+}
+
+// Get the TaskState for this task.
+func (t *Task) State() State {
+	return t.state
 }
 
 // Create a new Task with a default priority (see DefaultPriority) in the waiting state (see
