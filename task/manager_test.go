@@ -161,6 +161,17 @@ var _ = Describe("Manager", func() {
 					Expect(tasks[1].priority).To(BeEquivalentTo(taskAPriority))
 					Expect(tasks[1].state).To(BeEquivalentTo(taskAState))
 				})
+				Context("when the other two tasks' priorities are set equal", func() {
+					BeforeEach(func() {
+						tasks := m.Tasks()
+						tasks[0].priority = tasks[1].priority
+					})
+					It("sorts the tasks by their IDs", func() {
+						tasks := m.Tasks()
+						Expect(tasks[0].name).To(Equal(taskAName))
+						Expect(tasks[1].name).To(Equal(taskCName))
+					})
+				})
 				Context("when the other two tasks are deleted", func() {
 					var retDeleteA, retDeleteC bool
 					BeforeEach(func() {

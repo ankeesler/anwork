@@ -60,7 +60,7 @@ func (m *Manager) Len() int {
 // this Manager. See the documentation for Manager.Tasks for more discussion around this design.
 func (m *Manager) Less(i, j int) bool {
 	ti, tj := m.tasks[i], m.tasks[j]
-	if ti.priority >= tj.priority {
+	if ti.priority > tj.priority {
 		return false
 	} else if ti.priority == tj.priority {
 		return ti.id < tj.id
