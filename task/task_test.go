@@ -19,20 +19,20 @@ const (
 	goodTaskId          = 0
 	goodTaskDescription = "Here is a description!"
 	goodTaskPriority    = 612
-	goodTaskState       = TaskStateRunning
+	goodState           = StateRunning
 
 	taskWithId5Context = "task-with-id-5-context"
 	taskWithId5Name    = "task-with-id-5"
 	taskWithId5Id      = 5
 )
 
-var _ = Describe("TaskState constants", func() {
+var _ = Describe("State constants", func() {
 	It("should line up with Protobuf definitions", func() {
 		statePairs := [][]State{
-			{TaskStateWaiting, State(pb.TaskStateProtobuf_WAITING)},
-			{TaskStateBlocked, State(pb.TaskStateProtobuf_BLOCKED)},
-			{TaskStateRunning, State(pb.TaskStateProtobuf_RUNNING)},
-			{TaskStateFinished, State(pb.TaskStateProtobuf_FINISHED)},
+			{StateWaiting, State(pb.StateProtobuf_WAITING)},
+			{StateBlocked, State(pb.StateProtobuf_BLOCKED)},
+			{StateRunning, State(pb.StateProtobuf_RUNNING)},
+			{StateFinished, State(pb.StateProtobuf_FINISHED)},
 		}
 		for _, statePair := range statePairs {
 			Expect(statePair[0]).To(Equal(statePair[1]))
@@ -50,7 +50,7 @@ var _ = Describe("Task's", func() {
 		task := newTask("this is my task")
 		task.description = "Yeah yeah yeah"
 		task.priority = 21
-		task.state = TaskStateBlocked
+		task.state = StateBlocked
 		err := persister.Persist(tmpContext, task)
 		Expect(err).ToNot(HaveOccurred(), "Failed to persist task (%v) to file: %s", task, err)
 
@@ -76,12 +76,12 @@ var _ = Describe("Task's", func() {
 			id:          goodTaskId,
 			description: goodTaskDescription,
 			priority:    goodTaskPriority,
-			state:       goodTaskState,
+			state:       goodState,
 
 			startDate: unpersistedTask.startDate,
 		}
 		Expect(unpersistedTask).To(Equal(expectedTask))
-		Expect(unpersistedTask.State()).To(Equal(goodTaskState))
+		Expect(unpersistedTask.State()).To(Equal(goodState))
 	})
 	Context("have unique ID's", func() {
 		It("that are larger", func() {

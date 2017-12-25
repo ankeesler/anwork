@@ -20,10 +20,10 @@ type State uint32
 
 // These are the states that a Task could be in.
 const (
-	TaskStateWaiting  = State(0)
-	TaskStateBlocked  = State(1)
-	TaskStateRunning  = State(2)
-	TaskStateFinished = State(3)
+	StateWaiting  = State(0)
+	StateBlocked  = State(1)
+	StateRunning  = State(2)
+	StateFinished = State(3)
 )
 
 // This is the default priority that a Task gets when created.
@@ -51,8 +51,8 @@ type Task struct {
 	// This is the priority of the Task. The lower the number, the higher the importance.
 	priority int32
 
-	// This is the State of the Task. See TaskState* for possible values. A Task can go through any
-	// number of State changes over the course of its life. All Tasks start out in the TaskStateWaiting
+	// This is the State of the Task. See State* for possible values. A Task can go through any
+	// number of State changes over the course of its life. All Tasks start out in the StateWaiting
 	// State.
 	state State
 }
@@ -64,7 +64,7 @@ func (t *Task) Serialize() ([]byte, error) {
 		Description: t.description,
 		StartDate:   t.startDate.Unix(),
 		Priority:    t.priority,
-		State:       pb.TaskStateProtobuf(t.state),
+		State:       pb.StateProtobuf(t.state),
 	}
 	return proto.Marshal(&tProtobuf)
 }
@@ -92,20 +92,20 @@ func (t *Task) Unserialize(bytes []byte) error {
 	return nil
 }
 
-// Get the TaskState for this task.
+// Get the State for this task.
 func (t *Task) State() State {
 	return t.state
 }
 
 // Create a new Task with a default priority (see DefaultPriority) in the waiting state (see
-// TaskStateWaiting).
+// StateWaiting).
 func newTask(name string) *Task {
 	t := &Task{
 		name:      name,
 		id:        nextTaskId,
 		startDate: time.Now(),
 		priority:  DefaultPriority,
-		state:     TaskStateWaiting,
+		state:     StateWaiting,
 	}
 
 	nextTaskId++

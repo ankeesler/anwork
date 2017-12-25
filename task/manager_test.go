@@ -8,14 +8,14 @@ import (
 const (
 	taskAName     = "task-a"
 	taskAPriority = 20
-	taskAState    = TaskStateRunning
+	taskAState    = StateRunning
 
 	taskBName     = "task-b"
 	taskBPriority = 25
 
 	taskCName     = "task-c"
 	taskCPriority = 15
-	taskCState    = TaskStateBlocked
+	taskCState    = StateBlocked
 )
 
 var _ = Describe("Manager", func() {
@@ -60,7 +60,7 @@ var _ = Describe("Manager", func() {
 			Expect(func() { m.Create(taskAName) }).To(Panic())
 		})
 		It("panics when we try to set the state of a task that hasn't been added", func() {
-			Expect(func() { m.SetState(taskBName, TaskStateWaiting) }).To(Panic())
+			Expect(func() { m.SetState(taskBName, StateWaiting) }).To(Panic())
 		})
 		Context("when that one task is modified", func() {
 			BeforeEach(func() {

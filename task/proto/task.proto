@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "proto";
 
-enum TaskStateProtobuf {
+enum StateProtobuf {
   WAITING = 0;
   BLOCKED = 1;
   RUNNING = 2;
@@ -15,7 +15,7 @@ message TaskProtobuf {
   string description = 3;
   int64 startDate = 4;
   int32 priority = 5;
-  TaskStateProtobuf state = 6;
+  StateProtobuf state = 6;
 }
 
 enum TaskManagerActionTypeProtobuf {
