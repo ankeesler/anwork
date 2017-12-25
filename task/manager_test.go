@@ -59,11 +59,14 @@ var _ = Describe("Manager", func() {
 		It("panics when we add a task with the same name", func() {
 			Expect(func() { m.Create(taskAName) }).To(Panic())
 		})
+		It("panics when we try to set the state of a task that hasn't been added", func() {
+			Expect(func() { m.SetState(taskBName, TaskStateWaiting) }).To(Panic())
+		})
 		Context("when that one task is modified", func() {
 			BeforeEach(func() {
 				t := m.Tasks()[0]
 				t.priority = taskAPriority
-				t.state = taskAState
+				m.SetState(taskAName, taskAState)
 			})
 			It("correctly tracks the task change", func() {
 				t := m.Tasks()[0]
@@ -117,7 +120,7 @@ var _ = Describe("Manager", func() {
 				taskA := m.Find(taskAName)
 				Expect(taskA).ToNot(BeNil())
 				taskA.priority = taskAPriority
-				taskA.state = taskAState
+				m.SetState(taskA.name, taskAState)
 
 				taskB := m.Find(taskBName)
 				Expect(taskB).ToNot(BeNil())
@@ -126,7 +129,7 @@ var _ = Describe("Manager", func() {
 				taskC := m.Find(taskCName)
 				Expect(taskC).ToNot(BeNil())
 				taskC.priority = taskCPriority
-				taskC.state = taskCState
+				m.SetState(taskC.name, taskCState)
 			})
 			It("re-orders the tasks by priority ", func() {
 				tasks := m.Tasks()
