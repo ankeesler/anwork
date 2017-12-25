@@ -49,14 +49,14 @@ func (m *Manager) Delete(name string) bool {
 // Set the State of a Task currently in this Manager. This function will panic if there is no known
 // Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
 func (m *Manager) SetState(name string, state State) {
-	t := m.Find(name)
+	t := m.findOrPanic(name)
 	t.state = state
 }
 
 // Set the priority of a Task currently in this Manager. This function will panic if there is no
 // known Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
 func (m *Manager) SetPriority(name string, priority int32) {
-	t := m.Find(name)
+	t := m.findOrPanic(name)
 	t.priority = priority
 }
 
