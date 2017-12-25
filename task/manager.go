@@ -1,6 +1,7 @@
 package task
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -14,16 +15,17 @@ func NewManager() *Manager {
 	return &Manager{}
 }
 
-// Create a Task with the provided name.
-func (m *Manager) Create(name string) bool {
+// Create a Task with the provided name. This function will panic if a Task with the provided name
+// already exists.
+func (m *Manager) Create(name string) {
 	t := m.Find(name)
 	if t != nil {
-		return false
-	} else {
-		t = newTask(name)
-		m.tasks = append(m.tasks, t)
-		return true
+		msg := fmt.Sprintf("Task with name %s already exists", name)
+		panic(msg)
 	}
+
+	t = newTask(name)
+	m.tasks = append(m.tasks, t)
 }
 
 // Delete a Task with the provided name. Returns true iff the deletion was successful.

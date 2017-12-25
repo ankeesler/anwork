@@ -48,20 +48,16 @@ var _ = Describe("Manager", func() {
 	})
 
 	Context("when one task is added", func() {
-		var ret bool
 		BeforeEach(func() {
-			ret = m.Create(taskAName)
-		})
-		It("returned true from the call to Create()", func() {
-			Expect(ret).To(BeTrue())
+			m.Create(taskAName)
 		})
 		It("has one task with the expected name", func() {
 			Expect(m.Tasks()).To(HaveLen(1))
 			t := m.Tasks()[0]
 			Expect(t.name).To(Equal(taskAName))
 		})
-		It("fails to add a task with the same name", func() {
-			Expect(m.Create(taskAName)).To(BeFalse())
+		It("panics when we add a task with the same name", func() {
+			Expect(func() { m.Create(taskAName) }).To(Panic())
 		})
 		Context("when that one task is modified", func() {
 			BeforeEach(func() {
@@ -95,14 +91,15 @@ var _ = Describe("Manager", func() {
 	})
 
 	Context("when more than one task is added", func() {
-		var rets bool
 		BeforeEach(func() {
-			rets = m.Create(taskAName)
-			rets = rets && m.Create(taskBName)
-			rets = rets && m.Create(taskCName)
+			m.Create(taskAName)
+			m.Create(taskBName)
+			m.Create(taskCName)
 		})
-		It("returned true for all calls to Create()", func() {
-			Expect(rets).To(BeTrue())
+		It("panics for all calls to Create with task names that have already been added", func() {
+			Expect(func() { m.Create(taskAName) }).To(Panic())
+			Expect(func() { m.Create(taskBName) }).To(Panic())
+			Expect(func() { m.Create(taskCName) }).To(Panic())
 		})
 		It("has three tasks", func() {
 			Expect(m.Tasks()).To(HaveLen(3))
@@ -114,11 +111,6 @@ var _ = Describe("Manager", func() {
 			Expect(t.name).To(Equal(taskBName))
 			t = m.Tasks()[2]
 			Expect(t.name).To(Equal(taskCName))
-		})
-		It("fails to create tasks with the same names", func() {
-			Expect(m.Create(taskAName)).To(BeFalse())
-			Expect(m.Create(taskBName)).To(BeFalse())
-			Expect(m.Create(taskCName)).To(BeFalse())
 		})
 		Context("when tasks are updated", func() {
 			BeforeEach(func() {
