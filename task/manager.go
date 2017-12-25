@@ -50,11 +50,14 @@ func (m *Manager) Delete(name string) bool {
 // Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
 func (m *Manager) SetState(name string, state State) {
 	t := m.Find(name)
-	if t == nil {
-		msg := fmt.Sprintf("Unknown task with name %s", name)
-		panic(msg)
-	}
 	t.state = state
+}
+
+// Set the priority of a Task currently in this Manager. This function will panic if there is no
+// known Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
+func (m *Manager) SetPriority(name string, priority int32) {
+	t := m.Find(name)
+	t.priority = priority
 }
 
 // Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer
@@ -78,6 +81,15 @@ func (m *Manager) Find(name string) *Task {
 		}
 	}
 	return nil
+}
+
+func (m *Manager) findOrPanic(name string) *Task {
+	t := m.Find(name)
+	if t == nil {
+		msg := fmt.Sprintf("Unknown task with name %s", name)
+		panic(msg)
+	}
+	return t
 }
 
 // Return the length of the Task's held by this Manager.
