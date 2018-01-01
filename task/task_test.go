@@ -38,6 +38,12 @@ var _ = Describe("State constants", func() {
 			Expect(statePair[0]).To(Equal(statePair[1]))
 		}
 	})
+	It("should have the expected state names", func() {
+		Expect(StateNames[StateWaiting]).To(Equal("Waiting"))
+		Expect(StateNames[StateBlocked]).To(Equal("Blocked"))
+		Expect(StateNames[StateRunning]).To(Equal("Running"))
+		Expect(StateNames[StateFinished]).To(Equal("Finished"))
+	})
 })
 var _ = Describe("Task's", func() {
 	It("are persistable", func() {

@@ -30,6 +30,14 @@ const (
 	StateFinished = State(3)
 )
 
+// These are the names of the State's that a Task can occupy, indexed by the State integer value.
+var StateNames = [...]string{
+	"Waiting",
+	"Blocked",
+	"Running",
+	"Finished",
+}
+
 // This is the default priority that a Task gets when created.
 const DefaultPriority = 10
 

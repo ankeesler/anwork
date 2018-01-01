@@ -1,6 +1,8 @@
 package task
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -31,6 +33,9 @@ var _ = Describe("Manager", func() {
 		It("has no tasks", func() {
 			Expect(m.Tasks()).To(BeEmpty())
 		})
+		It("has no journal entries", func() {
+			Expect(m.Journal().Events).To(BeEmpty())
+		})
 		Context("when a task is deleted", func() {
 			var (
 				ret bool
@@ -44,6 +49,9 @@ var _ = Describe("Manager", func() {
 			It("still has no tasks", func() {
 				Expect(m.Tasks()).To(HaveLen(0))
 			})
+			It("still has no journal entries", func() {
+				Expect(m.Journal().Events).To(HaveLen(0))
+			})
 		})
 	})
 
@@ -55,6 +63,10 @@ var _ = Describe("Manager", func() {
 			Expect(m.Tasks()).To(HaveLen(1))
 			t := m.Tasks()[0]
 			Expect(t.name).To(Equal(taskAName))
+		})
+		It("has one journal entry (for the creation of the task)", func() {
+			Expect(m.Journal().Events).To(HaveLen(1))
+			Expect(m.Journal().Events[0].Title).To(Equal("Created task " + taskAName))
 		})
 		It("panics when we add a task with the same name", func() {
 			Expect(func() { m.Create(taskAName) }).To(Panic())
@@ -75,6 +87,20 @@ var _ = Describe("Manager", func() {
 				Expect(t.priority).To(BeEquivalentTo(taskAPriority))
 				Expect(t.state).To(BeEquivalentTo(taskAState))
 			})
+			It("has 3 entries (creation, set priority, set state)", func() {
+				Expect(m.Journal().Events).To(HaveLen(3))
+
+				title := fmt.Sprintf("Created task %s", taskAName)
+				Expect(m.Journal().Events[0].Title).To(Equal(title))
+
+				title = fmt.Sprintf("Set priority on task %s from %d to %d",
+					taskAName, DefaultPriority, taskAPriority)
+				Expect(m.Journal().Events[1].Title).To(Equal(title))
+
+				title = fmt.Sprintf("Set state on task %s from Waiting to %s",
+					taskAName, StateNames[taskAState])
+				Expect(m.Journal().Events[2].Title).To(Equal(title))
+			})
 		})
 		Context("when that one task is deleted", func() {
 			var (
@@ -91,6 +117,10 @@ var _ = Describe("Manager", func() {
 			})
 			It("does not successfully delete the task again", func() {
 				Expect(m.Delete(taskAName)).To(BeFalse())
+			})
+			It("stores 2 events (creation, deletion)", func() {
+				Expect(m.Journal().Events).To(HaveLen(2))
+				Expect(m.Journal().Events[1].Title).To(Equal("Deleted task " + taskAName))
 			})
 		})
 	})
@@ -116,6 +146,18 @@ var _ = Describe("Manager", func() {
 			Expect(t.name).To(Equal(taskBName))
 			t = m.Tasks()[2]
 			Expect(t.name).To(Equal(taskCName))
+		})
+		It("has three journal entries for each of the creations", func() {
+			Expect(m.Journal().Events).To(HaveLen(3))
+
+			title := fmt.Sprintf("Created task %s", taskAName)
+			Expect(m.Journal().Events[0].Title).To(Equal(title))
+
+			title = fmt.Sprintf("Created task %s", taskBName)
+			Expect(m.Journal().Events[1].Title).To(Equal(title))
+
+			title = fmt.Sprintf("Created task %s", taskCName)
+			Expect(m.Journal().Events[2].Title).To(Equal(title))
 		})
 		Context("when tasks are updated", func() {
 			BeforeEach(func() {
@@ -150,6 +192,16 @@ var _ = Describe("Manager", func() {
 
 				Expect(tasks[2].priority).To(BeEquivalentTo(taskBPriority))
 			})
+			It("tracks the actions in the journal ", func() {
+				// 3 creations
+				// 1 set taskA pri
+				// 1 set taskA state
+				// 1 set taskB pri
+				// 1 set taskC pri
+				// 1 set taskC state
+				// = 8 events
+				Expect(m.Journal().Events).To(HaveLen(8))
+			})
 			Context("when one task is deleted", func() {
 				var (
 					ret bool
@@ -173,6 +225,17 @@ var _ = Describe("Manager", func() {
 					Expect(tasks[1].name).To(Equal(taskAName))
 					Expect(tasks[1].priority).To(BeEquivalentTo(taskAPriority))
 					Expect(tasks[1].state).To(BeEquivalentTo(taskAState))
+				})
+				It("appends a journal entry for the deletion", func() {
+					// 3 creations
+					// 1 set taskA pri
+					// 1 set taskA state
+					// 1 set taskB pri
+					// 1 set taskC pri
+					// 1 set taskC state
+					// 1 deletion
+					// = 9 events
+					Expect(m.Journal().Events).To(HaveLen(9))
 				})
 				Context("when the other two tasks' priorities are set equal", func() {
 					BeforeEach(func() {
@@ -202,6 +265,17 @@ var _ = Describe("Manager", func() {
 						Expect(m.Delete(taskAName)).To(BeFalse())
 						Expect(m.Delete(taskBName)).To(BeFalse())
 						Expect(m.Delete(taskCName)).To(BeFalse())
+					})
+					It("appends 2 journal entries for the deletions", func() {
+						// 3 creations
+						// 1 set taskA pri
+						// 1 set taskA state
+						// 1 set taskB pri
+						// 1 set taskC pri
+						// 1 set taskC state
+						// 3 deletions
+						// = 11 events
+						Expect(m.Journal().Events).To(HaveLen(11))
 					})
 				})
 			})
