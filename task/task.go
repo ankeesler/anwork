@@ -6,6 +6,10 @@
 // Every Task is in one of a number of different State's: Waiting, Blocked, Running, or Finished.
 //
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
+//
+// A Manager also keeps track of the changes that are made to the Task's it oversees via a Journal.
+// A Journal is simply a list of things (Event's) that happen to a Manager (i.e., a note is added, a
+// Task is created, a Task is updated, etc.).
 package task
 
 import (
