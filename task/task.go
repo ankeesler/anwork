@@ -20,7 +20,7 @@ import (
 )
 
 // A State describes the status of some Task.
-type State uint32
+type State int
 
 // These are the states that a Task could be in.
 const (
