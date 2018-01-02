@@ -70,19 +70,19 @@ type Task struct {
 }
 
 func (t *Task) Serialize() ([]byte, error) {
-	tProtobuf := pb.TaskProtobuf{
+	tProtobuf := pb.Task{
 		Name:        t.name,
 		Id:          t.id,
 		Description: t.description,
 		StartDate:   t.startDate.Unix(),
 		Priority:    t.priority,
-		State:       pb.StateProtobuf(t.state),
+		State:       pb.State(t.state),
 	}
 	return proto.Marshal(&tProtobuf)
 }
 
 func (t *Task) Unserialize(bytes []byte) error {
-	tProtobuf := pb.TaskProtobuf{}
+	tProtobuf := pb.Task{}
 	err := proto.Unmarshal(bytes, &tProtobuf)
 	if err != nil {
 		return err

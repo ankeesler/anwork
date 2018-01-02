@@ -29,10 +29,10 @@ const (
 var _ = Describe("State constants", func() {
 	It("should line up with Protobuf definitions", func() {
 		statePairs := [][]State{
-			{StateWaiting, State(pb.StateProtobuf_WAITING)},
-			{StateBlocked, State(pb.StateProtobuf_BLOCKED)},
-			{StateRunning, State(pb.StateProtobuf_RUNNING)},
-			{StateFinished, State(pb.StateProtobuf_FINISHED)},
+			{StateWaiting, State(pb.State_WAITING)},
+			{StateBlocked, State(pb.State_BLOCKED)},
+			{StateRunning, State(pb.State_RUNNING)},
+			{StateFinished, State(pb.State_FINISHED)},
 		}
 		for _, statePair := range statePairs {
 			Expect(statePair[0]).To(Equal(statePair[1]))

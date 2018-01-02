@@ -16,22 +16,22 @@ const (
 
 var _ = Describe("EventType's", func() {
 	It("lines up with the protocol buffer definitions", func() {
-		Expect(EventTypeCreate).To(Equal(EventType(pb.EventTypeProtobuf_CREATE)))
-		Expect(EventTypeDelete).To(Equal(EventType(pb.EventTypeProtobuf_DELETE)))
-		Expect(EventTypeSetState).To(Equal(EventType(pb.EventTypeProtobuf_SET_STATE)))
-		Expect(EventTypeNote).To(Equal(EventType(pb.EventTypeProtobuf_NOTE)))
-		Expect(EventTypeSetPriority).To(Equal(EventType(pb.EventTypeProtobuf_SET_PRIORITY)))
+		Expect(EventTypeCreate).To(Equal(EventType(pb.EventType_CREATE)))
+		Expect(EventTypeDelete).To(Equal(EventType(pb.EventType_DELETE)))
+		Expect(EventTypeSetState).To(Equal(EventType(pb.EventType_SET_STATE)))
+		Expect(EventTypeNote).To(Equal(EventType(pb.EventType_NOTE)))
+		Expect(EventTypeSetPriority).To(Equal(EventType(pb.EventType_SET_PRIORITY)))
 	})
 })
 var _ = Describe("Event's", func() {
 	var (
 		eventA = Event{
 			Title: "Here is Event-A's title",
-			T:     time.Unix(12345, 0),
+			Date:  time.Unix(12345, 0),
 			Type:  EventTypeNote}
 		eventB = Event{
 			Title: "Here is Event-B's title",
-			T:     time.Unix(54321, 0),
+			Date:  time.Unix(54321, 0),
 			Type:  EventTypeSetPriority}
 		tmpEvent Event
 		p        storage.Persister = storage.Persister{root}
@@ -62,7 +62,7 @@ var _ = Describe("Journal", func() {
 		Expect(j.Events).To(BeEmpty())
 	})
 	Context("when adding an event", func() {
-		e0 := &Event{Title: "event 0", T: time.Now()}
+		e0 := &Event{Title: "event 0", Date: time.Now()}
 		BeforeEach(func() {
 			j.Events = append(j.Events, e0)
 		})
@@ -72,8 +72,8 @@ var _ = Describe("Journal", func() {
 			Expect(actualE0.Title).To(Equal("event 0"))
 		})
 		Context("when adding more events", func() {
-			e1 := &Event{Title: "event 1", T: time.Now()}
-			e2 := &Event{Title: "event 2", T: time.Now()}
+			e1 := &Event{Title: "event 1", Date: time.Now()}
+			e2 := &Event{Title: "event 2", Date: time.Now()}
 			BeforeEach(func() {
 				j.Events = append(j.Events, e1)
 				j.Events = append(j.Events, e2)
