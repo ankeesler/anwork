@@ -78,6 +78,14 @@ func (m *Manager) SetPriority(name string, priority int32) {
 	m.journal.Events = append(m.journal.Events, &Event{Title: title, T: time.Now()})
 }
 
+// Add a note that relates to a Task. This function will panic if there is no known Task with the
+// provided name. The Task will be searched for via a call to Manager.Find(name).
+func (m *Manager) Note(name string, note string) {
+	m.findOrPanic(name) // this ensures that a Task exists for the provided name.
+	title := fmt.Sprintf("Note added to task %s: %s", name, note)
+	m.journal.Events = append(m.journal.Events, &Event{Title: title, T: time.Now()})
+}
+
 // Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer
 // value) to lowest priority (highest integer value).
 //

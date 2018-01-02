@@ -77,6 +77,9 @@ var _ = Describe("Manager", func() {
 		It("panics when we try to set the priority of a task that hasn't been added", func() {
 			Expect(func() { m.SetPriority(taskCName, taskCPriority) }).To(Panic())
 		})
+		It("panics when we try to add a note for a task that hasn't been added", func() {
+			Expect(func() { m.Note(taskCName, "tuna") }).To(Panic())
+		})
 		Context("when that one task is modified", func() {
 			BeforeEach(func() {
 				m.SetPriority(taskAName, taskAPriority)
@@ -102,6 +105,21 @@ var _ = Describe("Manager", func() {
 				Expect(m.Journal().Events[2].Title).To(Equal(title))
 			})
 		})
+		Context("when we add a note to that task", func() {
+			var note string = "This is a note for task a"
+			BeforeEach(func() {
+				m.Note(taskAName, note)
+			})
+			It("adds an event to the journal", func() {
+				Expect(m.Journal().Events).To(HaveLen(2))
+			})
+			It("stores the note in the journal", func() {
+				journal := m.Journal()
+				events := journal.Events
+				event := events[len(events)-1]
+				Expect(event.Title).To(ContainSubstring(note))
+			})
+		})
 		Context("when that one task is deleted", func() {
 			var (
 				ret bool
@@ -121,6 +139,11 @@ var _ = Describe("Manager", func() {
 			It("stores 2 events (creation, deletion)", func() {
 				Expect(m.Journal().Events).To(HaveLen(2))
 				Expect(m.Journal().Events[1].Title).To(Equal("Deleted task " + taskAName))
+			})
+			It("panics if we try to act on that deleted task", func() {
+				Expect(func() { m.SetPriority(taskAName, taskAPriority) }).To(Panic())
+				Expect(func() { m.SetState(taskAName, taskAState) }).To(Panic())
+				Expect(func() { m.Note(taskAName, "tuna") }).To(Panic())
 			})
 		})
 	})
