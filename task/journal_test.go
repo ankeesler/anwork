@@ -3,10 +3,56 @@ package task
 import (
 	"time"
 
+	"github.com/ankeesler/anwork/storage"
+	pb "github.com/ankeesler/anwork/task/proto"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
+const (
+	eventContext = "event-context"
+)
+
+var _ = Describe("EventType's", func() {
+	It("lines up with the protocol buffer definitions", func() {
+		Expect(EventTypeCreate).To(Equal(EventType(pb.EventTypeProtobuf_CREATE)))
+		Expect(EventTypeDelete).To(Equal(EventType(pb.EventTypeProtobuf_DELETE)))
+		Expect(EventTypeSetState).To(Equal(EventType(pb.EventTypeProtobuf_SET_STATE)))
+		Expect(EventTypeNote).To(Equal(EventType(pb.EventTypeProtobuf_NOTE)))
+		Expect(EventTypeSetPriority).To(Equal(EventType(pb.EventTypeProtobuf_SET_PRIORITY)))
+	})
+})
+var _ = Describe("Event's", func() {
+	var (
+		eventA = Event{
+			Title: "Here is Event-A's title",
+			T:     time.Unix(12345, 0),
+			Type:  EventTypeNote}
+		eventB = Event{
+			Title: "Here is Event-B's title",
+			T:     time.Unix(54321, 0),
+			Type:  EventTypeSetPriority}
+		tmpEvent Event
+		p        storage.Persister = storage.Persister{root}
+	)
+	It("are persistable", func() {
+		Expect(p.Exists(tmpContext)).To(BeFalse(),
+			"Cannot run this test when context (%s) already exists", tmpContext)
+		defer p.Delete(tmpContext)
+
+		Expect(p.Persist(tmpContext, &eventA)).To(Succeed())
+		Expect(p.Unpersist(tmpContext, &tmpEvent)).To(Succeed())
+		Expect(eventA).To(Equal(tmpEvent))
+	})
+	It("are unpersistable", func() {
+		Expect(p.Exists(eventContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", eventContext)
+
+		Expect(p.Unpersist(eventContext, &tmpEvent)).To(Succeed())
+		Expect(eventB).To(Equal(tmpEvent))
+	})
+})
 var _ = Describe("Journal", func() {
 	var j *Journal
 	BeforeEach(func() {

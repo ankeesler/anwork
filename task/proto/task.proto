@@ -2,6 +2,9 @@ syntax = "proto3";
 
 option go_package = "proto";
 
+// TODO: remove the "Protobuf" off of the end of the types - they will be namespaced via the package.
+// TODO: sync the names of the fields of the Protobuf's and the Go structs.
+
 enum StateProtobuf {
   WAITING = 0;
   BLOCKED = 1;
@@ -18,7 +21,7 @@ message TaskProtobuf {
   StateProtobuf state = 6;
 }
 
-enum TaskManagerActionTypeProtobuf {
+enum EventTypeProtobuf {
   CREATE = 0;
   DELETE = 1;
   SET_STATE = 2;
@@ -26,15 +29,14 @@ enum TaskManagerActionTypeProtobuf {
   SET_PRIORITY = 4;
 }
 
-message TaskManagerJournalEntryProtobuf {
-  TaskProtobuf task = 1;
-  TaskManagerActionTypeProtobuf actionType = 2;
+message EventProtobuf {
+  string title = 1;
+  EventTypeProtobuf type = 2;
   int64 date = 3;
-  string detail = 4;
 }
 
 message TaskManagerJournalProtobuf {
-  repeated TaskManagerJournalEntryProtobuf entries = 1;
+  repeated EventProtobuf entries = 1;
 }
 
 message TaskManagerProtobuf {
