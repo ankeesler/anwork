@@ -41,12 +41,15 @@ func newEvent(title string, teyep EventType) *Event {
 }
 
 func (e *Event) Serialize() ([]byte, error) {
-	eProtobuf := pb.Event{
-		Title: e.Title,
-		Date:  e.Date.Unix(),
-		Type:  pb.EventType(e.Type),
-	}
+	var eProtobuf pb.Event
+	e.toProtobuf(&eProtobuf)
 	return proto.Marshal(&eProtobuf)
+}
+
+func (e *Event) toProtobuf(eProtobuf *pb.Event) {
+	eProtobuf.Title = e.Title
+	eProtobuf.Date = e.Date.Unix()
+	eProtobuf.Type = pb.EventType(e.Type)
 }
 
 func (e *Event) Unserialize(bytes []byte) error {
@@ -56,11 +59,15 @@ func (e *Event) Unserialize(bytes []byte) error {
 		return err
 	}
 
+	e.fromProtobuf(&eProtobuf)
+
+	return nil
+}
+
+func (e *Event) fromProtobuf(eProtobuf *pb.Event) {
 	e.Title = eProtobuf.Title
 	e.Date = time.Unix(eProtobuf.Date, 0) // sec, nsec
 	e.Type = EventType(eProtobuf.Type)
-
-	return nil
 }
 
 // A Journal is a sequence of Event's.
@@ -71,12 +78,8 @@ type Journal struct {
 func (j *Journal) Serialize() ([]byte, error) {
 	var esProtobuf []*pb.Event = make([]*pb.Event, len(j.Events))
 	for index, event := range j.Events {
-		eProtobuf := &pb.Event{
-			Title: event.Title,
-			Date:  event.Date.Unix(),
-			Type:  pb.EventType(event.Type),
-		}
-		esProtobuf[index] = eProtobuf
+		esProtobuf[index] = &pb.Event{}
+		event.toProtobuf(esProtobuf[index])
 	}
 
 	jProtobuf := pb.Journal{
@@ -96,9 +99,7 @@ func (j *Journal) Unserialize(bytes []byte) error {
 	j.Events = make([]*Event, len(esProtobuf))
 	for index, eProtobuf := range esProtobuf {
 		j.Events[index] = &Event{}
-		j.Events[index].Title = eProtobuf.Title
-		j.Events[index].Date = time.Unix(eProtobuf.Date, 0) // sec, nsec
-		j.Events[index].Type = EventType(eProtobuf.Type)
+		j.Events[index].fromProtobuf(eProtobuf)
 	}
 
 	return nil
