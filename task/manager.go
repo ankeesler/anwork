@@ -3,7 +3,6 @@ package task
 import (
 	"fmt"
 	"sort"
-	"time"
 )
 
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
@@ -30,7 +29,7 @@ func (m *Manager) Create(name string) {
 	m.tasks = append(m.tasks, t)
 
 	title := fmt.Sprintf("Created task %s", name)
-	m.journal.Events = append(m.journal.Events, &Event{Title: title, Date: time.Now()})
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeCreate))
 }
 
 // Delete a Task with the provided name. Returns true iff the deletion was successful.
@@ -47,7 +46,7 @@ func (m *Manager) Delete(name string) bool {
 		m.tasks = append(m.tasks[:taskIndex], m.tasks[taskIndex+1:]...)
 
 		title := fmt.Sprintf("Deleted task %s", name)
-		m.journal.Events = append(m.journal.Events, &Event{Title: title, Date: time.Now()})
+		m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeDelete))
 
 		return true
 	} else {
@@ -64,7 +63,7 @@ func (m *Manager) SetState(name string, state State) {
 
 	title := fmt.Sprintf("Set state on task %s from %s to %s",
 		name, StateNames[beforeState], StateNames[state])
-	m.journal.Events = append(m.journal.Events, &Event{Title: title, Date: time.Now()})
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetState))
 }
 
 // Set the priority of a Task currently in this Manager. This function will panic if there is no
@@ -75,7 +74,7 @@ func (m *Manager) SetPriority(name string, priority int32) {
 	t.priority = priority
 
 	title := fmt.Sprintf("Set priority on task %s from %d to %d", name, beforePriority, priority)
-	m.journal.Events = append(m.journal.Events, &Event{Title: title, Date: time.Now()})
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetPriority))
 }
 
 // Add a note that relates to a Task. This function will panic if there is no known Task with the
@@ -83,7 +82,7 @@ func (m *Manager) SetPriority(name string, priority int32) {
 func (m *Manager) Note(name string, note string) {
 	m.findOrPanic(name) // this ensures that a Task exists for the provided name.
 	title := fmt.Sprintf("Note added to task %s: %s", name, note)
-	m.journal.Events = append(m.journal.Events, &Event{Title: title, Date: time.Now()})
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeNote))
 }
 
 // Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer

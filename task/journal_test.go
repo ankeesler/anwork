@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	eventContext = "event-context"
+	eventContext   = "event-context"
+	journalContext = "journal-context"
 )
 
 var _ = Describe("EventType's", func() {
@@ -54,15 +55,19 @@ var _ = Describe("Event's", func() {
 	})
 })
 var _ = Describe("Journal", func() {
-	var j *Journal
+	var (
+		j, tmpJ *Journal
+		p       storage.Persister = storage.Persister{root}
+	)
 	BeforeEach(func() {
 		j = &Journal{}
+		tmpJ = &Journal{}
 	})
 	It("holds no events to start", func() {
 		Expect(j.Events).To(BeEmpty())
 	})
 	Context("when adding an event", func() {
-		e0 := &Event{Title: "event 0", Date: time.Now()}
+		e0 := newEvent("event 0", EventTypeSetPriority)
 		BeforeEach(func() {
 			j.Events = append(j.Events, e0)
 		})
@@ -71,9 +76,18 @@ var _ = Describe("Journal", func() {
 			actualE0 := j.Events[0]
 			Expect(actualE0.Title).To(Equal("event 0"))
 		})
+		It("persists that event correctly", func() {
+			Expect(p.Exists(tmpContext)).To(BeFalse(),
+				"Cannot run this test when context (%s) already exists", tmpContext)
+			defer p.Delete(tmpContext)
+
+			Expect(p.Persist(tmpContext, j)).To(Succeed())
+			Expect(p.Unpersist(tmpContext, tmpJ)).To(Succeed())
+			Expect(j).To(Equal(tmpJ))
+		})
 		Context("when adding more events", func() {
-			e1 := &Event{Title: "event 1", Date: time.Now()}
-			e2 := &Event{Title: "event 2", Date: time.Now()}
+			e1 := newEvent("event 1", EventTypeCreate)
+			e2 := newEvent("event 2", EventTypeNote)
 			BeforeEach(func() {
 				j.Events = append(j.Events, e1)
 				j.Events = append(j.Events, e2)
@@ -86,6 +100,43 @@ var _ = Describe("Journal", func() {
 				Expect(j.Events[1].Title).To(Equal("event 1"))
 				Expect(j.Events[2].Title).To(Equal("event 2"))
 			})
+			It("persists those events correctly", func() {
+				Expect(p.Exists(tmpContext)).To(BeFalse(),
+					"Cannot run this test when context (%s) already exists", tmpContext)
+				defer p.Delete(tmpContext)
+
+				Expect(p.Persist(tmpContext, j)).To(Succeed())
+				Expect(p.Unpersist(tmpContext, tmpJ)).To(Succeed())
+				Expect(j).To(Equal(tmpJ))
+			})
 		})
+	})
+
+	It("hey!", func() {
+		Expect(p.Exists(journalContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", journalContext)
+
+		j.Events = append(j.Events, &Event{
+			Title: "event a",
+			Date:  time.Unix(10000, 0),
+			Type:  EventTypeNote,
+		})
+		j.Events = append(j.Events, &Event{
+			Title: "event b",
+			Date:  time.Unix(20000, 0),
+			Type:  EventTypeSetState,
+		})
+		j.Events = append(j.Events, &Event{
+			Title: "event c",
+			Date:  time.Unix(30000, 0),
+			Type:  EventTypeSetPriority,
+		})
+		j.Events = append(j.Events, &Event{
+			Title: "event b",
+			Date:  time.Unix(40000, 0),
+			Type:  EventTypeDelete,
+		})
+		Expect(p.Unpersist(journalContext, tmpJ)).To(Succeed())
+		Expect(j).To(Equal(tmpJ))
 	})
 })
