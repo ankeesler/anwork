@@ -52,6 +52,7 @@ type Task struct {
 	name string
 
 	// This is a unique ID. Every Task has a different ID.
+	// TODO: why does this need to be a 32-bit integer? Why not just int?
 	id int32
 
 	// This is a description of the Task.
@@ -93,12 +94,6 @@ func (t *Task) Unserialize(bytes []byte) error {
 
 	t.fromProtobuf(&tProtobuf)
 
-	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
-	// unique ID.
-	if t.id >= nextTaskId {
-		nextTaskId = t.id + 1
-	}
-
 	return nil
 }
 
@@ -109,11 +104,27 @@ func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
 	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
 	t.priority = tProtobuf.Priority
 	t.state = State(tProtobuf.State)
+
+	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
+	// unique ID.
+	if t.id >= nextTaskId {
+		nextTaskId = t.id + 1
+	}
 }
 
-// Get the State for this task.
+// Get the name of this Task.
+func (t *Task) Name() string {
+	return t.name
+}
+
+// Get the State for this Task.
 func (t *Task) State() State {
 	return t.state
+}
+
+// Get the ID for this Task.
+func (t *Task) ID() int32 {
+	return t.id
 }
 
 // Create a new Task with a default priority (see DefaultPriority) in the waiting state (see

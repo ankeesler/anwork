@@ -247,6 +247,25 @@ var _ = Describe("Manager", func() {
 				Expect(m.Journal().Events).To(HaveLen(8))
 			})
 			It("persists correctly", checkPersistence)
+			It("persists correctly through reset", func() {
+				tmpM := NewManager()
+
+				ExpectWithOffset(1, p.Exists(tmpContext)).To(BeFalse(),
+					"Cannot run this test when context (%s) already exists", tmpContext)
+				defer p.Delete(tmpContext)
+
+				ExpectWithOffset(1, p.Persist(tmpContext, m)).To(Succeed())
+
+				// Set the nextTaskId to 0 to simulate a new runtime.
+				nextTaskId = 0
+
+				ExpectWithOffset(1, p.Unpersist(tmpContext, tmpM)).To(Succeed())
+				ExpectWithOffset(1, m).To(Equal(tmpM))
+
+				m.Create("new")
+				newT := m.Find("new")
+				Expect(newT.id).ToNot(BeEquivalentTo(0))
+			})
 			Context("when one task is deleted", func() {
 				var (
 					ret bool

@@ -1,6 +1,7 @@
 package task
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 
@@ -183,4 +184,24 @@ func (m *Manager) Unserialize(bytes []byte) error {
 	m.journal.fromProtobuf(mProtobuf.Journal)
 
 	return nil
+}
+
+func (m *Manager) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("manager{")
+
+	buf.WriteString("tasks:")
+	for _, t := range m.tasks {
+		str := fmt.Sprintf("%s(%d),", t.name, t.id)
+		buf.WriteString(str)
+	}
+
+	buf.WriteString(";journal:")
+	for _, e := range m.journal.Events {
+		str := fmt.Sprintf("'%s',", e.Title)
+		buf.WriteString(str)
+	}
+
+	buf.WriteString(";}")
+	return buf.String()
 }
