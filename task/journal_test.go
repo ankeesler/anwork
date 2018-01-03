@@ -60,8 +60,8 @@ var _ = Describe("Journal", func() {
 		p       storage.Persister = storage.Persister{root}
 	)
 	BeforeEach(func() {
-		j = &Journal{}
-		tmpJ = &Journal{}
+		j = newJournal()
+		tmpJ = newJournal()
 	})
 	It("holds no events to start", func() {
 		Expect(j.Events).To(BeEmpty())

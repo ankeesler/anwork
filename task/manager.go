@@ -3,6 +3,10 @@ package task
 import (
 	"fmt"
 	"sort"
+
+	"github.com/golang/protobuf/proto"
+
+	pb "github.com/ankeesler/anwork/task/proto"
 )
 
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
@@ -13,7 +17,7 @@ type Manager struct {
 
 // Create a new manager with an empty list of Task's.
 func NewManager() *Manager {
-	return &Manager{journal: &Journal{}}
+	return &Manager{tasks: make([]*Task, 0), journal: newJournal()}
 }
 
 // Create a Task with the provided name. This function will panic if a Task with the provided name
@@ -144,4 +148,39 @@ func (m *Manager) Swap(i, j int) {
 
 func (m *Manager) Journal() *Journal {
 	return m.journal
+}
+
+func (m *Manager) Serialize() ([]byte, error) {
+	mProtobuf := pb.Manager{
+		Tasks:   make([]*pb.Task, m.Len()),
+		Journal: &pb.Journal{},
+	}
+
+	for index, t := range m.tasks {
+		mProtobuf.Tasks[index] = &pb.Task{}
+		t.toProtobuf(mProtobuf.Tasks[index])
+	}
+
+	m.journal.toProtobuf(mProtobuf.Journal)
+
+	return proto.Marshal(&mProtobuf)
+}
+
+func (m *Manager) Unserialize(bytes []byte) error {
+	mProtobuf := pb.Manager{}
+	err := proto.Unmarshal(bytes, &mProtobuf)
+	if err != nil {
+		return err
+	}
+
+	tsProtobuf := mProtobuf.GetTasks()
+	m.tasks = make([]*Task, len(tsProtobuf))
+	for index, tProtobuf := range tsProtobuf {
+		m.tasks[index] = &Task{}
+		m.tasks[index].fromProtobuf(tProtobuf)
+	}
+
+	m.journal.fromProtobuf(mProtobuf.Journal)
+
+	return nil
 }

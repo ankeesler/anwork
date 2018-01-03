@@ -75,17 +75,24 @@ type Journal struct {
 	Events []*Event
 }
 
+func newJournal() *Journal {
+	return &Journal{Events: make([]*Event, 0)}
+}
+
 func (j *Journal) Serialize() ([]byte, error) {
+	var jProtobuf pb.Journal
+	j.toProtobuf(&jProtobuf)
+	return proto.Marshal(&jProtobuf)
+}
+
+func (j *Journal) toProtobuf(jProtobuf *pb.Journal) {
 	var esProtobuf []*pb.Event = make([]*pb.Event, len(j.Events))
 	for index, event := range j.Events {
 		esProtobuf[index] = &pb.Event{}
 		event.toProtobuf(esProtobuf[index])
 	}
 
-	jProtobuf := pb.Journal{
-		Events: esProtobuf,
-	}
-	return proto.Marshal(&jProtobuf)
+	jProtobuf.Events = esProtobuf
 }
 
 func (j *Journal) Unserialize(bytes []byte) error {
@@ -95,12 +102,16 @@ func (j *Journal) Unserialize(bytes []byte) error {
 		return err
 	}
 
+	j.fromProtobuf(&jProtobuf)
+
+	return nil
+}
+
+func (j *Journal) fromProtobuf(jProtobuf *pb.Journal) {
 	esProtobuf := jProtobuf.GetEvents()
 	j.Events = make([]*Event, len(esProtobuf))
 	for index, eProtobuf := range esProtobuf {
 		j.Events[index] = &Event{}
 		j.Events[index].fromProtobuf(eProtobuf)
 	}
-
-	return nil
 }

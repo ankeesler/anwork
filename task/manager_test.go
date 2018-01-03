@@ -3,6 +3,8 @@ package task
 import (
 	"fmt"
 
+	"github.com/ankeesler/anwork/storage"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -23,7 +25,20 @@ const (
 var _ = Describe("Manager", func() {
 	var (
 		m *Manager
+		p = storage.Persister{root}
 	)
+
+	checkPersistence := func() {
+		tmpM := NewManager()
+
+		ExpectWithOffset(1, p.Exists(tmpContext)).To(BeFalse(),
+			"Cannot run this test when context (%s) already exists", tmpContext)
+		defer p.Delete(tmpContext)
+
+		ExpectWithOffset(1, p.Persist(tmpContext, m)).To(Succeed())
+		ExpectWithOffset(1, p.Unpersist(tmpContext, tmpM)).To(Succeed())
+		ExpectWithOffset(1, m).To(Equal(tmpM))
+	}
 
 	BeforeEach(func() {
 		m = NewManager()
@@ -36,6 +51,7 @@ var _ = Describe("Manager", func() {
 		It("has no journal entries", func() {
 			Expect(m.Journal().Events).To(BeEmpty())
 		})
+		It("persists correctly", checkPersistence)
 		Context("when a task is deleted", func() {
 			var (
 				ret bool
@@ -80,6 +96,7 @@ var _ = Describe("Manager", func() {
 		It("panics when we try to add a note for a task that hasn't been added", func() {
 			Expect(func() { m.Note(taskCName, "tuna") }).To(Panic())
 		})
+		It("persists correctly", checkPersistence)
 		Context("when that one task is modified", func() {
 			BeforeEach(func() {
 				m.SetPriority(taskAName, taskAPriority)
@@ -104,6 +121,7 @@ var _ = Describe("Manager", func() {
 					taskAName, StateNames[taskAState])
 				Expect(m.Journal().Events[2].Title).To(Equal(title))
 			})
+			It("persists correctly", checkPersistence)
 		})
 		Context("when we add a note to that task", func() {
 			var note string = "This is a note for task a"
@@ -119,6 +137,7 @@ var _ = Describe("Manager", func() {
 				event := events[len(events)-1]
 				Expect(event.Title).To(ContainSubstring(note))
 			})
+			It("persists correctly", checkPersistence)
 		})
 		Context("when that one task is deleted", func() {
 			var (
@@ -145,6 +164,7 @@ var _ = Describe("Manager", func() {
 				Expect(func() { m.SetState(taskAName, taskAState) }).To(Panic())
 				Expect(func() { m.Note(taskAName, "tuna") }).To(Panic())
 			})
+			It("persists correctly", checkPersistence)
 		})
 	})
 
@@ -182,6 +202,7 @@ var _ = Describe("Manager", func() {
 			title = fmt.Sprintf("Created task %s", taskCName)
 			Expect(m.Journal().Events[2].Title).To(Equal(title))
 		})
+		It("persists correctly", checkPersistence)
 		Context("when tasks are updated", func() {
 			BeforeEach(func() {
 				taskA := m.Find(taskAName)
@@ -225,6 +246,7 @@ var _ = Describe("Manager", func() {
 				// = 8 events
 				Expect(m.Journal().Events).To(HaveLen(8))
 			})
+			It("persists correctly", checkPersistence)
 			Context("when one task is deleted", func() {
 				var (
 					ret bool
@@ -260,6 +282,7 @@ var _ = Describe("Manager", func() {
 					// = 9 events
 					Expect(m.Journal().Events).To(HaveLen(9))
 				})
+				It("persists correctly", checkPersistence)
 				Context("when the other two tasks' priorities are set equal", func() {
 					BeforeEach(func() {
 						tasks := m.Tasks()
@@ -300,6 +323,7 @@ var _ = Describe("Manager", func() {
 						// = 11 events
 						Expect(m.Journal().Events).To(HaveLen(11))
 					})
+					It("persists correctly", checkPersistence)
 				})
 			})
 		})

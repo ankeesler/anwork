@@ -70,15 +70,18 @@ type Task struct {
 }
 
 func (t *Task) Serialize() ([]byte, error) {
-	tProtobuf := pb.Task{
-		Name:        t.name,
-		Id:          t.id,
-		Description: t.description,
-		StartDate:   t.startDate.Unix(),
-		Priority:    t.priority,
-		State:       pb.State(t.state),
-	}
+	var tProtobuf pb.Task
+	t.toProtobuf(&tProtobuf)
 	return proto.Marshal(&tProtobuf)
+}
+
+func (t *Task) toProtobuf(tProtobuf *pb.Task) {
+	tProtobuf.Name = t.name
+	tProtobuf.Id = t.id
+	tProtobuf.Description = t.description
+	tProtobuf.StartDate = t.startDate.Unix()
+	tProtobuf.Priority = t.priority
+	tProtobuf.State = pb.State(t.state)
 }
 
 func (t *Task) Unserialize(bytes []byte) error {
@@ -88,12 +91,7 @@ func (t *Task) Unserialize(bytes []byte) error {
 		return err
 	}
 
-	t.name = tProtobuf.Name
-	t.id = tProtobuf.Id
-	t.description = tProtobuf.Description
-	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
-	t.priority = tProtobuf.Priority
-	t.state = State(tProtobuf.State)
+	t.fromProtobuf(&tProtobuf)
 
 	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
 	// unique ID.
@@ -102,6 +100,15 @@ func (t *Task) Unserialize(bytes []byte) error {
 	}
 
 	return nil
+}
+
+func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
+	t.name = tProtobuf.Name
+	t.id = tProtobuf.Id
+	t.description = tProtobuf.Description
+	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
+	t.priority = tProtobuf.Priority
+	t.state = State(tProtobuf.State)
 }
 
 // Get the State for this task.
