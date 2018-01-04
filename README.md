@@ -37,7 +37,9 @@ Make sure that the $GOPATH/bin directory is in your $PATH.
 
 To run the unit tests, try the following.
 ```
-$ go test ./...
+$ go get -t ./...                             # download dependencies for testing
+$ go install -v github.com/onsi/ginkgo/ginkgo # install ginkgo testing binary
+$ ginkgo ./...                                # run the tests with the ginkgo testing binary
 ```
 
 - See [ARCH.md](doc/ARCH.md) for architecture information.
