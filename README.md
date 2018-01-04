@@ -17,7 +17,7 @@ $ go get ./...
 ```
 3. Run anwork with the following command.
 ```
-$ go run cmd/anwork/anwork.go version
+$ go run cmd/anwork/main.go
 ```
 
 See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.

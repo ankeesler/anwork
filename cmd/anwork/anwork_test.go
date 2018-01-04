@@ -51,10 +51,10 @@ var _ = Describe("anwork", func() {
 		BeforeEach(func() {
 			args = []string{}
 		})
-		It("fails", expectFailure)
+		It("succeeds", expectSuccess)
 		It("prints usage", expectUsagePrinted)
-		It("prints error", func() {
-			Expect(output.String()).To(ContainSubstring("Error! Expected command arguments"))
+		It("does not print error", func() {
+			Expect(output.String()).ToNot(ContainSubstring("Error!"))
 		})
 	})
 	Context("when help is requested", func() {

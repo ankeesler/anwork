@@ -84,9 +84,10 @@ func run(args []string, output io.Writer) int {
 	}
 
 	if flags.NArg() == 0 {
-		fmt.Fprintln(output, "Error! Expected command arguments")
+		// If there are no arguments, return success. People might use this to simply check if the anwork
+		// executable is on their machine.
 		flags.Usage()
-		return 1
+		return 0
 	}
 	firstArg := flags.Arg(0)
 
