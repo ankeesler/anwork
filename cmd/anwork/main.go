@@ -41,16 +41,7 @@ func writeManager(persister *storage.Persister, context string, manager *task.Ma
 	}
 }
 
-func findAction(name string) func(string, *task.Manager) bool {
-	for _, c := range commands {
-		if c.name == name {
-			return c.action
-		}
-	}
-	return nil
-}
-
-func run(args []string, output io.Writer) {
+func run(args []string, output io.Writer) int {
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.SetOutput(output)
 
@@ -60,17 +51,17 @@ func run(args []string, output io.Writer) {
 	flags.StringVar(&root, "root", ".", "Set the persistence root directory")
 
 	if err := flags.Parse(args[1:]); err == flag.ErrHelp {
-		// TODO: write our own usage with the commands!
-		flags.Usage()
-		return
+		// Looks like help is printed by the flag package...
+		return 0
 	} else if err != nil {
-		panic(err)
+		// I think the flag package prints out the error and the usage...
+		return 1
 	}
 
 	if flags.NArg() == 0 {
 		fmt.Fprintln(output, "Error! Expected command arguments")
 		flags.Usage()
-		return
+		return 1
 	}
 	firstArg := flags.Arg(0)
 
@@ -85,20 +76,23 @@ func run(args []string, output io.Writer) {
 	}
 	dbgfln(output, "Manager is %s", manager)
 
-	action := findAction(firstArg)
-	if action == nil {
+	command := findCommand(firstArg)
+	if command == nil {
 		fmt.Fprintln(output, "Error! Unknown command line argument:", firstArg)
-		return
+		flags.Usage()
+		return 1
 	} else {
-		if action(firstArg, manager) {
+		if command.action(firstArg, output, manager) {
 			dbgfln(output, "Persisting manager back to disk")
 			writeManager(&persister, context, manager)
 		} else {
 			dbgfln(output, "NOT persisting manager back to disk")
 		}
 	}
+
+	return 0
 }
 
 func main() {
-	run(os.Args, os.Stdout)
+	os.Exit(run(os.Args, os.Stdout))
 }

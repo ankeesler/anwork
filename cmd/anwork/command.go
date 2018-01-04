@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -18,9 +19,10 @@ type command struct {
 	args []string
 
 	// This is the action that runs when this command is invoked. The first parameter to this function
-	// is the name of the command. The function should return true iff the task.Manager should be
+	// is the name of the command. The second parameter to the function is the output stream to which
+	// output should be written. The function should return true iff the task.Manager should be
 	// persisted to disk after the action returns.
-	action func(name string, manager *task.Manager) bool
+	action func(name string, output io.Writer, manager *task.Manager) bool
 }
 
 // These are the commands used by the anwork application.
@@ -87,6 +89,15 @@ var commands = []command{
 	},
 }
 
+func findCommand(name string) *command {
+	for _, c := range commands {
+		if c.name == name {
+			return &c
+		}
+	}
+	return nil
+}
+
 // This index starts at "1" since the arg at index "0" will be the command name itself.
 var shiftIndex int = 1
 
@@ -102,19 +113,19 @@ func shift() string {
 	return val
 }
 
-func versionAction(command string, manager *task.Manager) bool {
-	fmt.Println("ANWORK Version =", version)
+func versionAction(command string, output io.Writer, manager *task.Manager) bool {
+	fmt.Fprintln(output, "ANWORK Version =", version)
 	return false
 }
 
-func createAction(command string, manager *task.Manager) bool {
+func createAction(command string, output io.Writer, manager *task.Manager) bool {
 	dbgfln(os.Stdout, "Creating task...")
 	name := shift()
 	manager.Create(name)
 	return true
 }
 
-func showAction(command string, manager *task.Manager) bool {
+func showAction(command string, output io.Writer, manager *task.Manager) bool {
 	printer := func(state task.State) {
 		fmt.Printf("%s tasks:\n", strings.ToUpper(task.StateNames[state]))
 		for _, task := range manager.Tasks() {
@@ -130,14 +141,14 @@ func showAction(command string, manager *task.Manager) bool {
 	return false
 }
 
-func noteAction(command string, manager *task.Manager) bool {
+func noteAction(command string, output io.Writer, manager *task.Manager) bool {
 	name := shift()
 	note := shift()
 	manager.Note(name, note)
 	return true
 }
 
-func deleteAction(command string, manager *task.Manager) bool {
+func deleteAction(command string, output io.Writer, manager *task.Manager) bool {
 	dbgfln(os.Stdout, "Deleting task...")
 	name := shift()
 	if !manager.Delete(name) {
@@ -148,7 +159,7 @@ func deleteAction(command string, manager *task.Manager) bool {
 	}
 }
 
-func setStateAction(command string, manager *task.Manager) bool {
+func setStateAction(command string, output io.Writer, manager *task.Manager) bool {
 	name := shift()
 
 	var state task.State
@@ -169,7 +180,7 @@ func setStateAction(command string, manager *task.Manager) bool {
 	return true
 }
 
-func journalAction(command string, manager *task.Manager) bool {
+func journalAction(command string, output io.Writer, manager *task.Manager) bool {
 	es := manager.Journal().Events
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
