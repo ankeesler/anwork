@@ -1,12 +1,15 @@
 # ANWORK CLI OVERVIEW
 
+TODO: UPDATE ME!!!!
+TODO: MAKE SURE ALL OF THESE FEATURES ARE IMPLEMENTED!!!!
+
 The ANWORK CLI API is fully documented in [CLI.md](CLI.md). Below are some tips and tricks.
 
 ## Creating a task
 
 To create a task named _weigh-tuna_, here is the command.
 ```
-$ anwork task create weigh-tuna
+$ anwork create weigh-tuna
 ```
 
 To create a task named count-fish and give it a description and a priority, here is the command.
