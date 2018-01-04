@@ -19,17 +19,17 @@ var (
 )
 
 // This map stores the functions associated with each of the command line actions.
-var argActions = map[string]func(string, *task.Manager) bool{
-	"version":      versionAction,
-	"create":       createAction,
-	"delete":       deleteAction,
-	"show":         showAction,
-	"note":         noteAction,
-	"set-running":  setStateAction,
-	"set-blocked":  setStateAction,
-	"set-waiting":  setStateAction,
-	"set-finished": setStateAction,
-	"journal":      journalAction,
+var commands = []command{
+	command{name: "version", usage: "(no arguments)", action: versionAction},
+	command{name: "create", usage: "<task-name>", action: createAction},
+	command{name: "delete", usage: "<task-name>", action: deleteAction},
+	command{name: "show", usage: "(no arguments)", action: showAction},
+	command{name: "note", usage: "<task-name> <note>", action: noteAction},
+	command{name: "set-running", usage: "<task-name>", action: setStateAction},
+	command{name: "set-blocked", usage: "<task-name>", action: setStateAction},
+	command{name: "set-waiting", usage: "<task-name>", action: setStateAction},
+	command{name: "set-finished", usage: "<task-name>", action: setStateAction},
+	command{name: "journal", usage: "(no arguments)", action: journalAction},
 }
 
 var shiftIndex int = 0
@@ -145,6 +145,15 @@ func journalAction(command string, manager *task.Manager) bool {
 	return false
 }
 
+func findAction(name string) func(string, *task.Manager) bool {
+	for _, c := range commands {
+		if c.name == name {
+			return c.action
+		}
+	}
+	return nil
+}
+
 func main() {
 	flag.BoolVar(&help, "help", false, "Print this help message")
 	flag.BoolVar(&debug, "debug", false, "Enable debug printing")
@@ -175,13 +184,13 @@ func main() {
 	}
 	dbgfln("Manager is %s", manager)
 
-	command := shift()
-	action := argActions[command]
+	firstArg := shift()
+	action := findAction(firstArg)
 	if action == nil {
-		fmt.Println("Error! Unknown command line argument:", command)
+		fmt.Println("Error! Unknown command line argument:", firstArg)
 		return
 	} else {
-		if action(command, manager) {
+		if action(firstArg, manager) {
 			dbgfln("Persisting manager back to disk")
 			writeManager(&persister, context, manager)
 		} else {
