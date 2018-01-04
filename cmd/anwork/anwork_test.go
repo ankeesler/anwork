@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ankeesler/anwork/cmd/anwork/command"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -27,10 +29,10 @@ var _ = Describe("anwork", func() {
 
 	expectUsagePrinted := func() {
 		Expect(output.String()).To(ContainSubstring("Usage of anwork"))
-		for _, c := range commands {
-			Expect(output.String()).To(ContainSubstring(c.name))
-			Expect(output.String()).To(ContainSubstring(c.description))
-			for _, a := range c.args {
+		for _, c := range command.Commands {
+			Expect(output.String()).To(ContainSubstring(c.Name))
+			Expect(output.String()).To(ContainSubstring(c.Description))
+			for _, a := range c.Args {
 				Expect(output.String()).To(ContainSubstring(a))
 			}
 		}
@@ -81,7 +83,7 @@ var _ = Describe("anwork", func() {
 		})
 		It("succeeds", expectSuccess)
 		It("prints the version", func() {
-			msg := fmt.Sprintf("ANWORK Version = %d", version)
+			msg := fmt.Sprintf("ANWORK Version = %d", command.Version)
 			Expect(output.String()).To(ContainSubstring(msg))
 		})
 	})

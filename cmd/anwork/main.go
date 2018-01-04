@@ -1,3 +1,5 @@
+// This is the main anwork command line executable. This command line executable provides the
+// ability to create, read, update, and delete anwork Task objects.
 package main
 
 import (
@@ -6,12 +8,10 @@ import (
 	"io"
 	"os"
 
+	"github.com/ankeesler/anwork/cmd/anwork/command"
 	"github.com/ankeesler/anwork/storage"
 	"github.com/ankeesler/anwork/task"
 )
-
-// This is the version of this anwork app.
-const version = 1
 
 // These variables are used to store command line flag values.
 var (
@@ -46,8 +46,8 @@ func usage(f *flag.FlagSet, output io.Writer) func() {
 		fmt.Fprintln(output, "Flags")
 		f.PrintDefaults()
 		fmt.Fprintln(output, "Commands")
-		for _, c := range commands {
-			c.usage(output)
+		for _, c := range command.Commands {
+			c.Usage(output)
 		}
 	}
 }
@@ -93,13 +93,13 @@ func run(args []string, output io.Writer) int {
 	}
 	dbgfln(output, "Manager is %s", manager)
 
-	command := findCommand(firstArg)
+	command := command.FindCommand(firstArg)
 	if command == nil {
 		fmt.Fprintln(output, "Error! Unknown command line argument:", firstArg)
 		flags.Usage()
 		return 1
 	} else {
-		if command.action(firstArg, output, manager) {
+		if command.Action(firstArg, output, manager) {
 			dbgfln(output, "Persisting manager back to disk")
 			writeManager(&persister, context, manager)
 		} else {
