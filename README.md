@@ -43,3 +43,12 @@ $ ginkgo ./...                                # run the tests with the ginkgo te
 ```
 
 See [anwork_testing](https://github.com/ankeesler/anwork_testing) repo for more testing.
+
+### Style
+
+Thanks to the use of Go, there are not a lot of style conventions to note here. Here are the few
+formatting rules used in this codebase.
+1. Use `go fmt` for formatting all code.
+2. No line should extend past column 100.
+3. If function arguments would go past the 100 character limit, they should be wrapped to the next
+   line.
