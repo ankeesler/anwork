@@ -27,6 +27,13 @@ var _ = Describe("anwork", func() {
 
 	expectUsagePrinted := func() {
 		Expect(output.String()).To(ContainSubstring("Usage of anwork"))
+		for _, c := range commands {
+			Expect(output.String()).To(ContainSubstring(c.name))
+			Expect(output.String()).To(ContainSubstring(c.description))
+			for _, a := range c.args {
+				Expect(output.String()).To(ContainSubstring(a))
+			}
+		}
 	}
 
 	Context("when no args are passed", func() {

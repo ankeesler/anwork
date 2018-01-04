@@ -40,6 +40,18 @@ func writeManager(persister *storage.Persister, context string, manager *task.Ma
 	}
 }
 
+func usage(f *flag.FlagSet, output io.Writer) func() {
+	return func() {
+		fmt.Fprintln(output, "Usage of anwork")
+		fmt.Fprintln(output, "Flags")
+		f.PrintDefaults()
+		fmt.Fprintln(output, "Commands")
+		for _, c := range commands {
+			c.usage(output)
+		}
+	}
+}
+
 func run(args []string, output io.Writer) int {
 	var (
 		context, root string
@@ -52,6 +64,8 @@ func run(args []string, output io.Writer) int {
 
 	flags.StringVar(&context, "context", "default-context", "Set the persistence context")
 	flags.StringVar(&root, "root", ".", "Set the persistence root directory")
+
+	flags.Usage = usage(flags, output)
 
 	if err := flags.Parse(args[1:]); err == flag.ErrHelp {
 		// Looks like help is printed by the flag package...

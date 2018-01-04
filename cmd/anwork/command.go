@@ -89,6 +89,11 @@ var commands = []command{
 	},
 }
 
+func (c *command) usage(output io.Writer) {
+	fmt.Fprintf(output, "  %s %s\n", c.name, strings.Join(c.args, " "))
+	fmt.Fprintf(output, "        %s\n", c.description)
+}
+
 func findCommand(name string) *command {
 	for _, c := range commands {
 		if c.name == name {
