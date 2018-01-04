@@ -15,7 +15,7 @@ import (
 type command struct {
 	name, description string
 
-	// These are the name of the arguments that are expected by the command.
+	// This slice holds the name(s) of the argument(s) that is(/are) expected by the command.
 	args []string
 
 	// This is the action that runs when this command is invoked. The first parameter to this function
