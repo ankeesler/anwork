@@ -8,8 +8,6 @@ import (
 	"github.com/ankeesler/anwork/task"
 )
 
-// TODO: rename me to main.go!
-
 // This is the version of this anwork app.
 const version = 1
 
