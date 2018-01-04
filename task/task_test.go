@@ -120,7 +120,7 @@ var _ = Describe("Task's", func() {
 			Expect(err).ToNot(HaveOccurred(),
 				"Got error when persisting task %#v to file: %s", task, err)
 
-			ids := make(map[int32]bool)
+			ids := make(map[int]bool)
 			for i := 0; i < 25; i++ {
 				name := fmt.Sprintf("task-%d", i)
 				task := newTask(name)

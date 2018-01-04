@@ -41,7 +41,7 @@ var StateNames = [...]string{
 // This is the default priority that a Task gets when created.
 const DefaultPriority = 10
 
-var nextTaskId int32 = 0
+var nextTaskId int = 0
 
 //go:generate protoc --proto_path=proto --go_out=proto task.proto
 
@@ -52,8 +52,7 @@ type Task struct {
 	name string
 
 	// This is a unique ID. Every Task has a different ID.
-	// TODO: why does this need to be a 32-bit integer? Why not just int?
-	id int32
+	id int
 
 	// This is a description of the Task.
 	description string
@@ -62,7 +61,7 @@ type Task struct {
 	startDate time.Time
 
 	// This is the priority of the Task. The lower the number, the higher the importance.
-	priority int32
+	priority int
 
 	// This is the State of the Task. See State* for possible values. A Task can go through any
 	// number of State changes over the course of its life. All Tasks start out in the StateWaiting
@@ -78,10 +77,10 @@ func (t *Task) Serialize() ([]byte, error) {
 
 func (t *Task) toProtobuf(tProtobuf *pb.Task) {
 	tProtobuf.Name = t.name
-	tProtobuf.Id = t.id
+	tProtobuf.Id = int32(t.id)
 	tProtobuf.Description = t.description
 	tProtobuf.StartDate = t.startDate.Unix()
-	tProtobuf.Priority = t.priority
+	tProtobuf.Priority = int32(t.priority)
 	tProtobuf.State = pb.State(t.state)
 }
 
@@ -99,10 +98,10 @@ func (t *Task) Unserialize(bytes []byte) error {
 
 func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
 	t.name = tProtobuf.Name
-	t.id = tProtobuf.Id
+	t.id = int(tProtobuf.Id)
 	t.description = tProtobuf.Description
 	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
-	t.priority = tProtobuf.Priority
+	t.priority = int(tProtobuf.Priority)
 	t.state = State(tProtobuf.State)
 
 	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
@@ -123,7 +122,7 @@ func (t *Task) State() State {
 }
 
 // Get the ID for this Task.
-func (t *Task) ID() int32 {
+func (t *Task) ID() int {
 	return t.id
 }
 

@@ -73,7 +73,7 @@ func (m *Manager) SetState(name string, state State) {
 
 // Set the priority of a Task currently in this Manager. This function will panic if there is no
 // known Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
-func (m *Manager) SetPriority(name string, priority int32) {
+func (m *Manager) SetPriority(name string, priority int) {
 	t := m.findOrPanic(name)
 	beforePriority := t.priority
 	t.priority = priority
