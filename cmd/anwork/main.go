@@ -15,8 +15,7 @@ const version = 1
 
 // These variables are used to store command line flag values.
 var (
-	debug         bool
-	context, root string
+	debug bool
 )
 
 func dbgfln(output io.Writer, format string, stuff ...interface{}) {
@@ -42,6 +41,10 @@ func writeManager(persister *storage.Persister, context string, manager *task.Ma
 }
 
 func run(args []string, output io.Writer) int {
+	var (
+		context, root string
+	)
+
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.SetOutput(output)
 
