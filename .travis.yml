@@ -8,6 +8,9 @@ install:
   - go get -t -v ./...
   - go install -v github.com/onsi/ginkgo/ginkgo
 
+# TODO: add a test to make sure the code is formatted and vet'ed.
+# TODO: run me on Windows as well for better platform coverage! Maybe even Mac as well?
+
 script:
   - ginkgo -r -cover
 
