@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-option java_package = "com.marshmallow.anwork.core.test.protobuf";
-option java_multiple_files = true;
-
-message StudentProtobuf {
-  string name = 1;
-  int32 id = 2;
-}

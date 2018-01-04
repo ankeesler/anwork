@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<list name="foo" description="this is the foo list">
-  <command name="bar" description="this is the bar command">
-    <action class="Foo" />
-  </command>
-</list>

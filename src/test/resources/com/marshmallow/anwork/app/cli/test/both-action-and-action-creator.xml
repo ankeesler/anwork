@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<cli name="tuna" description="This is the tuna CLI">
-  <command name="fish" description="The fish command">
-    <flag shortFlag="a" description="b" />
-    <action class="com.marshmallow.anwork.app.cli.test.TestCliAction" />
-    <actionCreator class="com.marshmallow.anwork.app.cli.test.TestCliActionCreator" />
-  </command>
-</cli>
