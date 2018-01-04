@@ -6,10 +6,14 @@ import (
 	"strings"
 
 	"github.com/ankeesler/anwork/cmd/anwork/command"
+	"github.com/ankeesler/anwork/storage"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+const root = "test-data"
+const context = "test-context"
 
 var _ = Describe("anwork", func() {
 	var output *bytes.Buffer
@@ -17,7 +21,12 @@ var _ = Describe("anwork", func() {
 	var ret int
 	JustBeforeEach(func() {
 		output = new(bytes.Buffer)
-		ret = run(append([]string{"anwork"}, args...), output)
+		ret = run(append([]string{"anwork", "-context", context, "-root", root}, args...), output)
+	})
+
+	AfterEach(func() {
+		p := storage.Persister{root}
+		Expect(p.Delete(context)).To(Succeed())
 	})
 
 	expectSuccess := func() {
@@ -87,4 +96,9 @@ var _ = Describe("anwork", func() {
 			Expect(output.String()).To(ContainSubstring(msg))
 		})
 	})
+
+	Context("when the set-priority command is passed", func() {
+	})
+
+	// TODO: write tests for the rest of the commands!
 })
