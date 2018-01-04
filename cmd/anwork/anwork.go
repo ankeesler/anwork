@@ -9,6 +9,9 @@ import (
 	"github.com/ankeesler/anwork/task"
 )
 
+// This is the version of this anwork app.
+const version = 1
+
 // These variables are used to store command line flag values.
 var (
 	help, debug   bool
@@ -17,6 +20,7 @@ var (
 
 // This map stores the functions associated with each of the command line actions.
 var argActions = map[string]func(string, *task.Manager) bool{
+	"version":      versionAction,
 	"create":       createAction,
 	"delete":       deleteAction,
 	"show":         showAction,
@@ -62,6 +66,11 @@ func shift() string {
 	val := flag.Arg(shiftIndex)
 	shiftIndex++
 	return val
+}
+
+func versionAction(command string, manager *task.Manager) bool {
+	fmt.Println("ANWORK Version =", version)
+	return false
 }
 
 func createAction(command string, manager *task.Manager) bool {
