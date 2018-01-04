@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ankeesler/anwork/task"
@@ -107,7 +108,7 @@ func versionAction(command string, manager *task.Manager) bool {
 }
 
 func createAction(command string, manager *task.Manager) bool {
-	dbgfln("Creating task...")
+	dbgfln(os.Stdout, "Creating task...")
 	name := shift()
 	manager.Create(name)
 	return true
@@ -137,7 +138,7 @@ func noteAction(command string, manager *task.Manager) bool {
 }
 
 func deleteAction(command string, manager *task.Manager) bool {
-	dbgfln("Deleting task...")
+	dbgfln(os.Stdout, "Deleting task...")
 	name := shift()
 	if !manager.Delete(name) {
 		fmt.Printf("Error! Unknown task: %s\n", name)

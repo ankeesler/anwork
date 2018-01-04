@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/ankeesler/anwork/storage"
 	"github.com/ankeesler/anwork/task"
@@ -13,15 +15,15 @@ const version = 1
 
 // These variables are used to store command line flag values.
 var (
-	help, debug   bool
+	debug         bool
 	context, root string
 )
 
-func dbgfln(format string, stuff ...interface{}) {
+func dbgfln(output io.Writer, format string, stuff ...interface{}) {
 	if debug {
-		fmt.Print("anwork: dbg: ")
-		fmt.Printf(format, stuff...)
-		fmt.Println()
+		fmt.Fprint(output, "anwork: dbg: ")
+		fmt.Fprintf(output, format, stuff...)
+		fmt.Fprintln(output)
 	}
 }
 
@@ -48,48 +50,55 @@ func findAction(name string) func(string, *task.Manager) bool {
 	return nil
 }
 
-func main() {
-	flag.BoolVar(&help, "help", false, "Print this help message")
-	flag.BoolVar(&debug, "debug", false, "Enable debug printing")
+func run(args []string, output io.Writer) {
+	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
+	flags.SetOutput(output)
 
-	flag.StringVar(&context, "context", "default-context", "Set the persistence context")
-	flag.StringVar(&root, "root", ".", "Set the persistence root directory")
+	flags.BoolVar(&debug, "debug", false, "Enable debug printing")
 
-	flag.Parse()
-	if help {
+	flags.StringVar(&context, "context", "default-context", "Set the persistence context")
+	flags.StringVar(&root, "root", ".", "Set the persistence root directory")
+
+	if err := flags.Parse(args[1:]); err == flag.ErrHelp {
 		// TODO: write our own usage with the commands!
-		flag.Usage()
+		flags.Usage()
 		return
+	} else if err != nil {
+		panic(err)
 	}
 
-	if flag.NArg() == 0 {
-		fmt.Println("Error! Expected command arguments")
-		flag.Usage()
+	if flags.NArg() == 0 {
+		fmt.Fprintln(output, "Error! Expected command arguments")
+		flags.Usage()
 		return
 	}
-	firstArg := flag.Arg(0)
+	firstArg := flags.Arg(0)
 
 	persister := storage.Persister{root}
 	manager := task.NewManager()
 	if persister.Exists(context) {
-		dbgfln("Context %s exists at root %s", context, root)
+		dbgfln(output, "Context %s exists at root %s", context, root)
 		readManager(&persister, context, manager)
 	} else {
-		dbgfln("Context %s does not exist at root %s; creating it", context, root)
+		dbgfln(output, "Context %s does not exist at root %s; creating it", context, root)
 		writeManager(&persister, context, manager)
 	}
-	dbgfln("Manager is %s", manager)
+	dbgfln(output, "Manager is %s", manager)
 
 	action := findAction(firstArg)
 	if action == nil {
-		fmt.Println("Error! Unknown command line argument:", firstArg)
+		fmt.Fprintln(output, "Error! Unknown command line argument:", firstArg)
 		return
 	} else {
 		if action(firstArg, manager) {
-			dbgfln("Persisting manager back to disk")
+			dbgfln(output, "Persisting manager back to disk")
 			writeManager(&persister, context, manager)
 		} else {
-			dbgfln("NOT persisting manager back to disk")
+			dbgfln(output, "NOT persisting manager back to disk")
 		}
 	}
+}
+
+func main() {
+	run(os.Args, os.Stdout)
 }
