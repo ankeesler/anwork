@@ -42,4 +42,4 @@ $ go install -v github.com/onsi/ginkgo/ginkgo # install ginkgo testing binary
 $ ginkgo ./...                                # run the tests with the ginkgo testing binary
 ```
 
-- See [anwork_testing](https://github.com/ankeesler/anwork_testing) repo for more testing.
+See [anwork_testing](https://github.com/ankeesler/anwork_testing) repo for more testing.
