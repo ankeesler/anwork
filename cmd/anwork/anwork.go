@@ -18,8 +18,9 @@ var (
 // This map stores the functions associated with each of the command line actions.
 var argActions = map[string]func(string, *task.Manager) bool{
 	"create":       createAction,
-	"show":         showAction,
 	"delete":       deleteAction,
+	"show":         showAction,
+	"note":         noteAction,
 	"set-running":  setStateAction,
 	"set-blocked":  setStateAction,
 	"set-waiting":  setStateAction,
@@ -84,6 +85,13 @@ func showAction(command string, manager *task.Manager) bool {
 	printer(task.StateWaiting)
 	printer(task.StateFinished)
 	return false
+}
+
+func noteAction(command string, manager *task.Manager) bool {
+	name := shift()
+	note := shift()
+	manager.Note(name, note)
+	return true
 }
 
 func deleteAction(command string, manager *task.Manager) bool {
