@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/ankeesler/anwork/task"
@@ -13,19 +14,23 @@ import (
 // This is the version of this anwork application command set.
 const Version = 1
 
-// A Command is a keyword (see name field) passed to the anwork executable that provokes some
-// functionality (see action field).
+// A Command is a keyword (see Name field) passed to the anwork executable that provokes some
+// functionality (see Action field).
 type Command struct {
 	Name, Description string
 
 	// This slice holds the name(s) of the argument(s) that is(/are) expected by the Command.
 	Args []string
 
-	// This is the action that runs when this Command is invoked. The first parameter to this function
-	// is the name of the Command. The second parameter to the function is the output stream to which
-	// output should be written. The function should return true iff the task.Manager should be
-	// persisted to disk after the action returns.
-	Action func(name string, output io.Writer, manager *task.Manager) bool
+	// This is the functionality that runs when this Command is invoked. The first parameter to the
+	// function is the flag.FlagSet associated with this call to the Command. Implementers of the
+	// Action function call pull command line arguments off of the flags parameter with
+	// flag.FlagSet.Arg(X) where X is the index of the argument. Note that f.Arg(0) is always the name
+	// of the command. The second parameter to this function is an output stream to which all output
+	// (for example, debug printing, or stuff that would normally be sent to stdout) should be
+	// written. The function should return true iff the task.Manager should be persisted to disk after
+	// the Action returns.
+	Action func(f *flag.FlagSet, o io.Writer, m *task.Manager) bool
 }
 
 // These are the Command's used by the anwork application.
@@ -59,6 +64,12 @@ var Commands = []Command{
 		Description: "Add a note to a task",
 		Args:        []string{"task-name", "note"},
 		Action:      noteAction,
+	},
+	Command{
+		Name:        "set-priority",
+		Description: "Set the priority of a task",
+		Args:        []string{"task-name", "priority"},
+		Action:      setPriorityAction,
 	},
 	Command{
 		Name:        "set-running",
@@ -109,38 +120,23 @@ func FindCommand(name string) *Command {
 	return nil
 }
 
-// This index starts at "1" since the arg at index "0" will be the command name itself.
-var shiftIndex int = 1
-
-// This function gets the next command line argument (via flag.Args), or panics if there is no such
-// argument.
-func shift() string {
-	if shiftIndex >= flag.NArg() {
-		msg := fmt.Sprintf("Failed to retrieve arg %d", shiftIndex)
-		panic(msg)
-	}
-	val := flag.Arg(shiftIndex)
-	shiftIndex++
-	return val
-}
-
-func versionAction(command string, output io.Writer, manager *task.Manager) bool {
-	fmt.Fprintln(output, "ANWORK Version =", Version)
+func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	fmt.Fprintln(o, "ANWORK Version =", Version)
 	return false
 }
 
-func createAction(command string, output io.Writer, manager *task.Manager) bool {
-	name := shift()
-	manager.Create(name)
+func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	name := f.Arg(1)
+	m.Create(name)
 	return true
 }
 
-func showAction(command string, output io.Writer, manager *task.Manager) bool {
+func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	printer := func(state task.State) {
-		fmt.Printf("%s tasks:\n", strings.ToUpper(task.StateNames[state]))
-		for _, task := range manager.Tasks() {
+		fmt.Fprintf(o, "%s tasks:\n", strings.ToUpper(task.StateNames[state]))
+		for _, task := range m.Tasks() {
 			if task.State() == state {
-				fmt.Printf("  %s (%d)\n", task.Name(), task.ID())
+				fmt.Fprintf(o, "  %s (%d)\n", task.Name(), task.ID())
 			}
 		}
 	}
@@ -151,29 +147,42 @@ func showAction(command string, output io.Writer, manager *task.Manager) bool {
 	return false
 }
 
-func noteAction(command string, output io.Writer, manager *task.Manager) bool {
-	name := shift()
-	note := shift()
-	manager.Note(name, note)
+func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	name := f.Arg(1)
+	note := f.Arg(2)
+	m.Note(name, note)
 	return true
 }
 
-func deleteAction(command string, output io.Writer, manager *task.Manager) bool {
-	name := shift()
-	if !manager.Delete(name) {
-		fmt.Printf("Error! Unknown task: %s\n", name)
+func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	name := f.Arg(1)
+	if !m.Delete(name) {
+		fmt.Fprintf(o, "Error! Unknown task: %s\n", name)
 		return false
 	} else {
 		return true
 	}
 }
 
-func setStateAction(command string, output io.Writer, manager *task.Manager) bool {
-	name := shift()
+func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	name := f.Arg(1)
+	priority := f.Arg(2)
+
+	priorityInt, err := strconv.Atoi(priority)
+	if err != nil {
+		fmt.Fprintf(o, "Error! Could not parse priority from %s", priority)
+		return false
+	} else {
+		m.SetPriority(name, priorityInt)
+		return true
+	}
+}
+
+func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	name := f.Arg(1)
 
 	var state task.State
-	command = strings.TrimPrefix(command, "set-")
-	switch command {
+	switch command := strings.TrimPrefix(f.Arg(0), "set-"); command {
 	case "running":
 		state = task.StateRunning
 	case "blocked":
@@ -185,15 +194,15 @@ func setStateAction(command string, output io.Writer, manager *task.Manager) boo
 	default:
 		panic("Unknown state: " + command)
 	}
-	manager.SetState(name, state)
+	m.SetState(name, state)
 	return true
 }
 
-func journalAction(command string, output io.Writer, manager *task.Manager) bool {
-	es := manager.Journal().Events
+func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	es := m.Journal().Events
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
-		fmt.Printf("[%s %s %d %02d:%02d]: %s\n", e.Date.Weekday(), e.Date.Month(), e.Date.Day(),
+		fmt.Fprintf(o, "[%s %s %d %02d:%02d]: %s\n", e.Date.Weekday(), e.Date.Month(), e.Date.Day(),
 			e.Date.Hour(), e.Date.Minute(), e.Title)
 	}
 	return false

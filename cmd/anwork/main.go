@@ -108,7 +108,7 @@ func run(args []string, output io.Writer) int {
 		flags.Usage()
 		return 1
 	} else {
-		if command.Action(firstArg, output, manager) {
+		if command.Action(flags, output, manager) {
 			dbgfln(output, "Persisting manager back to disk")
 			writeManager(&persister, context, manager)
 		} else {
