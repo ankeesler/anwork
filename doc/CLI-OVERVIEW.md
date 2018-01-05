@@ -1,8 +1,5 @@
 # ANWORK CLI OVERVIEW
 
-TODO: UPDATE ME!!!!
-TODO: MAKE SURE ALL OF THESE FEATURES ARE IMPLEMENTED!!!!
-
 The ANWORK CLI API is fully documented in [CLI.md](CLI.md). Below are some tips and tricks.
 
 ## Creating a task
@@ -61,7 +58,7 @@ To delete a task, here is the command.
 $ anwork delete weigh-tuna
 ```
 
-TODO: ## Using task specifiers
+## Using task specifiers
 
 A task specifier starts with the '@' symbol and can refer to one or more tasks. It can be passed to
 the CLI commands that take an argument named _task-specifier_. Here are some examples.

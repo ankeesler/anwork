@@ -120,6 +120,32 @@ func FindCommand(name string) *Command {
 	return nil
 }
 
+// Parse a "task spec" which is either the name of a task (i.e., "task-a") or the '@' symbol and an
+// integer value indicating the ID of a task (i.e., "@37"). This function will never return nil. If
+// the specifier is illegal, it will panic.
+func parseTaskSpec(str string, m *task.Manager) *task.Task {
+	var t *task.Task = nil
+	if strings.HasPrefix(str, "@") {
+		num, err := strconv.Atoi(str[1:])
+		if err != nil {
+			panic("Error! Cannot parse task ID: " + err.Error())
+		}
+		for _, task := range m.Tasks() {
+			if task.ID() == num {
+				t = task
+				break
+			}
+		}
+	} else {
+		t = m.Find(str) // str is the name of a task
+	}
+
+	if t == nil {
+		panic("Error! Unknown task for specifier: " + str)
+	}
+	return t
+}
+
 func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	fmt.Fprintln(o, "ANWORK Version =", Version)
 	return false
@@ -148,16 +174,16 @@ func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 }
 
 func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
-	name := f.Arg(1)
+	t := parseTaskSpec(f.Arg(1), m)
 	note := f.Arg(2)
-	m.Note(name, note)
+	m.Note(t.Name(), note)
 	return true
 }
 
 func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
-	name := f.Arg(1)
-	if !m.Delete(name) {
-		fmt.Fprintf(o, "Error! Unknown task: %s\n", name)
+	t := parseTaskSpec(f.Arg(1), m)
+	if !m.Delete(t.Name()) {
+		fmt.Fprintf(o, "Error! Unknown task: %s\n", t.Name())
 		return false
 	} else {
 		return true
@@ -165,7 +191,7 @@ func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 }
 
 func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
-	name := f.Arg(1)
+	t := parseTaskSpec(f.Arg(1), m)
 	priority := f.Arg(2)
 
 	priorityInt, err := strconv.Atoi(priority)
@@ -173,13 +199,13 @@ func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 		fmt.Fprintf(o, "Error! Could not parse priority from %s", priority)
 		return false
 	} else {
-		m.SetPriority(name, priorityInt)
+		m.SetPriority(t.Name(), priorityInt)
 		return true
 	}
 }
 
 func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
-	name := f.Arg(1)
+	t := parseTaskSpec(f.Arg(1), m)
 
 	var state task.State
 	switch command := strings.TrimPrefix(f.Arg(0), "set-"); command {
@@ -194,18 +220,14 @@ func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	default:
 		panic("Unknown state: " + command)
 	}
-	m.SetState(name, state)
+	m.SetState(t.Name(), state)
 	return true
 }
 
 func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	var t *task.Task = nil
 	if f.NArg() > 1 {
-		name := f.Arg(1)
-		t = m.Find(name)
-		if t == nil {
-			panic("Unknown task: " + name)
-		}
+		t = parseTaskSpec(f.Arg(1), m)
 	}
 
 	es := m.Journal().Events
