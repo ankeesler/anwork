@@ -8,12 +8,11 @@ install:
   - go get -t -v ./...
   - go install -v github.com/onsi/ginkgo/ginkgo
 
-# TODO: add a test to make sure the code is formatted and vet'ed.
 # TODO: run me on Windows as well for better platform coverage! Maybe even Mac as well?
 
 script:
   - go vet ./...
-  - o="$(go fmt ./...)"; test -z "$o"
+  - o="$(go fmt ./...)"; test -z $o || (echo "The following files are not formatted: $o" && exit 1)
   - ginkgo -r -cover
 
 after_success:
