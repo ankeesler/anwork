@@ -4,11 +4,13 @@ language: go
 git:
   depth: 3
 
+os:
+  - linux
+  - osx
+
 install:
   - go get -t -v ./...
   - go install -v github.com/onsi/ginkgo/ginkgo
-
-# TODO: run me on Windows as well for better platform coverage! Maybe even Mac as well?
 
 script:
   - go vet ./...
