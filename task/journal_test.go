@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	eventContext   = "event-context"
-	journalContext = "journal-context"
+	goodEventContext   = "good-event-context"
+	goodJournalContext = "good-journal-context"
 )
 
 var _ = Describe("EventType's", func() {
@@ -47,11 +47,16 @@ var _ = Describe("Event's", func() {
 		Expect(eventA).To(Equal(tmpEvent))
 	})
 	It("are unpersistable", func() {
-		Expect(p.Exists(eventContext)).To(BeTrue(),
-			"Cannot run this test when context (%s) does not exist", eventContext)
+		Expect(p.Exists(goodEventContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", goodEventContext)
 
-		Expect(p.Unpersist(eventContext, &tmpEvent)).To(Succeed())
+		Expect(p.Unpersist(goodEventContext, &tmpEvent)).To(Succeed())
 		Expect(eventB).To(Equal(tmpEvent))
+	})
+	It("fails gracefully when loaded from a bad context", func() {
+		Expect(p.Exists(badContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", badContext)
+		Expect(p.Unpersist(badContext, &Event{})).ToNot(Succeed())
 	})
 })
 var _ = Describe("Journal", func() {
@@ -112,9 +117,9 @@ var _ = Describe("Journal", func() {
 		})
 	})
 
-	It("hey!", func() {
-		Expect(p.Exists(journalContext)).To(BeTrue(),
-			"Cannot run this test when context (%s) does not exist", journalContext)
+	It("unpersists correctly", func() {
+		Expect(p.Exists(goodJournalContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", goodJournalContext)
 
 		j.Events = append(j.Events, &Event{
 			Title: "event a",
@@ -136,7 +141,13 @@ var _ = Describe("Journal", func() {
 			Date:  time.Unix(40000, 0),
 			Type:  EventTypeDelete,
 		})
-		Expect(p.Unpersist(journalContext, tmpJ)).To(Succeed())
+		Expect(p.Unpersist(goodJournalContext, tmpJ)).To(Succeed())
 		Expect(j).To(Equal(tmpJ))
+	})
+
+	It("gracefully fails when the context is bad", func() {
+		Expect(p.Exists(badContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", badContext)
+		Expect(p.Unpersist(badContext, tmpJ)).ToNot(Succeed())
 	})
 })

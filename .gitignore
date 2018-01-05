@@ -2,3 +2,6 @@ untracked/
 
 # Emacs leftovers
 *~
+
+# Test coverage information
+*coverprofile

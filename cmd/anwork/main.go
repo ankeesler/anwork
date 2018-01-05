@@ -6,8 +6,6 @@
 // _v1_. The second version of the release will be _v2_. There are no minor version numbers. This
 // version number is controlled via the "version" property in the gradle project. See the CLI command
 // "anwork version" and the gradle task updateVersion for more information.
-//
-// TODO: do a code coverage review and add tests where necessary
 package main
 
 import (
@@ -34,18 +32,22 @@ func dbgfln(output io.Writer, format string, stuff ...interface{}) {
 	}
 }
 
-func readManager(persister *storage.Persister, context string, manager *task.Manager) {
-	err := persister.Unpersist(context, manager)
+// Returns true on success.
+func readManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) bool {
+	err := p.Unpersist(c, m)
 	if err != nil {
-		panic(err.Error())
+		fmt.Fprintf(o, "Error! Could not read manager from file: %s\n", err.Error())
 	}
+	return err == nil
 }
 
-func writeManager(persister *storage.Persister, context string, manager *task.Manager) {
-	err := persister.Persist(context, manager)
+// Returns true on success.
+func writeManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) bool {
+	err := p.Persist(c, m)
 	if err != nil {
-		panic(err.Error())
+		fmt.Fprintf(o, "Error! Could not read manager from file: %s\n", err.Error())
 	}
+	return err == nil
 }
 
 func usage(f *flag.FlagSet, output io.Writer) func() {
@@ -95,22 +97,28 @@ func run(args []string, output io.Writer) int {
 	manager := task.NewManager()
 	if persister.Exists(context) {
 		dbgfln(output, "Context %s exists at root %s", context, root)
-		readManager(&persister, context, manager)
+		if !readManager(output, &persister, context, manager) {
+			return 1
+		}
 	} else {
 		dbgfln(output, "Context %s does not exist at root %s; creating it", context, root)
-		writeManager(&persister, context, manager)
+		if !writeManager(output, &persister, context, manager) {
+			return 1
+		}
 	}
 	dbgfln(output, "Manager is %s", manager)
 
 	command := command.FindCommand(firstArg)
 	if command == nil {
-		fmt.Fprintln(output, "Error! Unknown command line argument:", firstArg)
+		fmt.Fprintln(output, "Error! Unknown command:", firstArg)
 		flags.Usage()
 		return 1
 	} else {
 		if command.Action(flags, output, manager) {
 			dbgfln(output, "Persisting manager back to disk")
-			writeManager(&persister, context, manager)
+			if !writeManager(output, &persister, context, manager) {
+				return 1
+			}
 		} else {
 			dbgfln(output, "NOT persisting manager back to disk")
 		}

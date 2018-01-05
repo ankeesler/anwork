@@ -347,4 +347,22 @@ var _ = Describe("Manager", func() {
 			})
 		})
 	})
+
+	Context("when printed", func() {
+		It("doesn't explode", func() {
+			m.Create("task-a")
+			m.Create("task-b")
+			m.SetState("task-a", StateRunning)
+			m.SetPriority("task-b", DefaultPriority-1)
+			m.SetState("task-a", StateWaiting)
+			m.SetState("task-b", StateRunning)
+			Expect(fmt.Sprintln("%s", m)).ToNot(BeNil())
+		})
+	})
+
+	It("fails gracefully when loaded from a bad context", func() {
+		Expect(p.Exists(badContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", badContext)
+		Expect(p.Unpersist(badContext, &Manager{})).ToNot(Succeed())
+	})
 })

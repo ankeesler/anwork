@@ -82,10 +82,31 @@ var _ = Describe("anwork", func() {
 	})
 	Context("when a bad command is passed", func() {
 		BeforeEach(func() {
-			callRun("-fish")
+			callRun("fish")
 		})
 		It("fails", expectFailure)
 		It("prints usage", expectUsagePrinted)
+		It("prints something about the unknown command", func() {
+			Expect(output.String()).To(ContainSubstring("Error! Unknown command: fish"))
+		})
+	})
+	Context("when a bad context is passed", func() {
+		BeforeEach(func() {
+			output = new(bytes.Buffer)
+			ret = run([]string{"anwork", "-context", "/i/really/hope/this/file/does/not/exist", "show"},
+				output)
+		})
+		It("fails", expectFailure)
+	})
+	Context("when the context is corrupt", func() {
+		BeforeEach(func() {
+			output = new(bytes.Buffer)
+			ret = run([]string{"anwork", "-context", "bad-context", "-root", "test-data", "show"}, output)
+		})
+		It("fails", expectFailure)
+		It("prints something about the context being bad", func() {
+			Expect(output.String()).To(ContainSubstring("Could not read manager from file"))
+		})
 	})
 
 	Context("when the version command is passed", func() {
@@ -244,6 +265,16 @@ var _ = Describe("anwork", func() {
 					Expect(output.String()).To(MatchRegexp(regexp))
 				})
 			})
+		})
+	})
+
+	Context("when debug is on", func() {
+		BeforeEach(func() {
+			callRun("-debug", "create", "task-a")
+		})
+		It("reporting information about saving/loading manager", func() {
+			Expect(output.String()).To(ContainSubstring("Manager is"))
+			Expect(output.String()).To(ContainSubstring("Persisting manager back to disk"))
 		})
 	})
 })

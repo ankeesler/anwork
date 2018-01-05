@@ -152,4 +152,14 @@ var _ = Describe("Task's", func() {
 		Expect(err).To(HaveOccurred(),
 			"Expected error from load from bad context (%s) but didn't get one", badContext)
 	})
+
+	It("returns the correct name", func() {
+		t := newTask("task-a")
+		Expect(t.name).To(Equal(t.Name()))
+	})
+
+	It("returns the correct id", func() {
+		t := newTask("task-a")
+		Expect(t.id).To(Equal(t.ID()))
+	})
 })
