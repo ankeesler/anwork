@@ -27,10 +27,10 @@ var _ = Describe("anwork", func() {
 	}
 
 	expectSuccess := func() {
-		Expect(ret).To(BeEquivalentTo(0))
+		Expect(ret).To(Equal(0))
 	}
 	expectFailure := func() {
-		Expect(ret).ToNot(BeEquivalentTo(0))
+		Expect(ret).ToNot(Equal(0))
 	}
 
 	expectUsagePrinted := func() {
@@ -67,10 +67,10 @@ var _ = Describe("anwork", func() {
 		It("prints usage", expectUsagePrinted)
 		It("prints usage only once!", func() {
 			firstIndex := strings.Index(output.String(), "Usage of anwork")
-			Expect(firstIndex).ToNot(BeEquivalentTo(-1))
+			Expect(firstIndex).ToNot(Equal(-1))
 
 			secondIndex := strings.Index(output.String()[firstIndex+1:], "Usage of anwork")
-			Expect(secondIndex).To(BeEquivalentTo(-1))
+			Expect(secondIndex).To(Equal(-1))
 		})
 	})
 	Context("when a bad flag is passed", func() {
@@ -217,7 +217,7 @@ var _ = Describe("anwork", func() {
 					callRun("journal")
 				})
 				It("shows the 3 creation entries plus the 6 priority updates in reverse order", func() {
-					Expect(strings.Count(output.String(), "\n")).To(BeEquivalentTo(9))
+					Expect(strings.Count(output.String(), "\n")).To(Equal(9))
 				})
 			})
 		})
@@ -244,6 +244,16 @@ var _ = Describe("anwork", func() {
 						".*Deleted.*task-b", journalPrefixRegexp, ".*Created.*task-c.*", journalPrefixRegexp,
 						".*Created.*task-b.*", journalPrefixRegexp, ".*Created.*task-a.*")
 					Expect(output.String()).To(MatchRegexp(regexp))
+				})
+			})
+			Context("when journal is called on one of the tasks that have not been deleted", func() {
+				BeforeEach(func() {
+					callRun("journal", "task-c")
+				})
+				It("shows the 1 creation event related to that task", func() {
+					regexp := fmt.Sprintf("%s: %s", journalPrefixRegexp, ".*Created.*task-c")
+					Expect(output.String()).To(MatchRegexp(regexp))
+					Expect(strings.Count(output.String(), "\n")).To(Equal(1))
 				})
 			})
 		})
@@ -275,6 +285,19 @@ var _ = Describe("anwork", func() {
 		It("reporting information about saving/loading manager", func() {
 			Expect(output.String()).To(ContainSubstring("Manager is"))
 			Expect(output.String()).To(ContainSubstring("Persisting manager back to disk"))
+		})
+	})
+
+	Context("when the journal is requested for a task with a similar name to another task", func() {
+		BeforeEach(func() {
+			callRun("create", "task-a")
+			callRun("create", "ask-a")
+			callRun("set-running", "task-a")
+			callRun("journal", "ask-a")
+		})
+		It("succeeds", expectSuccess)
+		It("returns only the creation event for ask-a", func() {
+			Expect(strings.Count(output.String(), "\n")).To(Equal(1))
 		})
 	})
 })

@@ -72,7 +72,7 @@ var _ = Describe("Journal", func() {
 		Expect(j.Events).To(BeEmpty())
 	})
 	Context("when adding an event", func() {
-		e0 := newEvent("event 0", EventTypeSetPriority)
+		e0 := newEvent("event 0", EventTypeSetPriority, 0)
 		BeforeEach(func() {
 			j.Events = append(j.Events, e0)
 		})
@@ -91,8 +91,8 @@ var _ = Describe("Journal", func() {
 			Expect(j).To(Equal(tmpJ))
 		})
 		Context("when adding more events", func() {
-			e1 := newEvent("event 1", EventTypeCreate)
-			e2 := newEvent("event 2", EventTypeNote)
+			e1 := newEvent("event 1", EventTypeCreate, 0)
+			e2 := newEvent("event 2", EventTypeNote, 0)
 			BeforeEach(func() {
 				j.Events = append(j.Events, e1)
 				j.Events = append(j.Events, e2)

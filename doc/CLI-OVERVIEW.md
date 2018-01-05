@@ -50,7 +50,6 @@ To show the complete journal of events, here is the command.
 $ anwork journal
 ```
 
-TODO: To show a journal of events for a single task, here is the command.
 ```
 $ anwork journal weigh-tuna
 ```

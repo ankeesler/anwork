@@ -34,7 +34,7 @@ func (m *Manager) Create(name string) {
 	m.tasks = append(m.tasks, t)
 
 	title := fmt.Sprintf("Created task %s", name)
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeCreate))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeCreate, t.id))
 }
 
 // Delete a Task with the provided name. Returns true iff the deletion was successful.
@@ -48,10 +48,11 @@ func (m *Manager) Delete(name string) bool {
 	}
 
 	if taskIndex != -1 {
+		t := m.tasks[taskIndex]
 		m.tasks = append(m.tasks[:taskIndex], m.tasks[taskIndex+1:]...)
 
 		title := fmt.Sprintf("Deleted task %s", name)
-		m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeDelete))
+		m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeDelete, t.id))
 
 		return true
 	} else {
@@ -68,7 +69,7 @@ func (m *Manager) SetState(name string, state State) {
 
 	title := fmt.Sprintf("Set state on task %s from %s to %s",
 		name, StateNames[beforeState], StateNames[state])
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetState))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetState, t.id))
 }
 
 // Set the priority of a Task currently in this Manager. This function will panic if there is no
@@ -79,15 +80,15 @@ func (m *Manager) SetPriority(name string, priority int) {
 	t.priority = priority
 
 	title := fmt.Sprintf("Set priority on task %s from %d to %d", name, beforePriority, priority)
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetPriority))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetPriority, t.id))
 }
 
 // Add a note that relates to a Task. This function will panic if there is no known Task with the
 // provided name. The Task will be searched for via a call to Manager.Find(name).
 func (m *Manager) Note(name string, note string) {
-	m.findOrPanic(name) // this ensures that a Task exists for the provided name.
+	t := m.findOrPanic(name) // this ensures that a Task exists for the provided name.
 	title := fmt.Sprintf("Note added to task %s: %s", name, note)
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeNote))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeNote, t.id))
 }
 
 // Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer

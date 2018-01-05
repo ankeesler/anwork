@@ -97,8 +97,8 @@ var Commands = []Command{
 	},
 	Command{
 		Name:        "journal",
-		Description: "Show the journal",
-		Args:        []string{},
+		Description: "Show the journal; optionally pass a task name to only show events for that task",
+		Args:        []string{"[task-name]"},
 		Action:      journalAction,
 	},
 }
@@ -199,11 +199,22 @@ func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 }
 
 func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	var t *task.Task = nil
+	if f.NArg() > 1 {
+		name := f.Arg(1)
+		t = m.Find(name)
+		if t == nil {
+			panic("Unknown task: " + name)
+		}
+	}
+
 	es := m.Journal().Events
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
-		fmt.Fprintf(o, "[%s %s %d %02d:%02d]: %s\n", e.Date.Weekday(), e.Date.Month(), e.Date.Day(),
-			e.Date.Hour(), e.Date.Minute(), e.Title)
+		if t == nil || t.ID() == e.TaskId {
+			fmt.Fprintf(o, "[%s %s %d %02d:%02d]: %s\n", e.Date.Weekday(), e.Date.Month(), e.Date.Day(),
+				e.Date.Hour(), e.Date.Minute(), e.Title)
+		}
 	}
 	return false
 }

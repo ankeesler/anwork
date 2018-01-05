@@ -20,18 +20,25 @@ const (
 	EventTypeSetPriority = EventType(4)
 )
 
-// An Event is something that took place. It is stored in a Journal.
+// An Event is something that took place. It is stored in a Journal. Each Event refers to only one
+// Task.
 type Event struct {
+	// A string description of the Event.
 	Title string
-	Date  time.Time
-	Type  EventType
+	// The time that the Event took place.
+	Date time.Time
+	// The type of Event.
+	Type EventType
+	// The ID of the Task to which this Event refers.
+	TaskId int
 }
 
-func newEvent(title string, teyep EventType) *Event {
+func newEvent(title string, teyep EventType, taskId int) *Event {
 	e := &Event{
-		Title: title,
-		Date:  time.Now(),
-		Type:  teyep,
+		Title:  title,
+		Date:   time.Now(),
+		Type:   teyep,
+		TaskId: taskId,
 	}
 
 	// Truncate the start time at the seconds since we only persist the seconds amount.
@@ -50,6 +57,7 @@ func (e *Event) toProtobuf(eProtobuf *pb.Event) {
 	eProtobuf.Title = e.Title
 	eProtobuf.Date = e.Date.Unix()
 	eProtobuf.Type = pb.EventType(e.Type)
+	eProtobuf.TaskId = int32(e.TaskId)
 }
 
 func (e *Event) Unserialize(bytes []byte) error {
@@ -68,6 +76,7 @@ func (e *Event) fromProtobuf(eProtobuf *pb.Event) {
 	e.Title = eProtobuf.Title
 	e.Date = time.Unix(eProtobuf.Date, 0) // sec, nsec
 	e.Type = EventType(eProtobuf.Type)
+	e.TaskId = int(eProtobuf.TaskId)
 }
 
 // A Journal is a sequence of Event's.
