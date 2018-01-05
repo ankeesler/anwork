@@ -57,7 +57,8 @@ formatting rules used in this codebase.
 
 Again, the directory structure is pretty simple. Every directory is a Go source directory except for
 the following.
+
 | Directory | Use |
 | --- | --- |
-| ci | Scripts used in the Travis Continuous Integration jobs. |
-| doc | Documentation about the anwork executable, like a quick start guide. |
+| ci | Scripts used in the Travis Continuous Integration jobs |
+| doc | Documentation about the anwork executable, e.g., a quick start guide |
