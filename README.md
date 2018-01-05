@@ -52,3 +52,12 @@ formatting rules used in this codebase.
 2. No line should extend past column 100.
 3. If function arguments would go past the 100 character limit, they should be wrapped to the next
    line.
+
+### Directory Structure
+
+Again, the directory structure is pretty simple. Every directory is a Go source directory except for
+the following.
+| Directory | Use |
+| --- | --- |
+| ci | Scripts used in the Travis Continuous Integration jobs. |
+| doc | Documentation about the anwork executable, like a quick start guide. |
