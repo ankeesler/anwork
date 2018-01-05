@@ -48,7 +48,7 @@ var _ = Describe("State constants", func() {
 var _ = Describe("Task's", func() {
 	It("are persistable", func() {
 
-		persister := storage.Persister{root}
+		persister := storage.Persister{Root: root}
 		Expect(persister.Exists(tmpContext)).To(BeFalse(),
 			"Cannot run this test when context (%s) already exists", tmpContext)
 		defer persister.Delete(tmpContext)
@@ -68,7 +68,7 @@ var _ = Describe("Task's", func() {
 	})
 	It("are unpersistable", func() {
 
-		persister := storage.Persister{root}
+		persister := storage.Persister{Root: root}
 		Expect(persister.Exists(goodContext)).To(BeTrue(),
 			"Cannot run this test when context (%s) does not exist", tmpContext)
 
@@ -92,7 +92,7 @@ var _ = Describe("Task's", func() {
 	Context("have unique ID's", func() {
 		It("that are larger", func() {
 
-			persister := storage.Persister{root}
+			persister := storage.Persister{Root: root}
 			Expect(persister.Exists(taskWithId5Context)).To(BeTrue(),
 				"Cannot run this test when context (%s) does not exist", taskWithId5Context)
 
@@ -109,7 +109,7 @@ var _ = Describe("Task's", func() {
 		})
 		It("that are smaller", func() {
 
-			persister := storage.Persister{root}
+			persister := storage.Persister{Root: root}
 			Expect(persister.Exists(tmpContext)).To(BeFalse(),
 				"Cannot run this test when context (%s) exists", tmpContext)
 			defer persister.Delete(tmpContext)
@@ -143,7 +143,7 @@ var _ = Describe("Task's", func() {
 	})
 	It("fail gracefully from bad contexts", func() {
 
-		persister := storage.Persister{root}
+		persister := storage.Persister{Root: root}
 		Expect(persister.Exists(badContext)).To(BeTrue(),
 			"Cannot run this test when context (%s) does not exist", badContext)
 

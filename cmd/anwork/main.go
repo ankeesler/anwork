@@ -93,7 +93,7 @@ func run(args []string, output io.Writer) int {
 	}
 	firstArg := flags.Arg(0)
 
-	persister := storage.Persister{root}
+	persister := storage.Persister{Root: root}
 	manager := task.NewManager()
 	if persister.Exists(context) {
 		dbgfln(output, "Context %s exists at root %s", context, root)

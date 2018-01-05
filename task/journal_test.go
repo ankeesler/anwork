@@ -35,7 +35,7 @@ var _ = Describe("Event's", func() {
 			Date:  time.Unix(54321, 0),
 			Type:  EventTypeSetPriority}
 		tmpEvent Event
-		p        storage.Persister = storage.Persister{root}
+		p        storage.Persister = storage.Persister{Root: root}
 	)
 	It("are persistable", func() {
 		Expect(p.Exists(tmpContext)).To(BeFalse(),
@@ -62,7 +62,7 @@ var _ = Describe("Event's", func() {
 var _ = Describe("Journal", func() {
 	var (
 		j, tmpJ *Journal
-		p       storage.Persister = storage.Persister{root}
+		p       storage.Persister = storage.Persister{Root: root}
 	)
 	BeforeEach(func() {
 		j = newJournal()

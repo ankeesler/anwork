@@ -25,7 +25,7 @@ const (
 var _ = Describe("Manager", func() {
 	var (
 		m *Manager
-		p = storage.Persister{root}
+		p = storage.Persister{Root: root}
 	)
 
 	checkPersistence := func() {
@@ -356,7 +356,7 @@ var _ = Describe("Manager", func() {
 			m.SetPriority("task-b", DefaultPriority-1)
 			m.SetState("task-a", StateWaiting)
 			m.SetState("task-b", StateRunning)
-			Expect(fmt.Sprintln("%s", m)).ToNot(BeNil())
+			Expect(fmt.Sprintf("%s", m)).ToNot(BeNil())
 		})
 	})
 

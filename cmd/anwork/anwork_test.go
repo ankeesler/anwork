@@ -45,7 +45,7 @@ var _ = Describe("anwork", func() {
 	}
 
 	AfterEach(func() {
-		p := storage.Persister{root}
+		p := storage.Persister{Root: root}
 		Expect(p.Delete(context)).To(Succeed())
 	})
 
