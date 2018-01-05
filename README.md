@@ -10,6 +10,7 @@ Latest release: [v1](https://github.com/ankeesler/anwork/releases/tag/v1)
 ## Running
 
 To get up and running with ANWORK, try the following.
+
 0. Download Go! You can do so with Homebrew:
 ```
 $ brew install go
@@ -30,6 +31,7 @@ See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 ## Developing
 
 To develop on the anwork project, there are a number of dependencies that need to be installed.
+
 0. Download Go! You can do so with Homebrew:
 ```
 $ brew install go
