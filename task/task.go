@@ -3,7 +3,8 @@
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present."
 //
-// Every Task is in one of a number of different State's: Waiting, Blocked, Running, or Finished.
+// Every Task is in one of a number of different State's: Waiting, Blocked, Running, or Finished. A
+// Task also has a priority which describes its relative importance to all other Task's.
 //
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
 //
@@ -46,7 +47,8 @@ var nextTaskId int = 0
 //go:generate protoc --proto_path=proto --go_out=proto task.proto
 
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
-// sister a holiday present."
+// sister a holiday present." A Task also has a priority which describes its relative importance to
+// all other Task's.
 type Task struct {
 	// The name of the Task, i.e., "mow the lawn" or "PROJECT-123-fix-infinite-recursion."
 	name string
