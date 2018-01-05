@@ -55,6 +55,7 @@ type Task struct {
 	id int
 
 	// This is a description of the Task.
+	// TODO: do we need this? We don't show it anywhere on the screen to the user.
 	description string
 
 	// This is when the Task was created.
