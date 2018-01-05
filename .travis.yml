@@ -12,7 +12,7 @@ install:
 
 script:
   - go vet ./...
-  - o="$(go fmt ./...)"; test -z $o || (echo "The following files are not formatted: $o" && exit 1)
+  - ./ci/check-fmt.sh
   - ginkgo -r -cover
 
 after_success:
