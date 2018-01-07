@@ -5,8 +5,12 @@
 HERE=`dirname $0`
 ME=`basename $0`
 
+debug=0 # set to 1 for verbose output
+
 note() {
-    echo ">>> $ME: NOTE: $1"
+    if [ "$debug" -eq 1 ]; then
+        echo ">>> $ME: NOTE: $1"
+    fi
 }
 
 error() {
