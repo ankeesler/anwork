@@ -70,10 +70,10 @@ func run(args []string, output io.Writer) int {
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.SetOutput(output)
 
-	flags.BoolVar(&debug, "debug", false, "Enable debug printing")
+	flags.BoolVar(&debug, "d", false, "Enable debug printing")
 
-	flags.StringVar(&context, "context", "default-context", "Set the persistence context")
-	flags.StringVar(&root, "root", ".", "Set the persistence root directory")
+	flags.StringVar(&context, "c", "default-context", "Set the persistence context")
+	flags.StringVar(&root, "o", ".", "Set the persistence root directory")
 
 	flags.Usage = usage(flags, output)
 

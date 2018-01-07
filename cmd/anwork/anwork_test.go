@@ -23,7 +23,7 @@ var _ = Describe("anwork", func() {
 	var ret int
 	callRun := func(args ...string) {
 		output = new(bytes.Buffer)
-		ret = run(append([]string{"anwork", "-context", context, "-root", root}, args...), output)
+		ret = run(append([]string{"anwork", "-c", context, "-o", root}, args...), output)
 	}
 
 	expectSuccess := func() {
@@ -93,7 +93,7 @@ var _ = Describe("anwork", func() {
 	Context("when a bad context is passed", func() {
 		BeforeEach(func() {
 			output = new(bytes.Buffer)
-			ret = run([]string{"anwork", "-context", "/i/really/hope/this/file/does/not/exist", "show"},
+			ret = run([]string{"anwork", "-c", "/i/really/hope/this/file/does/not/exist", "show"},
 				output)
 		})
 		It("fails", expectFailure)
@@ -101,7 +101,7 @@ var _ = Describe("anwork", func() {
 	Context("when the context is corrupt", func() {
 		BeforeEach(func() {
 			output = new(bytes.Buffer)
-			ret = run([]string{"anwork", "-context", "bad-context", "-root", "test-data", "show"}, output)
+			ret = run([]string{"anwork", "-c", "bad-context", "-o", "test-data", "show"}, output)
 		})
 		It("fails", expectFailure)
 		It("prints something about the context being bad", func() {
@@ -280,7 +280,7 @@ var _ = Describe("anwork", func() {
 
 	Context("when debug is on", func() {
 		BeforeEach(func() {
-			callRun("-debug", "create", "task-a")
+			callRun("-d", "create", "task-a")
 		})
 		It("reporting information about saving/loading manager", func() {
 			Expect(output.String()).To(ContainSubstring("Manager is"))

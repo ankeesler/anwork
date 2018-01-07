@@ -14,7 +14,7 @@ import (
 //go:generate go run ../../genclidoc/main.go ../../../doc/CLI.md
 
 // This is the version of this anwork application command set.
-const Version = 1
+const Version = 2
 
 // A Command is a keyword (see Name field) passed to the anwork executable that provokes some
 // functionality (see Action field).
