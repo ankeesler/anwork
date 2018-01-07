@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# This is the anwork "executable" script. It runs the proper Go binary for the host architecture.
+
+HERE=`dirname $0`
+ME=`basename $0`
+
+note() {
+    echo ">>> $ME: NOTE: $1"
+}
+
+error() {
+    echo ">>> $ME: ERROR: $1"
+    exit 1
+}
+
+if [ -z "$GOOS" ]; then
+    GOOS=`go env GOOS`
+    note "setting GOOS to $GOOS"
+else
+    note "GOOS is $GOOS"
+fi
+if [ -z "$GOOS" ]; then
+    error "cannot determine GOOS"
+fi
+
+if [ -z "$GOARCH" ]; then
+    GOARCH=`go env GOARCH`
+    note "setting GOARCH to $GOARCH"
+else
+    note "GOARCH is $GOARCH"
+fi
+if [ -z "$GOARCH" ]; then
+    error "cannot determine GOARCH"
+fi
+
+exec="$HERE/anwork_${GOOS}_${GOARCH}"
+note "exec is $exec"
+if [ ! -f "$exec" ]; then
+    error "executable does not exist: $exec"
+fi
+chmod a+x "$exec"
+if [ ! -x "$exec" ]; then
+    error "executable is not executable: $exec"
+fi
+"$exec"
