@@ -32,6 +32,7 @@ root="anwork-$version"
 mkdir $root
 mkdir $root/bin
 mv anwork $root/bin
+chmod a+x $root/bin/anwork
 cp -R doc $root/
 note "created staging directory $root"
 
