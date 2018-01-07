@@ -35,8 +35,8 @@ root="anwork-$version"
 mkdir $root
 mkdir $root/bin
 cp ci/anwork $root/bin/
-cp $(build darwin amd64) $root/bin/
-cp $(build linux amd64) $root/bin/
+mv $(build darwin amd64) $root/bin/
+mv $(build linux amd64) $root/bin/
 cp -R doc $root/
 note "created staging directory $root"
 
