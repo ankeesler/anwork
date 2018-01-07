@@ -47,4 +47,4 @@ chmod a+x "$exec"
 if [ ! -x "$exec" ]; then
     error "executable is not executable: $exec"
 fi
-"$exec"
+"$exec" "$@"
