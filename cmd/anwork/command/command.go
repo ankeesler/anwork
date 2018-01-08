@@ -36,6 +36,10 @@ type Command struct {
 }
 
 // These are the Command's used by the anwork application.
+// TODO: update the show command to show specifics about a task! Yeah!
+// TODO: add the delete-all command!
+// TODO: add summary command!
+// TODO: add reset command!
 var Commands = []Command{
 	Command{
 		Name:        "version",
