@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ankeesler/anwork/task"
 )
@@ -36,7 +37,6 @@ type Command struct {
 }
 
 // These are the Command's used by the anwork application.
-// TODO: update the show command to show specifics about a task! Yeah!
 // TODO: add summary command!
 // TODO: add reset command!
 var Commands = []Command{
@@ -66,8 +66,8 @@ var Commands = []Command{
 	},
 	Command{
 		Name:        "show",
-		Description: "Show the current tasks",
-		Args:        []string{},
+		Description: "Show the current tasks, or the details of a specific task",
+		Args:        []string{"[task-name]"},
 		Action:      showAction,
 	},
 	Command{
@@ -157,6 +157,11 @@ func parseTaskSpec(str string, m *task.Manager) *task.Task {
 	return t
 }
 
+func formatDate(date time.Time) string {
+	return fmt.Sprintf("%s %s %d %02d:%02d", date.Weekday(), date.Month(), date.Day(), date.Hour(),
+		date.Minute())
+}
+
 func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	fmt.Fprintln(o, "ANWORK Version =", Version)
 	return false
@@ -169,18 +174,31 @@ func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 }
 
 func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
-	printer := func(state task.State) {
-		fmt.Fprintf(o, "%s tasks:\n", strings.ToUpper(task.StateNames[state]))
-		for _, task := range m.Tasks() {
-			if task.State() == state {
-				fmt.Fprintf(o, "  %s (%d)\n", task.Name(), task.ID())
+	var t *task.Task = nil
+	if f.NArg() > 1 {
+		t = parseTaskSpec(f.Arg(1), m)
+	}
+
+	if t == nil {
+		printer := func(state task.State) {
+			fmt.Fprintf(o, "%s tasks:\n", strings.ToUpper(task.StateNames[state]))
+			for _, task := range m.Tasks() {
+				if task.State() == state {
+					fmt.Fprintf(o, "  %s (%d)\n", task.Name(), task.ID())
+				}
 			}
 		}
+		printer(task.StateRunning)
+		printer(task.StateBlocked)
+		printer(task.StateWaiting)
+		printer(task.StateFinished)
+	} else {
+		fmt.Fprintf(o, "Name: %s\n", t.Name())
+		fmt.Fprintf(o, "ID: %d\n", t.ID())
+		fmt.Fprintf(o, "Created: %s\n", formatDate(t.StartDate()))
+		fmt.Fprintf(o, "Priority: %d\n", t.Priority())
+		fmt.Fprintf(o, "State: %s\n", strings.ToUpper(task.StateNames[t.State()]))
 	}
-	printer(task.StateRunning)
-	printer(task.StateBlocked)
-	printer(task.StateWaiting)
-	printer(task.StateFinished)
 	return false
 }
 
@@ -255,8 +273,7 @@ func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
 		if t == nil || t.ID() == e.TaskId {
-			fmt.Fprintf(o, "[%s %s %d %02d:%02d]: %s\n", e.Date.Weekday(), e.Date.Month(), e.Date.Day(),
-				e.Date.Hour(), e.Date.Minute(), e.Title)
+			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 		}
 	}
 	return false

@@ -29,7 +29,7 @@ There is no deprecated functionality in this release.
 - The `create` (formerly `task create`) command no longer takes any flags. A task's priority can be
   set via the `set-priority` command.
 - The `show` (formerly `task show`) command no longer takes any flags. It always prints in the legacy
-  `-s` flag format. To show a task's most recent journal entry, use the  `journal` command. To show
-  information about a task, use the `task` command.
+  `-s` flag format. To show a task's most recent journal entry, use the  `journal` command (e.g., "anwork journal weigh-tuna").
+  To show information about a task, use the `show` command (e.g., "anwork show weigh-tuna").
 - The `-n|--no-persist` flag has been removed. In order to mimic this behavior, remove the context
   file after every use of anwork.

@@ -118,14 +118,24 @@ func (t *Task) Name() string {
 	return t.name
 }
 
-// Get the State for this Task.
-func (t *Task) State() State {
-	return t.state
-}
-
 // Get the ID for this Task.
 func (t *Task) ID() int {
 	return t.id
+}
+
+// Get the time.Time specifying when this Task was created.
+func (t *Task) StartDate() time.Time {
+	return t.startDate
+}
+
+// Get the Priority for this Task.
+func (t *Task) Priority() int {
+	return t.priority
+}
+
+// Get the State for this Task.
+func (t *Task) State() State {
+	return t.state
 }
 
 // Create a new Task with a default priority (see DefaultPriority) in the waiting state (see

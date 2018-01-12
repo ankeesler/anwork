@@ -7,6 +7,7 @@ import (
 
 	"github.com/ankeesler/anwork/cmd/anwork/command"
 	"github.com/ankeesler/anwork/storage"
+	"github.com/ankeesler/anwork/task"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -132,6 +133,17 @@ var _ = Describe("anwork", func() {
 			It("succeeds", expectSuccess)
 			It("shows the created task", func() {
 				Expect(output.String()).To(ContainSubstring("WAITING tasks:\n  task-a ("))
+			})
+		})
+		Context("when show is called and the task is passed", func() {
+			BeforeEach(func() {
+				callRun("show", "task-a")
+			})
+			It("succeeds", expectSuccess)
+			It("shows details about the created task", func() {
+				regexp := fmt.Sprintf("Name: task-a\nID: \\d+\nCreated: .*\nPriority: %d+\nState: WAITING",
+					task.DefaultPriority)
+				Expect(output.String()).To(MatchRegexp(regexp))
 			})
 		})
 	})

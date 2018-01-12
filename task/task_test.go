@@ -84,7 +84,7 @@ var _ = Describe("Task's", func() {
 			priority:    goodTaskPriority,
 			state:       goodState,
 
-			startDate: unpersistedTask.startDate,
+			startDate: unpersistedTask.StartDate(),
 		}
 		Expect(unpersistedTask).To(Equal(expectedTask))
 		Expect(unpersistedTask.State()).To(Equal(goodState))
