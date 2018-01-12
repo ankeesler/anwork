@@ -347,6 +347,38 @@ var _ = Describe("anwork", func() {
 				})
 			})
 		})
+		Context("when tasks are finished and the summary command is used", func() {
+			BeforeEach(func() {
+				callRun("set-finished", "task-b")
+				callRun("set-finished", "task-c")
+				callRun("set-finished", "task-a")
+			})
+			Context("and zero days are passed", func() {
+				BeforeEach(func() {
+					callRun("summary", "0")
+				})
+				It("succeeds", expectSuccess)
+				It("should not print anything out", func() {
+					Expect(output.String()).To(HaveLen(0))
+				})
+			})
+			Context("and 5 days are passed", func() {
+				BeforeEach(func() {
+					callRun("summary", "5")
+				})
+				It("succeeds", expectSuccess)
+				It("should print out the 3 task creations", func() {
+					regexpLines := make([]string, 6)
+					regexpLines[0] = fmt.Sprintf("%s: .*task-a.*", journalPrefixRegexp)
+					regexpLines[1] = "  took .*"
+					regexpLines[2] = fmt.Sprintf("%s: .*task-c.*", journalPrefixRegexp)
+					regexpLines[3] = "  took .*"
+					regexpLines[4] = fmt.Sprintf("%s: .*task-b.*", journalPrefixRegexp)
+					regexpLines[5] = "  took .*"
+					Expect(output.String()).To(MatchRegexp(strings.Join(regexpLines, "\n")))
+				})
+			})
+		})
 	})
 
 	Context("when debug is on", func() {

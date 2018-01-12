@@ -1,4 +1,6 @@
 // This package contains the commands that can be passed to the anwork command line tool.
+//
+// TODO: print nicer error messages when we are missing a command argument!
 package command
 
 import (
@@ -51,7 +53,6 @@ type Command struct {
 }
 
 // These are the Command's used by the anwork application.
-// TODO: add summary command!
 var Commands = []Command{
 	Command{
 		Name:        "version",
@@ -64,6 +65,12 @@ var Commands = []Command{
 		Description: "Completely reset everything and blow away all data; USE CAREFULLY",
 		Args:        []string{},
 		Action:      resetAction,
+	},
+	Command{
+		Name:        "summary",
+		Description: "Show a summary of the tasks completed in the past days",
+		Args:        []string{"days"},
+		Action:      summaryAction,
 	},
 	Command{
 		Name:        "create",
@@ -167,7 +174,7 @@ func parseTaskSpec(str string, m *task.Manager) *task.Task {
 			}
 		}
 	} else {
-		t = m.Find(str) // str is the name of a task
+		t = m.FindByName(str) // str is the name of a task
 	}
 
 	if t == nil {
@@ -179,6 +186,10 @@ func parseTaskSpec(str string, m *task.Manager) *task.Task {
 func formatDate(date time.Time) string {
 	return fmt.Sprintf("%s %s %d %02d:%02d", date.Weekday(), date.Month(), date.Day(), date.Hour(),
 		date.Minute())
+}
+
+func formatDuration(duration time.Duration) string {
+	return fmt.Sprintf("%s", duration.String())
 }
 
 func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
@@ -203,6 +214,29 @@ func resetAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 		fmt.Fprintln(o, "NOT deleting all data")
 		return ResponseNoPersist
 	}
+}
+
+func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+	days := f.Arg(1)
+	daysNum, err := strconv.Atoi(days)
+	if err != nil {
+		msg := fmt.Sprintf("Cannot convert days %s to number: %s", days, err.Error())
+		panic(msg)
+	}
+
+	now := time.Now()
+	es := m.Journal().Events
+	for i := len(es) - 1; i >= 0; i-- {
+		e := es[i]
+		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
+		isWithinDays := e.Date.Add(time.Duration(daysNum*24) * time.Hour).After(now)
+		if isFinished && isWithinDays {
+			t := m.FindById(e.TaskId)
+			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
+			fmt.Fprintf(o, "  took %s\n", formatDuration(e.Date.Sub(t.StartDate())))
+		}
+	}
+	return ResponseNoPersist
 }
 
 func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {

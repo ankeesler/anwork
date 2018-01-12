@@ -24,7 +24,7 @@ func NewManager() *Manager {
 // Create a Task with the provided name. This function will panic if a Task with the provided name
 // already exists.
 func (m *Manager) Create(name string) {
-	t := m.Find(name)
+	t := m.FindByName(name)
 	if t != nil {
 		msg := fmt.Sprintf("Task with name %s already exists", name)
 		panic(msg)
@@ -61,7 +61,7 @@ func (m *Manager) Delete(name string) bool {
 }
 
 // Set the State of a Task currently in this Manager. This function will panic if there is no known
-// Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
+// Task with the provided name. The Task will be searched for via a call to Manager.FindByName(name).
 func (m *Manager) SetState(name string, state State) {
 	t := m.findOrPanic(name)
 	beforeState := t.state
@@ -73,7 +73,8 @@ func (m *Manager) SetState(name string, state State) {
 }
 
 // Set the priority of a Task currently in this Manager. This function will panic if there is no
-// known Task with the provided name. The Task will be searched for via a call to Manager.Find(name).
+// known Task with the provided name. The Task will be searched for via a call to
+// Manager.FindByName(name).
 func (m *Manager) SetPriority(name string, priority int) {
 	t := m.findOrPanic(name)
 	beforePriority := t.priority
@@ -84,7 +85,7 @@ func (m *Manager) SetPriority(name string, priority int) {
 }
 
 // Add a note that relates to a Task. This function will panic if there is no known Task with the
-// provided name. The Task will be searched for via a call to Manager.Find(name).
+// provided name. The Task will be searched for via a call to Manager.FindByName(name).
 func (m *Manager) Note(name string, note string) {
 	t := m.findOrPanic(name) // this ensures that a Task exists for the provided name.
 	title := fmt.Sprintf("Note added to task %s: %s", name, note)
@@ -105,7 +106,7 @@ func (m *Manager) Tasks() []*Task {
 }
 
 // Find a Task with the provided name in this Manager, or return nil if there is no such Task.
-func (m *Manager) Find(name string) *Task {
+func (m *Manager) FindByName(name string) *Task {
 	for _, task := range m.tasks {
 		if task.name == name {
 			return task
@@ -114,8 +115,18 @@ func (m *Manager) Find(name string) *Task {
 	return nil
 }
 
+// Find a Task with the provided id in this Manager, or return nil if there is no such Task.
+func (m *Manager) FindById(id int) *Task {
+	for _, task := range m.tasks {
+		if task.id == id {
+			return task
+		}
+	}
+	return nil
+}
+
 func (m *Manager) findOrPanic(name string) *Task {
-	t := m.Find(name)
+	t := m.FindByName(name)
 	if t == nil {
 		msg := fmt.Sprintf("Unknown task with name %s", name)
 		panic(msg)
@@ -148,6 +159,7 @@ func (m *Manager) Swap(i, j int) {
 	m.tasks[j] = tmp
 }
 
+// Get the Journal associated with this Manager.
 func (m *Manager) Journal() *Journal {
 	return m.journal
 }

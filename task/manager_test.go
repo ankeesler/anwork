@@ -205,16 +205,16 @@ var _ = Describe("Manager", func() {
 		It("persists correctly", checkPersistence)
 		Context("when tasks are updated", func() {
 			BeforeEach(func() {
-				taskA := m.Find(taskAName)
+				taskA := m.FindByName(taskAName)
 				Expect(taskA).ToNot(BeNil())
 				m.SetPriority(taskA.name, taskAPriority)
 				m.SetState(taskA.name, taskAState)
 
-				taskB := m.Find(taskBName)
+				taskB := m.FindByName(taskBName)
 				Expect(taskB).ToNot(BeNil())
 				m.SetPriority(taskB.name, taskBPriority)
 
-				taskC := m.Find(taskCName)
+				taskC := m.FindByName(taskCName)
 				Expect(taskC).ToNot(BeNil())
 				m.SetPriority(taskC.name, taskCPriority)
 				m.SetState(taskC.name, taskCState)
@@ -263,7 +263,7 @@ var _ = Describe("Manager", func() {
 				ExpectWithOffset(1, m).To(Equal(tmpM))
 
 				m.Create("new")
-				newT := m.Find("new")
+				newT := m.FindByName("new")
 				Expect(newT.id).ToNot(BeEquivalentTo(0))
 			})
 			Context("when one task is deleted", func() {
@@ -277,7 +277,7 @@ var _ = Describe("Manager", func() {
 					Expect(m.Tasks()).To(HaveLen(2))
 				})
 				It("no longer store the deleted task", func() {
-					taskB := m.Find(taskBName)
+					taskB := m.FindByName(taskBName)
 					Expect(taskB).To(BeNil())
 				})
 				It("continue to store the other tasks in the correct order", func() {
