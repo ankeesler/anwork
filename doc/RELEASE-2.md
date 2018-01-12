@@ -33,3 +33,4 @@ There is no deprecated functionality in this release.
   To show information about a task, use the `show` command (e.g., "anwork show weigh-tuna").
 - The `-n|--no-persist` flag has been removed. In order to mimic this behavior, remove the context
   file after every use of anwork.
+- The `-f|--force` flag has been removed from the `reset` CLI command.

@@ -50,6 +50,15 @@ func writeManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) 
 	return err == nil
 }
 
+// Returns true on success.
+func deleteManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) bool {
+	err := p.Delete(c)
+	if err != nil {
+		fmt.Fprintf(o, "Error! Could not delete context %s: %s\n", c, err.Error())
+	}
+	return err == nil
+}
+
 func usage(f *flag.FlagSet, output io.Writer) func() {
 	return func() {
 		fmt.Fprintln(output, "Usage of anwork")
@@ -108,19 +117,25 @@ func run(args []string, output io.Writer) int {
 	}
 	dbgfln(output, "Manager is %s", manager)
 
-	command := command.FindCommand(firstArg)
-	if command == nil {
+	cmd := command.FindCommand(firstArg)
+	if cmd == nil {
 		fmt.Fprintln(output, "Error! Unknown command:", firstArg)
 		flags.Usage()
 		return 1
 	} else {
-		if command.Action(flags, output, manager) {
+		switch cmd.Action(flags, output, manager) {
+		case command.ResponsePersist:
 			dbgfln(output, "Persisting manager back to disk")
 			if !writeManager(output, &persister, context, manager) {
 				return 1
 			}
-		} else {
+		case command.ResponseNoPersist:
 			dbgfln(output, "NOT persisting manager back to disk")
+		case command.ResponseReset:
+			dbgfln(output, "Completely deleting everything in context %s", context)
+			if !deleteManager(output, &persister, context, manager) {
+				return 1
+			}
 		}
 	}
 

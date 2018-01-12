@@ -315,6 +315,38 @@ var _ = Describe("anwork", func() {
 				})
 			})
 		})
+		Context("when the 'reset' command is used", func() {
+			Context("and the user confirms the reset", func() {
+				BeforeEach(func() {
+					callRun("reset", "y")
+				})
+				It("succeeds", expectSuccess)
+				Context("when journal is called", func() {
+					BeforeEach(func() {
+						callRun("journal")
+					})
+					It("succeeds", expectSuccess)
+					It("shows that everything has been deleted", func() {
+						Expect(output.String()).To(HaveLen(0))
+					})
+				})
+			})
+			Context("and the user denies the reset", func() {
+				BeforeEach(func() {
+					callRun("reset", "n")
+				})
+				It("succeeds", expectSuccess)
+				Context("when journal is called", func() {
+					BeforeEach(func() {
+						callRun("journal")
+					})
+					It("succeeds", expectSuccess)
+					It("shows that everything has not been deleted", func() {
+						Expect(output.String()).ToNot(HaveLen(0))
+					})
+				})
+			})
+		})
 	})
 
 	Context("when debug is on", func() {

@@ -17,6 +17,20 @@ import (
 // This is the version of this anwork application command set.
 const Version = 2
 
+// This is an indication of what the command wishes to happen after being run. See Response*
+// constants below for more details.
+type Response int
+
+// These constants represent the valid Response values.
+const (
+	// Do not persist any data.
+	ResponseNoPersist = iota
+	// Persist data back to disk.
+	ResponsePersist
+	// Completely wipe out all data on disk. This is dangerous!
+	ResponseReset
+)
+
 // A Command is a keyword (see Name field) passed to the anwork executable that provokes some
 // functionality (see Action field).
 type Command struct {
@@ -31,20 +45,25 @@ type Command struct {
 	// flag.FlagSet.Arg(X) where X is the index of the argument. Note that f.Arg(0) is always the name
 	// of the command. The second parameter to this function is an output stream to which all output
 	// (for example, debug printing, or stuff that would normally be sent to stdout) should be
-	// written. The function should return true iff the task.Manager should be persisted to disk after
-	// the Action returns.
-	Action func(f *flag.FlagSet, o io.Writer, m *task.Manager) bool
+	// written. The function should return a Response value based on the next action that the caller
+	// should take.
+	Action func(f *flag.FlagSet, o io.Writer, m *task.Manager) Response
 }
 
 // These are the Command's used by the anwork application.
 // TODO: add summary command!
-// TODO: add reset command!
 var Commands = []Command{
 	Command{
 		Name:        "version",
 		Description: "Print version information",
 		Args:        []string{},
 		Action:      versionAction,
+	},
+	Command{
+		Name:        "reset",
+		Description: "Completely reset everything and blow away all data; USE CAREFULLY",
+		Args:        []string{},
+		Action:      resetAction,
 	},
 	Command{
 		Name:        "create",
@@ -162,18 +181,37 @@ func formatDate(date time.Time) string {
 		date.Minute())
 }
 
-func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	fmt.Fprintln(o, "ANWORK Version =", Version)
-	return false
+	return ResponseNoPersist
 }
 
-func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func resetAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+	fmt.Fprintf(o, "Are you sure you want to delete all data [y/n]: ")
+
+	var answer string
+	if f.NArg() > 1 {
+		answer = f.Arg(1) // Trapdoor to ease testing
+	} else {
+		fmt.Scanf("%s", &answer)
+	}
+
+	if answer == "y" {
+		fmt.Fprintln(o, "OK, deleting all data")
+		return ResponseReset
+	} else {
+		fmt.Fprintln(o, "NOT deleting all data")
+		return ResponseNoPersist
+	}
+}
+
+func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	name := f.Arg(1)
 	m.Create(name)
-	return true
+	return ResponsePersist
 }
 
-func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	var t *task.Task = nil
 	if f.NArg() > 1 {
 		t = parseTaskSpec(f.Arg(1), m)
@@ -199,51 +237,51 @@ func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 		fmt.Fprintf(o, "Priority: %d\n", t.Priority())
 		fmt.Fprintf(o, "State: %s\n", strings.ToUpper(task.StateNames[t.State()]))
 	}
-	return false
+	return ResponseNoPersist
 }
 
-func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	t := parseTaskSpec(f.Arg(1), m)
 	note := f.Arg(2)
 	m.Note(t.Name(), note)
-	return true
+	return ResponsePersist
 }
 
-func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	t := parseTaskSpec(f.Arg(1), m)
 	if !m.Delete(t.Name()) {
 		fmt.Fprintf(o, "Error! Unknown task: %s\n", t.Name())
-		return false
+		return ResponseNoPersist
 	} else {
-		return true
+		return ResponsePersist
 	}
 }
 
-func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	for len(m.Tasks()) > 0 {
 		name := m.Tasks()[0].Name()
 		if !m.Delete(name) {
 			panic("Expected to be able to successfully delete task " + name)
 		}
 	}
-	return true
+	return ResponsePersist
 }
 
-func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	t := parseTaskSpec(f.Arg(1), m)
 	priority := f.Arg(2)
 
 	priorityInt, err := strconv.Atoi(priority)
 	if err != nil {
 		fmt.Fprintf(o, "Error! Could not parse priority from %s", priority)
-		return false
+		return ResponseNoPersist
 	} else {
 		m.SetPriority(t.Name(), priorityInt)
-		return true
+		return ResponsePersist
 	}
 }
 
-func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	t := parseTaskSpec(f.Arg(1), m)
 
 	var state task.State
@@ -260,10 +298,10 @@ func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 		panic("Unknown state: " + command)
 	}
 	m.SetState(t.Name(), state)
-	return true
+	return ResponsePersist
 }
 
-func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	var t *task.Task = nil
 	if f.NArg() > 1 {
 		t = parseTaskSpec(f.Arg(1), m)
@@ -276,5 +314,5 @@ func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 		}
 	}
-	return false
+	return ResponseNoPersist
 }
