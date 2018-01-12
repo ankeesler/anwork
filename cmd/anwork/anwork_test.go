@@ -257,6 +257,33 @@ var _ = Describe("anwork", func() {
 				})
 			})
 		})
+		Context("when all tasks are deleted", func() {
+			BeforeEach(func() {
+				callRun("delete-all")
+			})
+			It("succeeds", expectSuccess)
+			Context("when show is called", func() {
+				BeforeEach(func() {
+					callRun("show")
+				})
+				It("does not show any tasks", func() {
+					regexp := "RUNNING tasks:\nBLOCKED tasks:\nWAITING tasks:\nFINISHED tasks:"
+					Expect(output.String()).To(MatchRegexp(regexp))
+				})
+			})
+			Context("when journal is called", func() {
+				BeforeEach(func() {
+					callRun("journal")
+				})
+				It("shows the 3 creation entries plus the 3 deletion entries in reverse order", func() {
+					regexp := fmt.Sprintf("%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n",
+						journalPrefixRegexp, ".*Deleted.*", journalPrefixRegexp, ".*Deleted.*",
+						journalPrefixRegexp, ".*Deleted.*", journalPrefixRegexp, ".*Created.*",
+						journalPrefixRegexp, ".*Created.*", journalPrefixRegexp, ".*Created.*")
+					Expect(output.String()).To(MatchRegexp(regexp))
+				})
+			})
+		})
 		Context("when a note is added", func() {
 			BeforeEach(func() {
 				callRun("note", "task-a", "Here is a note for task-a")

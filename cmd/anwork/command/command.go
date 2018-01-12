@@ -37,7 +37,6 @@ type Command struct {
 
 // These are the Command's used by the anwork application.
 // TODO: update the show command to show specifics about a task! Yeah!
-// TODO: add the delete-all command!
 // TODO: add summary command!
 // TODO: add reset command!
 var Commands = []Command{
@@ -58,6 +57,12 @@ var Commands = []Command{
 		Description: "Delete a task",
 		Args:        []string{"task-name"},
 		Action:      deleteAction,
+	},
+	Command{
+		Name:        "delete-all",
+		Description: "Delete all tasks",
+		Args:        []string{},
+		Action:      deleteAllAction,
 	},
 	Command{
 		Name:        "show",
@@ -194,6 +199,16 @@ func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
 	} else {
 		return true
 	}
+}
+
+func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
+	for len(m.Tasks()) > 0 {
+		name := m.Tasks()[0].Name()
+		if !m.Delete(name) {
+			panic("Expected to be able to successfully delete task " + name)
+		}
+	}
+	return true
 }
 
 func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) bool {
