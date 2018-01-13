@@ -26,6 +26,8 @@ There is no deprecated functionality in this release.
 
 ## Removed Functionality
 
+- Long flags (of the format --flag) are no longer used. The CLI commands only accept single letter
+  short flags (of the format -f).
 - The `create` (formerly `task create`) command no longer takes any flags. A task's priority can be
   set via the `set-priority` command.
 - The `show` (formerly `task show`) command no longer takes any flags. It always prints in the legacy
@@ -33,4 +35,5 @@ There is no deprecated functionality in this release.
   To show information about a task, use the `show` command (e.g., "anwork show weigh-tuna").
 - The `-n|--no-persist` flag has been removed. In order to mimic this behavior, remove the context
   file after every use of anwork.
-- The `-f|--force` flag has been removed from the `reset` CLI command.
+- The `-f|--force` flag has been removed from the `reset` CLI command. In order to incite this
+  behavior, simply pass a second argument of `y` to the `reset` command.
