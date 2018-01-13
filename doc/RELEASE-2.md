@@ -2,7 +2,9 @@
 
 ## New Functionality
 
-- The new anwork executable is over 100% faster! Woo!
+- The new anwork executable is over 75% faster! Woo! This was calculated via the benchmark functions
+  in the [anwork_testing](https://github.com/ankeesler/anwork_testing) repo (see BenchmarkCreate and
+  BenchmarkCrud).
 - The CLI commands have been significantly simplified.
 
 ## Changed Functionality
