@@ -67,7 +67,8 @@ formatting rules used in this codebase.
 ### Directory Structure
 
 Again, the directory structure is pretty simple. Every directory is a Go source directory except for
-the following.
+the following that are documented here. Information can be found on the Go source directories using
+the "go doc" command.
 
 | Directory | Use |
 | --- | --- |

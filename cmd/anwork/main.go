@@ -2,10 +2,10 @@
 // ability to create, read, update, and delete anwork Task objects.
 //
 // Versioning is done with a single 32-bit integer. Version names start with a lowercase 'v' and are
-// then followed by the number of the release. For example, the first view of the release was named
-// _v1_. The second version of the release will be _v2_. There are no minor version numbers. This
-// version number is controlled via the "version" property in the gradle project. See the CLI command
-// "anwork version" and the gradle task updateVersion for more information.
+// then followed by the number of the release. For example, the first version of the release was
+// named _v1_. The second version of the release will be _v2_. There are no minor version
+// numbers. This version number is controlled via the "version" property in the command package. See
+// the CLI command "anwork version" for more information.
 package main
 
 import (
