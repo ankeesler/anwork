@@ -1,6 +1,4 @@
 // This package contains the commands that can be passed to the anwork command line tool.
-//
-// TODO: print nicer error messages when we are missing a command argument!
 package command
 
 import (
@@ -31,10 +29,12 @@ const (
 	ResponsePersist
 	// Completely wipe out all data on disk. This is dangerous!
 	ResponseReset
+	// There was an error in the arguments passed (or not passed) to the Command.
+	ResponseArgumentError
 )
 
-// A Command is a keyword (see Name field) passed to the anwork executable that provokes some
-// functionality (see Action field).
+// A Command represents a keyword (see Name field) passed to the anwork executable that incites some
+// behavior to run (via Command.Run).
 type Command struct {
 	Name, Description string
 
@@ -43,13 +43,13 @@ type Command struct {
 
 	// This is the functionality that runs when this Command is invoked. The first parameter to the
 	// function is the flag.FlagSet associated with this call to the Command. Implementers of the
-	// Action function call pull command line arguments off of the flags parameter with
+	// action function call pull command line arguments off of the flags parameter with
 	// flag.FlagSet.Arg(X) where X is the index of the argument. Note that f.Arg(0) is always the name
 	// of the command. The second parameter to this function is an output stream to which all output
 	// (for example, debug printing, or stuff that would normally be sent to stdout) should be
 	// written. The function should return a Response value based on the next action that the caller
 	// should take.
-	Action func(f *flag.FlagSet, o io.Writer, m *task.Manager) Response
+	action func(f *flag.FlagSet, o io.Writer, m *task.Manager) Response
 }
 
 // These are the Command's used by the anwork application.
@@ -58,85 +58,85 @@ var Commands = []Command{
 		Name:        "version",
 		Description: "Print version information",
 		Args:        []string{},
-		Action:      versionAction,
+		action:      versionAction,
 	},
 	Command{
 		Name:        "reset",
 		Description: "Completely reset everything and blow away all data; USE CAREFULLY",
 		Args:        []string{},
-		Action:      resetAction,
+		action:      resetAction,
 	},
 	Command{
 		Name:        "summary",
 		Description: "Show a summary of the tasks completed in the past days",
 		Args:        []string{"days"},
-		Action:      summaryAction,
+		action:      summaryAction,
 	},
 	Command{
 		Name:        "create",
 		Description: "Create a new task",
 		Args:        []string{"task-name"},
-		Action:      createAction,
+		action:      createAction,
 	},
 	Command{
 		Name:        "delete",
 		Description: "Delete a task",
 		Args:        []string{"task-name"},
-		Action:      deleteAction,
+		action:      deleteAction,
 	},
 	Command{
 		Name:        "delete-all",
 		Description: "Delete all tasks",
 		Args:        []string{},
-		Action:      deleteAllAction,
+		action:      deleteAllAction,
 	},
 	Command{
 		Name:        "show",
 		Description: "Show the current tasks, or the details of a specific task",
 		Args:        []string{"[task-name]"},
-		Action:      showAction,
+		action:      showAction,
 	},
 	Command{
 		Name:        "note",
 		Description: "Add a note to a task",
 		Args:        []string{"task-name", "note"},
-		Action:      noteAction,
+		action:      noteAction,
 	},
 	Command{
 		Name:        "set-priority",
 		Description: "Set the priority of a task",
 		Args:        []string{"task-name", "priority"},
-		Action:      setPriorityAction,
+		action:      setPriorityAction,
 	},
 	Command{
 		Name:        "set-running",
 		Description: "Mark a task as running",
 		Args:        []string{"task-name"},
-		Action:      setStateAction,
+		action:      setStateAction,
 	},
 	Command{
 		Name:        "set-blocked",
 		Description: "Mark a task as blocked",
 		Args:        []string{"task-name"},
-		Action:      setStateAction,
+		action:      setStateAction,
 	},
 	Command{
 		Name:        "set-waiting",
 		Description: "Mark a task as waiting",
 		Args:        []string{"task-name"},
-		Action:      setStateAction,
+		action:      setStateAction,
 	},
 	Command{
 		Name:        "set-finished",
 		Description: "Mark a task as finished",
 		Args:        []string{"task-name"},
-		Action:      setStateAction,
+		action:      setStateAction,
 	},
 	Command{
 		Name:        "journal",
 		Description: "Show the journal; optionally pass a task name to only show events for that task",
 		Args:        []string{"[task-name]"},
-		Action:      journalAction,
+		action:      journalAction,
 	},
 }
 
@@ -145,6 +145,12 @@ var Commands = []Command{
 func (c *Command) Usage(output io.Writer) {
 	fmt.Fprintf(output, "  %s %s\n", c.Name, strings.Join(c.Args, " "))
 	fmt.Fprintf(output, "        %s\n", c.Description)
+}
+
+// Run the functionality associated with this Command. This function will return a Response value
+// indicating next steps for the caller to take.
+func (c *Command) Run(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+	return c.action(f, o, m)
 }
 
 // Find the command with the provided name.
@@ -192,6 +198,15 @@ func formatDuration(duration time.Duration) string {
 	return fmt.Sprintf("%s", duration.String())
 }
 
+// Get the arg at index i or return false if it doesn't exist.
+func arg(f *flag.FlagSet, i int) (string, bool) {
+	if f.NArg() <= i {
+		return "", false
+	} else {
+		return f.Arg(i), true
+	}
+}
+
 func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	fmt.Fprintln(o, "ANWORK Version =", Version)
 	return ResponseNoPersist
@@ -217,7 +232,11 @@ func resetAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 }
 
 func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	days := f.Arg(1)
+	days, ok := arg(f, 1)
+	if !ok {
+		return ResponseArgumentError
+	}
+
 	daysNum, err := strconv.Atoi(days)
 	if err != nil {
 		msg := fmt.Sprintf("Cannot convert days %s to number: %s", days, err.Error())
@@ -240,7 +259,11 @@ func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 }
 
 func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	name := f.Arg(1)
+	name, ok := arg(f, 1)
+	if !ok {
+		return ResponseArgumentError
+	}
+
 	m.Create(name)
 	return ResponsePersist
 }
@@ -275,14 +298,27 @@ func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 }
 
 func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	t := parseTaskSpec(f.Arg(1), m)
-	note := f.Arg(2)
+	spec, ok := arg(f, 1)
+	if !ok {
+		return ResponseArgumentError
+	}
+	note, ok := arg(f, 2)
+	if !ok {
+		return ResponseArgumentError
+	}
+
+	t := parseTaskSpec(spec, m)
 	m.Note(t.Name(), note)
 	return ResponsePersist
 }
 
 func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	t := parseTaskSpec(f.Arg(1), m)
+	spec, ok := arg(f, 1)
+	if !ok {
+		return ResponseArgumentError
+	}
+
+	t := parseTaskSpec(spec, m)
 	if !m.Delete(t.Name()) {
 		fmt.Fprintf(o, "Error! Unknown task: %s\n", t.Name())
 		return ResponseNoPersist
@@ -302,7 +338,12 @@ func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 }
 
 func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	t := parseTaskSpec(f.Arg(1), m)
+	spec, ok := arg(f, 1)
+	if !ok {
+		return ResponseArgumentError
+	}
+
+	t := parseTaskSpec(spec, m)
 	priority := f.Arg(2)
 
 	priorityInt, err := strconv.Atoi(priority)
@@ -316,7 +357,12 @@ func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 }
 
 func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	t := parseTaskSpec(f.Arg(1), m)
+	spec, ok := arg(f, 1)
+	if !ok {
+		return ResponseArgumentError
+	}
+
+	t := parseTaskSpec(spec, m)
 
 	var state task.State
 	switch command := strings.TrimPrefix(f.Arg(0), "set-"); command {

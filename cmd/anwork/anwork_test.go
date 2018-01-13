@@ -91,6 +91,20 @@ var _ = Describe("anwork", func() {
 			Expect(output.String()).To(ContainSubstring("Error! Unknown command: fish"))
 		})
 	})
+	Context("when a command is expecting an arg but doesn't get one", func() {
+		BeforeEach(func() {
+			callRun("summary")
+		})
+		It("fails", expectFailure)
+		It("prints usage for that command", func() {
+			summaryCmd := command.FindCommand("summary")
+			Expect(output.String()).To(ContainSubstring("summary days"))
+			Expect(output.String()).To(ContainSubstring("    " + summaryCmd.Description))
+		})
+		It("prints something about the missing argument", func() {
+			Expect(output.String()).To(ContainSubstring("Error! Wrong arguments passed to command"))
+		})
+	})
 	Context("when a bad context is passed", func() {
 		BeforeEach(func() {
 			output = new(bytes.Buffer)

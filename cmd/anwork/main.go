@@ -123,7 +123,7 @@ func run(args []string, output io.Writer) int {
 		flags.Usage()
 		return 1
 	} else {
-		switch cmd.Action(flags, output, manager) {
+		switch cmd.Run(flags, output, manager) {
 		case command.ResponsePersist:
 			dbgfln(output, "Persisting manager back to disk")
 			if !writeManager(output, &persister, context, manager) {
@@ -136,6 +136,10 @@ func run(args []string, output io.Writer) int {
 			if !deleteManager(output, &persister, context, manager) {
 				return 1
 			}
+		case command.ResponseArgumentError:
+			fmt.Fprintln(output, "Error! Wrong arguments passed to command")
+			cmd.Usage(output)
+			return 1
 		}
 	}
 
