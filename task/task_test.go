@@ -16,14 +16,14 @@ const (
 	badContext  = "bad-context"
 
 	goodTaskName        = "task-a"
-	goodTaskId          = 0
+	goodTaskID          = 0
 	goodTaskDescription = "Here is a description!"
 	goodTaskPriority    = 612
 	goodState           = StateRunning
 
-	taskWithId5Context = "task-with-id-5-context"
-	taskWithId5Name    = "task-with-id-5"
-	taskWithId5Id      = 5
+	taskWithID5Context = "task-with-id-5-context"
+	taskWithID5Name    = "task-with-id-5"
+	taskWithID5ID      = 5
 )
 
 var _ = Describe("State constants", func() {
@@ -79,7 +79,7 @@ var _ = Describe("Task's", func() {
 
 		expectedTask := Task{
 			name:        goodTaskName,
-			id:          goodTaskId,
+			id:          goodTaskID,
 			description: goodTaskDescription,
 			priority:    goodTaskPriority,
 			state:       goodState,
@@ -93,18 +93,18 @@ var _ = Describe("Task's", func() {
 		It("that are larger", func() {
 
 			persister := storage.Persister{Root: root}
-			Expect(persister.Exists(taskWithId5Context)).To(BeTrue(),
-				"Cannot run this test when context (%s) does not exist", taskWithId5Context)
+			Expect(persister.Exists(taskWithID5Context)).To(BeTrue(),
+				"Cannot run this test when context (%s) does not exist", taskWithID5Context)
 
-			taskWithId5 := Task{}
-			persister.Unpersist(taskWithId5Context, &taskWithId5)
-			Expect(taskWithId5.id).To(BeEquivalentTo(taskWithId5Id))
-			Expect(taskWithId5.name).To(Equal(taskWithId5Name))
+			taskWithID5 := Task{}
+			persister.Unpersist(taskWithID5Context, &taskWithID5)
+			Expect(taskWithID5.id).To(BeEquivalentTo(taskWithID5ID))
+			Expect(taskWithID5.name).To(Equal(taskWithID5Name))
 
 			for i := 0; i < 10; i++ {
 				name := fmt.Sprintf("task-%d", i)
 				task := newTask(name)
-				Expect(task.id).ToNot(Equal(taskWithId5Id))
+				Expect(task.id).ToNot(Equal(taskWithID5ID))
 			}
 		})
 		It("that are smaller", func() {

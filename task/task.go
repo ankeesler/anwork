@@ -42,7 +42,7 @@ var StateNames = [...]string{
 // This is the default priority that a Task gets when created.
 const DefaultPriority = 10
 
-var nextTaskId int = 0
+var nextTaskID int = 0
 
 //go:generate protoc --proto_path=proto --go_out=proto task.proto
 
@@ -79,7 +79,7 @@ func (t *Task) Serialize() ([]byte, error) {
 
 func (t *Task) toProtobuf(tProtobuf *pb.Task) {
 	tProtobuf.Name = t.name
-	tProtobuf.Id = int32(t.id)
+	tProtobuf.ID = int32(t.id)
 	tProtobuf.Description = t.description
 	tProtobuf.StartDate = t.startDate.Unix()
 	tProtobuf.Priority = int32(t.priority)
@@ -100,13 +100,13 @@ func (t *Task) Unserialize(bytes []byte) error {
 
 func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
 	t.name = tProtobuf.Name
-	t.id = int(tProtobuf.Id)
+	t.id = int(tProtobuf.ID)
 	t.description = tProtobuf.Description
 	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
 	t.priority = int(tProtobuf.Priority)
 	t.state = State(tProtobuf.State)
 
-	noteTaskId(t.id)
+	noteTaskID(t.id)
 }
 
 // Get the name of this Task.
@@ -139,13 +139,13 @@ func (t *Task) State() State {
 func newTask(name string) *Task {
 	t := &Task{
 		name:      name,
-		id:        nextTaskId,
+		id:        nextTaskID,
 		startDate: time.Now(),
 		priority:  DefaultPriority,
 		state:     StateWaiting,
 	}
 
-	nextTaskId++
+	nextTaskID++
 
 	// Truncate the start time at the seconds since we only persist the seconds amount.
 	t.startDate = t.startDate.Truncate(time.Second)
@@ -154,11 +154,11 @@ func newTask(name string) *Task {
 }
 
 // This function should be called when a task ID is unpersisted from disk. This will make sure that
-// the nextTaskId always points to a unique task ID.
-func noteTaskId(id int) {
+// the nextTaskID always points to a unique task ID.
+func noteTaskID(id int) {
 	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
 	// unique ID.
-	if id >= nextTaskId {
-		nextTaskId = id + 1
+	if id >= nextTaskID {
+		nextTaskID = id + 1
 	}
 }

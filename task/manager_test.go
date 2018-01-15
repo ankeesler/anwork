@@ -256,8 +256,8 @@ var _ = Describe("Manager", func() {
 
 				Expect(p.Persist(tmpContext, m)).To(Succeed())
 
-				// Set the nextTaskId to 0 to simulate a new runtime.
-				nextTaskId = 0
+				// Set the nextTaskID to 0 to simulate a new runtime.
+				nextTaskID = 0
 
 				Expect(p.Unpersist(tmpContext, tmpM)).To(Succeed())
 				Expect(m).To(Equal(tmpM))
@@ -275,22 +275,22 @@ var _ = Describe("Manager", func() {
 
 				taskC := m.FindByName(taskCName)
 				Expect(taskC).ToNot(BeNil())
-				taskCId := taskC.ID()
-				taskC = m.FindById(taskCId)
+				taskCID := taskC.ID()
+				taskC = m.FindByID(taskCID)
 				Expect(taskC).ToNot(BeNil())
 
 				Expect(m.Delete(taskCName)).To(BeTrue())
 				Expect(p.Persist(tmpContext, m)).To(Succeed())
 
-				// Set the nextTaskId to 0 to simulate a new runtime.
-				nextTaskId = 0
+				// Set the nextTaskID to 0 to simulate a new runtime.
+				nextTaskID = 0
 
 				Expect(p.Unpersist(tmpContext, tmpM)).To(Succeed())
 				Expect(m).To(Equal(tmpM))
 
 				m.Create("new")
 				newT := m.FindByName("new")
-				Expect(newT.id).ToNot(BeEquivalentTo(taskCId))
+				Expect(newT.id).ToNot(BeEquivalentTo(taskCID))
 			})
 			Context("when one task is deleted", func() {
 				var (

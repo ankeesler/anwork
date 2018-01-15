@@ -250,7 +250,7 @@ func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
 		isWithinDays := e.Date.Add(time.Duration(daysNum*24) * time.Hour).After(now)
 		if isFinished && isWithinDays {
-			t := m.FindById(e.TaskId)
+			t := m.FindByID(e.TaskID)
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 			fmt.Fprintf(o, "  took %s\n", formatDuration(e.Date.Sub(t.StartDate())))
 		}
@@ -390,7 +390,7 @@ func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	es := m.Journal().Events
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
-		if t == nil || t.ID() == e.TaskId {
+		if t == nil || t.ID() == e.TaskID {
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 		}
 	}

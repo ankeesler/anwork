@@ -30,15 +30,15 @@ type Event struct {
 	// The type of Event.
 	Type EventType
 	// The ID of the Task to which this Event refers.
-	TaskId int
+	TaskID int
 }
 
-func newEvent(title string, teyep EventType, taskId int) *Event {
+func newEvent(title string, teyep EventType, taskID int) *Event {
 	e := &Event{
 		Title:  title,
 		Date:   time.Now(),
 		Type:   teyep,
-		TaskId: taskId,
+		TaskID: taskID,
 	}
 
 	// Truncate the start time at the seconds since we only persist the seconds amount.
@@ -57,7 +57,7 @@ func (e *Event) toProtobuf(eProtobuf *pb.Event) {
 	eProtobuf.Title = e.Title
 	eProtobuf.Date = e.Date.Unix()
 	eProtobuf.Type = pb.EventType(e.Type)
-	eProtobuf.TaskId = int32(e.TaskId)
+	eProtobuf.TaskID = int32(e.TaskID)
 }
 
 func (e *Event) Unserialize(bytes []byte) error {
@@ -76,9 +76,9 @@ func (e *Event) fromProtobuf(eProtobuf *pb.Event) {
 	e.Title = eProtobuf.Title
 	e.Date = time.Unix(eProtobuf.Date, 0) // sec, nsec
 	e.Type = EventType(eProtobuf.Type)
-	e.TaskId = int(eProtobuf.TaskId)
+	e.TaskID = int(eProtobuf.TaskID)
 
-	noteTaskId(e.TaskId)
+	noteTaskID(e.TaskID)
 }
 
 // A Journal is a sequence of Event's.

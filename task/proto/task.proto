@@ -11,7 +11,7 @@ enum State {
 
 message Task {
   string name = 1;
-  int32 id = 2;
+  int32 ID = 2;
   string description = 3;
   int64 startDate = 4;
   int32 priority = 5;
@@ -30,7 +30,7 @@ message Event {
   string title = 1;
   EventType type = 2;
   int64 date = 3;
-  int32 taskId = 4;
+  int32 taskID = 4;
 }
 
 message Journal {

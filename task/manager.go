@@ -116,7 +116,7 @@ func (m *Manager) FindByName(name string) *Task {
 }
 
 // Find a Task with the provided id in this Manager, or return nil if there is no such Task.
-func (m *Manager) FindById(id int) *Task {
+func (m *Manager) FindByID(id int) *Task {
 	for _, task := range m.tasks {
 		if task.id == id {
 			return task
