@@ -106,11 +106,7 @@ func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
 	t.priority = int(tProtobuf.Priority)
 	t.state = State(tProtobuf.State)
 
-	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
-	// unique ID.
-	if t.id >= nextTaskId {
-		nextTaskId = t.id + 1
-	}
+	noteTaskId(t.id)
 }
 
 // Get the name of this Task.
@@ -155,4 +151,14 @@ func newTask(name string) *Task {
 	t.startDate = t.startDate.Truncate(time.Second)
 
 	return t
+}
+
+// This function should be called when a task ID is unpersisted from disk. This will make sure that
+// the nextTaskId always points to a unique task ID.
+func noteTaskId(id int) {
+	// Increment the ID to one higher than what we just read in to make sure everyone is getting a
+	// unique ID.
+	if id >= nextTaskId {
+		nextTaskId = id + 1
+	}
 }

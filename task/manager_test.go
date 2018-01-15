@@ -250,21 +250,47 @@ var _ = Describe("Manager", func() {
 			It("persists correctly through reset", func() {
 				tmpM := NewManager()
 
-				ExpectWithOffset(1, p.Exists(tmpContext)).To(BeFalse(),
+				Expect(p.Exists(tmpContext)).To(BeFalse(),
 					"Cannot run this test when context (%s) already exists", tmpContext)
 				defer p.Delete(tmpContext)
 
-				ExpectWithOffset(1, p.Persist(tmpContext, m)).To(Succeed())
+				Expect(p.Persist(tmpContext, m)).To(Succeed())
 
 				// Set the nextTaskId to 0 to simulate a new runtime.
 				nextTaskId = 0
 
-				ExpectWithOffset(1, p.Unpersist(tmpContext, tmpM)).To(Succeed())
-				ExpectWithOffset(1, m).To(Equal(tmpM))
+				Expect(p.Unpersist(tmpContext, tmpM)).To(Succeed())
+				Expect(m).To(Equal(tmpM))
 
 				m.Create("new")
 				newT := m.FindByName("new")
 				Expect(newT.id).ToNot(BeEquivalentTo(0))
+			})
+			It("maintains task ID invariant through reset", func() {
+				tmpM := NewManager()
+
+				Expect(p.Exists(tmpContext)).To(BeFalse(),
+					"Cannot run this test when context (%s) already exists", tmpContext)
+				defer p.Delete(tmpContext)
+
+				taskC := m.FindByName(taskCName)
+				Expect(taskC).ToNot(BeNil())
+				taskCId := taskC.ID()
+				taskC = m.FindById(taskCId)
+				Expect(taskC).ToNot(BeNil())
+
+				Expect(m.Delete(taskCName)).To(BeTrue())
+				Expect(p.Persist(tmpContext, m)).To(Succeed())
+
+				// Set the nextTaskId to 0 to simulate a new runtime.
+				nextTaskId = 0
+
+				Expect(p.Unpersist(tmpContext, tmpM)).To(Succeed())
+				Expect(m).To(Equal(tmpM))
+
+				m.Create("new")
+				newT := m.FindByName("new")
+				Expect(newT.id).ToNot(BeEquivalentTo(taskCId))
 			})
 			Context("when one task is deleted", func() {
 				var (

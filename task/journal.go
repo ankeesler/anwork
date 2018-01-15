@@ -77,6 +77,8 @@ func (e *Event) fromProtobuf(eProtobuf *pb.Event) {
 	e.Date = time.Unix(eProtobuf.Date, 0) // sec, nsec
 	e.Type = EventType(eProtobuf.Type)
 	e.TaskId = int(eProtobuf.TaskId)
+
+	noteTaskId(e.TaskId)
 }
 
 // A Journal is a sequence of Event's.
