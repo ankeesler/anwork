@@ -40,6 +40,13 @@ To print out the status of all current tasks, here is the command.
 $ anwork show
 ```
 
+## Showing the details of one task
+
+To print out the details of a specific task, here is the command.
+```
+$ anwork show weigh-tuna
+```
+
 ## Showing the journal of events
 
 To show the complete journal of events, here is the command.
@@ -74,7 +81,7 @@ A persistence context is simple an ID used to specify a single instance of ANWOR
 example, users may choose to have one context for a bunch of tasks that need to be done at home, and
 a separate context for a bunch of tasks that need to be done at work. The persistence context can be
 set with a combination of the _-context_ flag and the _-root_ flag. The _-root_ flag specifies the
-persistence directory, while the _-context_ flag specifies the context ID. Here is an example
+persistence directory, while the _-context_ flag specifies the context ID. Here is an example.
 ```
 $ anwork -context home-context -root ~/.anwork create wash-dishes
 $ anwork -context work-context -root ~/.anwork create put-new-cover-sheet-on-tps-reports
