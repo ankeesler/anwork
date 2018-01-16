@@ -160,6 +160,17 @@ var _ = Describe("anwork", func() {
 				Expect(output.String()).To(MatchRegexp(regexp))
 			})
 		})
+		Context("when the task is set to finished and then deleted and then summary is called", func() {
+			BeforeEach(func() {
+				callRun("set-finished", "task-a")
+				callRun("delete", "task-a")
+				callRun("summary", "1")
+			})
+			It("succeeds", expectSuccess)
+			It("still shows that the task was completed", func() {
+				Expect(output.String()).To(ContainSubstring("took"))
+			})
+		})
 	})
 
 	Context("when multiple tasks are created", func() {

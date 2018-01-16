@@ -1,4 +1,8 @@
 // This package contains the commands that can be passed to the anwork command line tool.
+//
+// TODO: when we panic in this code, the command line interface looks really ugly. We should pass
+// string error messages to the callers of these commands so that they are more nicely formatted
+// when they appear on the command line.
 package command
 
 import (
@@ -231,6 +235,15 @@ func resetAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 }
 
+func findCreateEvent(m *task.Manager, taskID int) *task.Event {
+	for _, e := range m.Journal().Events {
+		if e.Type == task.EventTypeCreate && e.TaskID == taskID {
+			return e
+		}
+	}
+	return nil
+}
+
 func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	days, ok := arg(f, 1)
 	if !ok {
@@ -250,9 +263,11 @@ func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
 		isWithinDays := e.Date.Add(time.Duration(daysNum*24) * time.Hour).After(now)
 		if isFinished && isWithinDays {
-			t := m.FindByID(e.TaskID)
+			createE := findCreateEvent(m, e.TaskID)
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
-			fmt.Fprintf(o, "  took %s\n", formatDuration(e.Date.Sub(t.StartDate())))
+			if createE != nil {
+				fmt.Fprintf(o, "  took %s\n", formatDuration(e.Date.Sub(createE.Date)))
+			}
 		}
 	}
 	return ResponseNoPersist
