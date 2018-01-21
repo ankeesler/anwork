@@ -25,7 +25,8 @@ build() {
 
 HERE=`basename $PWD`
 if [ "$HERE" != "anwork" ]; then
-    error "this script must be run from the root of the anwork directory"
+    note "changing to anwork directory to run this script"
+    cd `dirname $0`/..
 fi
 
 version=$(awk '/const Version =/ {print $NF}' cmd/anwork/command/command.go)
