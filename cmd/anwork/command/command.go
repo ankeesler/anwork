@@ -19,7 +19,7 @@ import (
 //go:generate go run ../../genclidoc/main.go ../../../doc/CLI.md
 
 // This is the version of this anwork application command set.
-const Version = 2
+const Version = 3
 
 // This is an indication of what the command wishes to happen after being run. See Response*
 // constants below for more details.
