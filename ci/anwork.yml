@@ -11,5 +11,5 @@ jobs:
   - get: anwork
     trigger: true
   - task: tests
-    file: anwork/ci/tests.yml
+    file: ci/tests.yml
 
