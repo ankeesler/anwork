@@ -1,0 +1,15 @@
+resources:
+- name: anwork    
+  type: git
+  source:
+    uri: https://github.com/ankeesler/anwork
+    branch: master
+
+jobs:
+- name: tests
+  plan:
+  - get: anwork
+    trigger: true
+  - task: tests
+    file: anwork/ci/tests.yml
+

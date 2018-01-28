@@ -103,7 +103,7 @@ var _ = Describe("Persister", func() {
 				context = tmpEmptyContext
 				s = &GoodSerializable{}
 			})
-			It("fails", func() {
+			XIt("fails", func() {
 				Expect(p.Persist(context, s)).ToNot(Succeed())
 			})
 		})
