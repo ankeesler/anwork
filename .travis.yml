@@ -6,16 +6,15 @@ git:
 
 os:
   - linux
-  - osx
+    #- osx
 
 install:
-  - go get -t -v ./...
-  - go install -v github.com/onsi/ginkgo/ginkgo
+  - go build ./vendor/github.com/onsi/ginkgo/ginkgo
 
 script:
   - go vet ./...
   - ./ci/check-fmt.sh
-  - ginkgo -r -cover
+  - ./ginkgo -r -cover
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -f *.coverprofile
