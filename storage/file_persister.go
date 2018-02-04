@@ -1,14 +1,3 @@
-// This package contains functionality for storing anwork data to file. This package is comprised of
-// two types that allow data to be persisted between anwork uses.
-//
-// A Serializable is an interface that represents a type that marshal and unmarshal itself to and
-// from an array of bytes, respectively.
-//
-// A FilePersister is a type that is able to take Serializable objects and read or write them to
-// file. A FilePersister cares about a special concept called a "context." A context is simply a way
-// to specify where the data is to be stored. This allows for users of anwork to have multiple
-// different data stores depending on what they are currently working on (i.e., an "at home" to-do
-// list versus an "at work" to-do list).
 package storage
 
 import (
@@ -18,9 +7,7 @@ import (
 	"path"
 )
 
-// This object does the persisting of data to some file. An instance of this object can store any
-// object to a file that is able to be "serialized." An object is able to be "serialized" if it
-// implements the Serializable interface.
+// This object is a Persister that uses a file on disk to persist data.
 type FilePersister struct {
 	Root string
 }
