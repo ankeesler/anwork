@@ -5,3 +5,6 @@ untracked/
 
 # Test coverage information
 *coverprofile
+
+# Stupid vim files
+*.swp
