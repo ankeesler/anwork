@@ -25,7 +25,7 @@ const (
 var _ = Describe("Manager", func() {
 	var (
 		m *Manager
-		p = storage.Persister{Root: root}
+		p = storage.FilePersister{Root: root}
 	)
 
 	checkPersistence := func() {

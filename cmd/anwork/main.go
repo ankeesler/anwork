@@ -33,7 +33,7 @@ func dbgfln(output io.Writer, format string, stuff ...interface{}) {
 }
 
 // Returns true on success.
-func readManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) bool {
+func readManager(o io.Writer, p *storage.FilePersister, c string, m *task.Manager) bool {
 	err := p.Unpersist(c, m)
 	if err != nil {
 		fmt.Fprintf(o, "Error! Could not read manager from file: %s\n", err.Error())
@@ -42,7 +42,7 @@ func readManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) b
 }
 
 // Returns true on success.
-func writeManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) bool {
+func writeManager(o io.Writer, p *storage.FilePersister, c string, m *task.Manager) bool {
 	err := p.Persist(c, m)
 	if err != nil {
 		fmt.Fprintf(o, "Error! Could not read manager from file: %s\n", err.Error())
@@ -51,7 +51,7 @@ func writeManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) 
 }
 
 // Returns true on success.
-func deleteManager(o io.Writer, p *storage.Persister, c string, m *task.Manager) bool {
+func deleteManager(o io.Writer, p *storage.FilePersister, c string, m *task.Manager) bool {
 	err := p.Delete(c)
 	if err != nil {
 		fmt.Fprintf(o, "Error! Could not delete context %s: %s\n", c, err.Error())
@@ -102,7 +102,7 @@ func run(args []string, output io.Writer) int {
 	}
 	firstArg := flags.Arg(0)
 
-	persister := storage.Persister{Root: root}
+	persister := storage.FilePersister{Root: root}
 	manager := task.NewManager()
 	if persister.Exists(context) {
 		dbgfln(output, "Context %s exists at root %s", context, root)

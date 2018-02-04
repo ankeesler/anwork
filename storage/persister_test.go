@@ -21,16 +21,16 @@ const (
 	tmpSingletonContext = "singleton-context.tmp"
 )
 
-var _ = Describe("Persister", func() {
+var _ = Describe("FilePersister", func() {
 	Describe("existence", func() {
 		var (
 			root    string
 			context string
-			p       Persister
+			p       FilePersister
 		)
 
 		JustBeforeEach(func() {
-			p = Persister{root}
+			p = FilePersister{root}
 		})
 
 		Context("when the root is valid", func() {
@@ -82,7 +82,7 @@ var _ = Describe("Persister", func() {
 			root    string
 			context string
 			s       Serializable
-			p       Persister
+			p       FilePersister
 		)
 
 		BeforeEach(func() {
@@ -94,7 +94,7 @@ var _ = Describe("Persister", func() {
 		})
 
 		JustBeforeEach(func() {
-			p = Persister{root}
+			p = FilePersister{root}
 		})
 
 		Context("when the root is bad", func() {
@@ -169,11 +169,11 @@ var _ = Describe("Persister", func() {
 			root    string
 			context string
 			s       Serializable
-			p       Persister
+			p       FilePersister
 		)
 
 		JustBeforeEach(func() {
-			p = Persister{root}
+			p = FilePersister{root}
 		})
 
 		Context("when the root doesn't exist", func() {
@@ -243,7 +243,7 @@ var _ = Describe("Persister", func() {
 	Describe("delete", func() {
 		var (
 			context string
-			p       Persister
+			p       FilePersister
 		)
 
 		BeforeEach(func() {
@@ -255,7 +255,7 @@ var _ = Describe("Persister", func() {
 		})
 
 		JustBeforeEach(func() {
-			p = Persister{tmpRoot}
+			p = FilePersister{tmpRoot}
 		})
 
 		Context("when the root does not exist", func() {
