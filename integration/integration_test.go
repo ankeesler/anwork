@@ -273,7 +273,7 @@ var _ = Describe("anwork", func() {
 				run(nil, nil, "create", fmt.Sprintf("task-%d", i))
 			}
 		})
-		Expect(runtime.Seconds()).To(BeNumerically("<", .5))
+		Expect(runtime.Seconds()).To(BeNumerically("<", 1))
 	}, 5)
 
 	Measure("CRUD'ing 10 tasks", func(b Benchmarker) {
@@ -286,6 +286,6 @@ var _ = Describe("anwork", func() {
 				run(nil, nil, "delete", name)
 			}
 		})
-		Expect(runtime.Seconds()).To(BeNumerically("<", 1))
+		Expect(runtime.Seconds()).To(BeNumerically("<", 2))
 	}, 5)
 })
