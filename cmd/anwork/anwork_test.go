@@ -171,6 +171,15 @@ var _ = Describe("anwork", func() {
 				Expect(output.String()).To(ContainSubstring("took"))
 			})
 		})
+		Context("when an invalid task name is passed to a command", func() {
+			BeforeEach(func() {
+				callRun("show", "nah")
+			})
+			It("fails", expectFailure)
+			It("prints a helpful error", func() {
+				Expect(output.String()).To(ContainSubstring("Unknown task for specifier: nah"))
+			})
+		})
 	})
 
 	Context("when multiple tasks are created", func() {

@@ -140,6 +140,8 @@ func run(args []string, output io.Writer) int {
 			fmt.Fprintln(output, "Error! Wrong arguments passed to command")
 			cmd.Usage(output)
 			return 1
+		case command.ResponseFailure:
+			return 1
 		}
 	}
 

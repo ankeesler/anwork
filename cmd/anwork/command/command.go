@@ -35,6 +35,8 @@ const (
 	ResponseReset
 	// There was an error in the arguments passed (or not passed) to the Command.
 	ResponseArgumentError
+	// There was a general failure.
+	ResponseFailure
 )
 
 // A Command represents a keyword (see Name field) passed to the anwork executable that incites some
@@ -153,8 +155,15 @@ func (c *Command) Usage(output io.Writer) {
 
 // Run the functionality associated with this Command. This function will return a Response value
 // indicating next steps for the caller to take.
-func (c *Command) Run(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
-	return c.action(f, o, m)
+func (c *Command) Run(f *flag.FlagSet, o io.Writer, m *task.Manager) (r Response) {
+	defer func() {
+		if p := recover(); p != nil {
+			fmt.Fprintln(o, p)
+			r = ResponseFailure
+		}
+	}()
+	r = c.action(f, o, m)
+	return
 }
 
 // Find the command with the provided name.
