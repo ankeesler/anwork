@@ -2,6 +2,7 @@ package integration
 
 import (
 	"io"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -12,6 +13,8 @@ import (
 
 var (
 	anworkBin string
+
+	runningOnTravis bool
 )
 
 func run(outBuf, errBuf io.Writer, args ...string) {
@@ -31,6 +34,8 @@ func TestIntegration(t *testing.T) {
 		var err error
 		anworkBin, err = gexec.Build("github.com/ankeesler/anwork/cmd/anwork")
 		Expect(err).ToNot(HaveOccurred())
+
+		_, runningOnTravis = os.LookupEnv("TRAVIS")
 	})
 	AfterSuite(func() {
 		gexec.CleanupBuildArtifacts()
