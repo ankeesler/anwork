@@ -2,8 +2,8 @@ resources:
 - name: anwork    
   type: git
   source:
-    uri: https://github.com/ankeesler/anwork
-    branch: master
+    uri: https://github.com/ankeesler/anwork.git
+    branch: feature/concourse-ci
 
 jobs:
 - name: tests
