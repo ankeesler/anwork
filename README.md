@@ -53,8 +53,6 @@ $ go install -v github.com/onsi/ginkgo/ginkgo # install ginkgo testing binary
 $ ginkgo ./...                                # run the tests with the ginkgo testing binary
 ```
 
-See [anwork_testing](https://github.com/ankeesler/anwork_testing) repo for more testing.
-
 ### Style
 
 Thanks to the use of Go, there are not a lot of style conventions to note here. Here are the few
