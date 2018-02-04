@@ -44,7 +44,12 @@ func main() {
 	m := task.NewManager()
 	h := newTasksHandler(m)
 	http.Handle("/api/v1/tasks", h)
-	if err := http.ListenAndServe(":54321", nil); err != nil {
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "54321"
+	}
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
 		fmt.Println("ERROR!", err)
 		os.Exit(1)
 	}
