@@ -12,7 +12,7 @@ import (
 const (
 	root        = "test-data"
 	tmpContext  = "tmp-context"
-	goodContext = "good-context"
+	goodContext = "good-protobuf-context"
 	badContext  = "bad-context"
 
 	goodTaskName        = "task-a"
@@ -21,7 +21,7 @@ const (
 	goodTaskPriority    = 612
 	goodState           = StateRunning
 
-	taskWithID5Context = "task-with-id-5-context"
+	taskWithID5Context = "protobuf-task-with-id-5-context"
 	taskWithID5Name    = "task-with-id-5"
 	taskWithID5ID      = 5
 )
@@ -70,7 +70,7 @@ var _ = Describe("Task's", func() {
 
 		persister := storage.FilePersister{Root: root}
 		Expect(persister.Exists(goodContext)).To(BeTrue(),
-			"Cannot run this test when context (%s) does not exist", tmpContext)
+			"Cannot run this test when context (%s) does not exist", goodContext)
 
 		unpersistedTask := Task{}
 		err := persister.Unpersist(goodContext, &unpersistedTask)

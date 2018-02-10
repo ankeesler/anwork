@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	goodEventContext   = "good-event-context"
-	goodJournalContext = "good-journal-context"
+	goodEventContext   = "good-protobuf-event-context"
+	goodJournalContext = "good-protobuf-journal-context"
 )
 
 var _ = Describe("EventType's", func() {
