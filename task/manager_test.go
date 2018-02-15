@@ -78,7 +78,7 @@ var _ = Describe("Manager", func() {
 		It("has one task with the expected name", func() {
 			Expect(m.Tasks()).To(HaveLen(1))
 			t := m.Tasks()[0]
-			Expect(t.name).To(Equal(taskAName))
+			Expect(t.Name).To(Equal(taskAName))
 		})
 		It("has one journal entry (for the creation of the task)", func() {
 			Expect(m.Journal().Events).To(HaveLen(1))
@@ -104,8 +104,8 @@ var _ = Describe("Manager", func() {
 			})
 			It("correctly tracks the task change", func() {
 				t := m.Tasks()[0]
-				Expect(t.priority).To(BeEquivalentTo(taskAPriority))
-				Expect(t.state).To(BeEquivalentTo(taskAState))
+				Expect(t.Priority).To(BeEquivalentTo(taskAPriority))
+				Expect(t.State).To(BeEquivalentTo(taskAState))
 			})
 			It("has 3 entries (creation, set priority, set state)", func() {
 				Expect(m.Journal().Events).To(HaveLen(3))
@@ -184,11 +184,11 @@ var _ = Describe("Manager", func() {
 		})
 		It("orders the three tasks by their increasing ids, since the priorities are the same", func() {
 			t := m.Tasks()[0]
-			Expect(t.name).To(Equal(taskAName))
+			Expect(t.Name).To(Equal(taskAName))
 			t = m.Tasks()[1]
-			Expect(t.name).To(Equal(taskBName))
+			Expect(t.Name).To(Equal(taskBName))
 			t = m.Tasks()[2]
-			Expect(t.name).To(Equal(taskCName))
+			Expect(t.Name).To(Equal(taskCName))
 		})
 		It("has three journal entries for each of the creations", func() {
 			Expect(m.Journal().Events).To(HaveLen(3))
@@ -207,34 +207,34 @@ var _ = Describe("Manager", func() {
 			BeforeEach(func() {
 				taskA := m.FindByName(taskAName)
 				Expect(taskA).ToNot(BeNil())
-				m.SetPriority(taskA.name, taskAPriority)
-				m.SetState(taskA.name, taskAState)
+				m.SetPriority(taskA.Name, taskAPriority)
+				m.SetState(taskA.Name, taskAState)
 
 				taskB := m.FindByName(taskBName)
 				Expect(taskB).ToNot(BeNil())
-				m.SetPriority(taskB.name, taskBPriority)
+				m.SetPriority(taskB.Name, taskBPriority)
 
 				taskC := m.FindByName(taskCName)
 				Expect(taskC).ToNot(BeNil())
-				m.SetPriority(taskC.name, taskCPriority)
-				m.SetState(taskC.name, taskCState)
+				m.SetPriority(taskC.Name, taskCPriority)
+				m.SetState(taskC.Name, taskCState)
 			})
 			It("re-orders the tasks by priority ", func() {
 				tasks := m.Tasks()
-				Expect(tasks[0].name).To(Equal(taskCName))
-				Expect(tasks[1].name).To(Equal(taskAName))
-				Expect(tasks[2].name).To(Equal(taskBName))
+				Expect(tasks[0].Name).To(Equal(taskCName))
+				Expect(tasks[1].Name).To(Equal(taskAName))
+				Expect(tasks[2].Name).To(Equal(taskBName))
 			})
 			It("correctly tracks the changes", func() {
 				tasks := m.Tasks()
 
-				Expect(tasks[0].priority).To(BeEquivalentTo(taskCPriority))
-				Expect(tasks[0].state).To(BeEquivalentTo(taskCState))
+				Expect(tasks[0].Priority).To(BeEquivalentTo(taskCPriority))
+				Expect(tasks[0].State).To(BeEquivalentTo(taskCState))
 
-				Expect(tasks[1].priority).To(BeEquivalentTo(taskAPriority))
-				Expect(tasks[1].state).To(BeEquivalentTo(taskAState))
+				Expect(tasks[1].Priority).To(BeEquivalentTo(taskAPriority))
+				Expect(tasks[1].State).To(BeEquivalentTo(taskAState))
 
-				Expect(tasks[2].priority).To(BeEquivalentTo(taskBPriority))
+				Expect(tasks[2].Priority).To(BeEquivalentTo(taskBPriority))
 			})
 			It("tracks the actions in the journal ", func() {
 				// 3 creations
@@ -264,7 +264,7 @@ var _ = Describe("Manager", func() {
 
 				m.Create("new")
 				newT := m.FindByName("new")
-				Expect(newT.id).ToNot(BeEquivalentTo(0))
+				Expect(newT.ID).ToNot(BeEquivalentTo(0))
 			})
 			It("maintains task ID invariant through reset", func() {
 				tmpM := NewManager()
@@ -275,8 +275,7 @@ var _ = Describe("Manager", func() {
 
 				taskC := m.FindByName(taskCName)
 				Expect(taskC).ToNot(BeNil())
-				taskCID := taskC.ID()
-				taskC = m.FindByID(taskCID)
+				taskC = m.FindByID(taskC.ID)
 				Expect(taskC).ToNot(BeNil())
 
 				Expect(m.Delete(taskCName)).To(BeTrue())
@@ -290,7 +289,7 @@ var _ = Describe("Manager", func() {
 
 				m.Create("new")
 				newT := m.FindByName("new")
-				Expect(newT.id).ToNot(BeEquivalentTo(taskCID))
+				Expect(newT.ID).ToNot(BeEquivalentTo(taskC.ID))
 			})
 			Context("when one task is deleted", func() {
 				var (
@@ -308,13 +307,13 @@ var _ = Describe("Manager", func() {
 				})
 				It("continue to store the other tasks in the correct order", func() {
 					tasks := m.Tasks()
-					Expect(tasks[0].name).To(Equal(taskCName))
-					Expect(tasks[0].priority).To(BeEquivalentTo(taskCPriority))
-					Expect(tasks[0].state).To(BeEquivalentTo(taskCState))
+					Expect(tasks[0].Name).To(Equal(taskCName))
+					Expect(tasks[0].Priority).To(BeEquivalentTo(taskCPriority))
+					Expect(tasks[0].State).To(BeEquivalentTo(taskCState))
 
-					Expect(tasks[1].name).To(Equal(taskAName))
-					Expect(tasks[1].priority).To(BeEquivalentTo(taskAPriority))
-					Expect(tasks[1].state).To(BeEquivalentTo(taskAState))
+					Expect(tasks[1].Name).To(Equal(taskAName))
+					Expect(tasks[1].Priority).To(BeEquivalentTo(taskAPriority))
+					Expect(tasks[1].State).To(BeEquivalentTo(taskAState))
 				})
 				It("appends a journal entry for the deletion", func() {
 					// 3 creations
@@ -331,12 +330,12 @@ var _ = Describe("Manager", func() {
 				Context("when the other two tasks' priorities are set equal", func() {
 					BeforeEach(func() {
 						tasks := m.Tasks()
-						tasks[0].priority = tasks[1].priority
+						tasks[0].Priority = tasks[1].Priority
 					})
 					It("sorts the tasks by their IDs", func() {
 						tasks := m.Tasks()
-						Expect(tasks[0].name).To(Equal(taskAName))
-						Expect(tasks[1].name).To(Equal(taskCName))
+						Expect(tasks[0].Name).To(Equal(taskAName))
+						Expect(tasks[1].Name).To(Equal(taskCName))
 					})
 				})
 				Context("when the other two tasks are deleted", func() {

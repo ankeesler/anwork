@@ -34,14 +34,14 @@ func (m *Manager) Create(name string) {
 	m.tasks = append(m.tasks, t)
 
 	title := fmt.Sprintf("Created task %s", name)
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeCreate, t.id))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeCreate, t.ID))
 }
 
 // Delete a Task with the provided name. Returns true iff the deletion was successful.
 func (m *Manager) Delete(name string) bool {
 	taskIndex := -1
 	for index, task := range m.tasks {
-		if task.name == name {
+		if task.Name == name {
 			taskIndex = index
 			break
 		}
@@ -52,7 +52,7 @@ func (m *Manager) Delete(name string) bool {
 		m.tasks = append(m.tasks[:taskIndex], m.tasks[taskIndex+1:]...)
 
 		title := fmt.Sprintf("Deleted task %s", name)
-		m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeDelete, t.id))
+		m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeDelete, t.ID))
 
 		return true
 	} else {
@@ -64,12 +64,12 @@ func (m *Manager) Delete(name string) bool {
 // Task with the provided name. The Task will be searched for via a call to Manager.FindByName(name).
 func (m *Manager) SetState(name string, state State) {
 	t := m.findOrPanic(name)
-	beforeState := t.state
-	t.state = state
+	beforeState := t.State
+	t.State = state
 
 	title := fmt.Sprintf("Set state on task %s from %s to %s",
 		name, StateNames[beforeState], StateNames[state])
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetState, t.id))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetState, t.ID))
 }
 
 // Set the priority of a Task currently in this Manager. This function will panic if there is no
@@ -77,11 +77,11 @@ func (m *Manager) SetState(name string, state State) {
 // Manager.FindByName(name).
 func (m *Manager) SetPriority(name string, priority int) {
 	t := m.findOrPanic(name)
-	beforePriority := t.priority
-	t.priority = priority
+	beforePriority := t.Priority
+	t.Priority = priority
 
 	title := fmt.Sprintf("Set priority on task %s from %d to %d", name, beforePriority, priority)
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetPriority, t.id))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeSetPriority, t.ID))
 }
 
 // Add a note that relates to a Task. This function will panic if there is no known Task with the
@@ -89,7 +89,7 @@ func (m *Manager) SetPriority(name string, priority int) {
 func (m *Manager) Note(name string, note string) {
 	t := m.findOrPanic(name) // this ensures that a Task exists for the provided name.
 	title := fmt.Sprintf("Note added to task %s: %s", name, note)
-	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeNote, t.id))
+	m.journal.Events = append(m.journal.Events, newEvent(title, EventTypeNote, t.ID))
 }
 
 // Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer
@@ -108,7 +108,7 @@ func (m *Manager) Tasks() []*Task {
 // Find a Task with the provided name in this Manager, or return nil if there is no such Task.
 func (m *Manager) FindByName(name string) *Task {
 	for _, task := range m.tasks {
-		if task.name == name {
+		if task.Name == name {
 			return task
 		}
 	}
@@ -118,7 +118,7 @@ func (m *Manager) FindByName(name string) *Task {
 // Find a Task with the provided id in this Manager, or return nil if there is no such Task.
 func (m *Manager) FindByID(id int) *Task {
 	for _, task := range m.tasks {
-		if task.id == id {
+		if task.ID == id {
 			return task
 		}
 	}
@@ -143,11 +143,11 @@ func (m *Manager) Len() int {
 // this Manager. See the documentation for Manager. Tasks for more discussion around this design.
 func (m *Manager) Less(i, j int) bool {
 	ti, tj := m.tasks[i], m.tasks[j]
-	if ti.priority > tj.priority {
+	if ti.Priority > tj.Priority {
 		return false
-	} else if ti.priority == tj.priority {
-		return ti.id < tj.id
-	} else { // ti.priority < tj.priority
+	} else if ti.Priority == tj.Priority {
+		return ti.ID < tj.ID
+	} else { // ti.Priority < tj.Priority
 		return true
 	}
 }
@@ -205,7 +205,7 @@ func (m *Manager) String() string {
 
 	buf.WriteString("tasks:")
 	for _, t := range m.tasks {
-		str := fmt.Sprintf("%s(%d),", t.name, t.id)
+		str := fmt.Sprintf("%s(%d),", t.Name, t.ID)
 		buf.WriteString(str)
 	}
 

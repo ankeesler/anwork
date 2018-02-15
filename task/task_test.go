@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	root        = "test-data"
-	tmpContext  = "tmp-context"
-	goodContext = "good-protobuf-context"
-	badContext  = "bad-context"
+	root                = "test-data"
+	tmpContext          = "tmp-context"
+	goodContext         = "good-context"
+	goodProtobufContext = "good-protobuf-context"
+	badContext          = "bad-context"
 
 	goodTaskName        = "task-a"
 	goodTaskID          = 0
@@ -46,17 +47,16 @@ var _ = Describe("State constants", func() {
 	})
 })
 var _ = Describe("Task's", func() {
-	It("are persistable", func() {
-
+	It("are persistable via JSON", func() {
 		persister := storage.FilePersister{Root: root}
 		Expect(persister.Exists(tmpContext)).To(BeFalse(),
 			"Cannot run this test when context (%s) already exists", tmpContext)
 		defer persister.Delete(tmpContext)
 
 		task := newTask("this is my task")
-		task.description = "Yeah yeah yeah"
-		task.priority = 21
-		task.state = StateBlocked
+		task.Description = "Yeah yeah yeah"
+		task.Priority = 21
+		task.State = StateBlocked
 		err := persister.Persist(tmpContext, task)
 		Expect(err).ToNot(HaveOccurred(), "Failed to persist task (%v) to file: %s", task, err)
 
@@ -66,8 +66,30 @@ var _ = Describe("Task's", func() {
 
 		Expect(unpersistedTask).To(Equal(task))
 	})
-	It("are unpersistable", func() {
+	It("are unpersistable via protocol buffers (legacy)", func() {
 
+		persister := storage.FilePersister{Root: root}
+		Expect(persister.Exists(goodProtobufContext)).To(BeTrue(),
+			"Cannot run this test when context (%s) does not exist", goodProtobufContext)
+
+		unpersistedTask := Task{}
+		err := persister.Unpersist(goodProtobufContext, &unpersistedTask)
+		Expect(err).ToNot(HaveOccurred(),
+			"Could not unpersist task from context %s: %s", goodProtobufContext, err)
+
+		expectedTask := Task{
+			Name:        goodTaskName,
+			ID:          goodTaskID,
+			Description: goodTaskDescription,
+			Priority:    goodTaskPriority,
+			State:       goodState,
+
+			StartDate: unpersistedTask.StartDate,
+		}
+		Expect(unpersistedTask).To(Equal(expectedTask))
+		Expect(unpersistedTask.State).To(Equal(goodState))
+	})
+	It("are unpersistable via JSON", func() {
 		persister := storage.FilePersister{Root: root}
 		Expect(persister.Exists(goodContext)).To(BeTrue(),
 			"Cannot run this test when context (%s) does not exist", goodContext)
@@ -78,16 +100,16 @@ var _ = Describe("Task's", func() {
 			"Could not unpersist task from context %s: %s", goodContext, err)
 
 		expectedTask := Task{
-			name:        goodTaskName,
-			id:          goodTaskID,
-			description: goodTaskDescription,
-			priority:    goodTaskPriority,
-			state:       goodState,
+			Name:        goodTaskName,
+			ID:          goodTaskID,
+			Description: goodTaskDescription,
+			Priority:    goodTaskPriority,
+			State:       goodState,
 
-			startDate: unpersistedTask.StartDate(),
+			StartDate: unpersistedTask.StartDate,
 		}
 		Expect(unpersistedTask).To(Equal(expectedTask))
-		Expect(unpersistedTask.State()).To(Equal(goodState))
+		Expect(unpersistedTask.State).To(Equal(goodState))
 	})
 	Context("have unique ID's", func() {
 		It("that are larger", func() {
@@ -98,13 +120,13 @@ var _ = Describe("Task's", func() {
 
 			taskWithID5 := Task{}
 			persister.Unpersist(taskWithID5Context, &taskWithID5)
-			Expect(taskWithID5.id).To(BeEquivalentTo(taskWithID5ID))
-			Expect(taskWithID5.name).To(Equal(taskWithID5Name))
+			Expect(taskWithID5.ID).To(BeEquivalentTo(taskWithID5ID))
+			Expect(taskWithID5.Name).To(Equal(taskWithID5Name))
 
 			for i := 0; i < 10; i++ {
 				name := fmt.Sprintf("task-%d", i)
 				task := newTask(name)
-				Expect(task.id).ToNot(Equal(taskWithID5ID))
+				Expect(task.ID).ToNot(Equal(taskWithID5ID))
 			}
 		})
 		It("that are smaller", func() {
@@ -115,7 +137,7 @@ var _ = Describe("Task's", func() {
 			defer persister.Delete(tmpContext)
 
 			task := Task{}
-			task.id = 0
+			task.ID = 0
 			err := persister.Persist(tmpContext, &task)
 			Expect(err).ToNot(HaveOccurred(),
 				"Got error when persisting task %#v to file: %s", task, err)
@@ -124,20 +146,20 @@ var _ = Describe("Task's", func() {
 			for i := 0; i < 25; i++ {
 				name := fmt.Sprintf("task-%d", i)
 				task := newTask(name)
-				ids[task.id] = true
+				ids[task.ID] = true
 			}
 
 			err = persister.Unpersist(tmpContext, &task)
 			Expect(err).ToNot(HaveOccurred(),
 				"Got error when unpersisting task %#v from file: %s", task, err)
-			Expect(task.id).To(BeZero(),
-				"Expected task id to be %d but was %d", 0, task.id)
+			Expect(task.ID).To(BeZero(),
+				"Expected task id to be %d but was %d", 0, task.ID)
 
 			for i := 0; i < 25; i++ {
 				name := fmt.Sprintf("task-%d", i)
 				task := newTask(name)
-				_, ok := ids[task.id]
-				Expect(ok).To(BeFalse(), "Failure! Task ID %d already exists!", task.id)
+				_, ok := ids[task.ID]
+				Expect(ok).To(BeFalse(), "Failure! Task ID %d already exists!", task.ID)
 			}
 		})
 	})
@@ -151,15 +173,5 @@ var _ = Describe("Task's", func() {
 		err := persister.Unpersist(badContext, &task)
 		Expect(err).To(HaveOccurred(),
 			"Expected error from load from bad context (%s) but didn't get one", badContext)
-	})
-
-	It("returns the correct name", func() {
-		t := newTask("task-a")
-		Expect(t.name).To(Equal(t.Name()))
-	})
-
-	It("returns the correct id", func() {
-		t := newTask("task-a")
-		Expect(t.id).To(Equal(t.ID()))
 	})
 })

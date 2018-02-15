@@ -14,6 +14,7 @@
 package task
 
 import (
+	"encoding/json"
 	"time"
 
 	pb "github.com/ankeesler/anwork/task/proto"
@@ -51,24 +52,24 @@ var nextTaskID int = 0
 // all other Task's.
 type Task struct {
 	// The name of the Task, i.e., "mow the lawn" or "PROJECT-123-fix-infinite-recursion."
-	name string
+	Name string `json:"name"`
 
 	// This is a unique ID. Every Task has a different ID.
-	id int
+	ID int `json:"id"`
 
 	// This is a description of the Task.
-	description string
+	Description string `json:"description"`
 
 	// This is when the Task was created.
-	startDate time.Time
+	StartDate time.Time `json:"startDate"`
 
 	// This is the priority of the Task. The lower the number, the higher the importance.
-	priority int
+	Priority int `json:"priority"`
 
 	// This is the State of the Task. See State* for possible values. A Task can go through any
 	// number of State changes over the course of its life. All Tasks start out in the StateWaiting
 	// State.
-	state State
+	State State `json:"state"`
 }
 
 func (t *Task) Serialize() ([]byte, error) {
@@ -78,77 +79,51 @@ func (t *Task) Serialize() ([]byte, error) {
 }
 
 func (t *Task) toProtobuf(tProtobuf *pb.Task) {
-	tProtobuf.Name = t.name
-	tProtobuf.ID = int32(t.id)
-	tProtobuf.Description = t.description
-	tProtobuf.StartDate = t.startDate.Unix()
-	tProtobuf.Priority = int32(t.priority)
-	tProtobuf.State = pb.State(t.state)
+	tProtobuf.Name = t.Name
+	tProtobuf.ID = int32(t.ID)
+	tProtobuf.Description = t.Description
+	tProtobuf.StartDate = t.StartDate.Unix()
+	tProtobuf.Priority = int32(t.Priority)
+	tProtobuf.State = pb.State(t.State)
 }
 
 func (t *Task) Unserialize(bytes []byte) error {
 	tProtobuf := pb.Task{}
 	err := proto.Unmarshal(bytes, &tProtobuf)
-	if err != nil {
-		return err
+	if err == nil {
+		t.fromProtobuf(&tProtobuf)
+		return nil
 	}
 
-	t.fromProtobuf(&tProtobuf)
-
-	return nil
+	return json.Unmarshal(bytes, t)
 }
 
 func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
-	t.name = tProtobuf.Name
-	t.id = int(tProtobuf.ID)
-	t.description = tProtobuf.Description
-	t.startDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
-	t.priority = int(tProtobuf.Priority)
-	t.state = State(tProtobuf.State)
+	t.Name = tProtobuf.Name
+	t.ID = int(tProtobuf.ID)
+	t.Description = tProtobuf.Description
+	t.StartDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
+	t.Priority = int(tProtobuf.Priority)
+	t.State = State(tProtobuf.State)
 
-	noteTaskID(t.id)
-}
-
-// Get the name of this Task.
-func (t *Task) Name() string {
-	return t.name
-}
-
-// Get the ID for this Task.
-func (t *Task) ID() int {
-	return t.id
-}
-
-// Get the time.Time specifying when this Task was created.
-func (t *Task) StartDate() time.Time {
-	return t.startDate
-}
-
-// Get the Priority for this Task.
-func (t *Task) Priority() int {
-	return t.priority
-}
-
-// Get the State for this Task.
-func (t *Task) State() State {
-	return t.state
+	noteTaskID(t.ID)
 }
 
 // Create a new Task with a default priority (see DefaultPriority) in the waiting state (see
 // StateWaiting).
 func newTask(name string) *Task {
 	t := &Task{
-		name:      name,
-		id:        nextTaskID,
-		startDate: time.Now(),
-		priority:  DefaultPriority,
-		state:     StateWaiting,
+		Name:      name,
+		ID:        nextTaskID,
+		StartDate: time.Now(),
+		Priority:  DefaultPriority,
+		State:     StateWaiting,
 	}
 
 	nextTaskID++
 
 	// Truncate the start time at the seconds since we only persist the seconds amount.
-	t.startDate = t.startDate.Truncate(time.Second)
+	t.StartDate = t.StartDate.Truncate(time.Second)
 
 	return t
 }
