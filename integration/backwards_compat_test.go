@@ -17,7 +17,7 @@ var _ = Describe("Backwards compatibility", func() {
 
 	Context("version 2", func() {
 		It("shows the correct tasks", func() {
-			run(outBuf, errBuf, "-o", "data", "show")
+			run(outBuf, errBuf, "-o", "data", "-c", "v2-context", "show")
 			Expect(outBuf).To(gbytes.Say("RUNNING tasks:"))
 			Expect(outBuf).To(gbytes.Say("  task-c \\(2\\)"))
 			Expect(outBuf).To(gbytes.Say("BLOCKED tasks:"))
@@ -30,18 +30,18 @@ var _ = Describe("Backwards compatibility", func() {
 			if runningOnTravis {
 				Skip("I don't think the date/time is set properly when we run in Travis CI...")
 			}
-			run(outBuf, errBuf, "-o", "data", "show", "task-a")
+			run(outBuf, errBuf, "-o", "data", "-c", "v2-context", "show", "task-a")
 			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: 0\nCreated: Monday January 15 18:59\nPriority: 10\nState: FINISHED"))
-			run(outBuf, errBuf, "-o", "data", "show", "task-b")
+			run(outBuf, errBuf, "-o", "data", "-c", "v2-context", "show", "task-b")
 			Expect(outBuf).To(gbytes.Say("Name: task-b\nID: 1\nCreated: Monday January 15 18:59\nPriority: 10\nState: BLOCKED"))
-			run(outBuf, errBuf, "-o", "data", "show", "task-c")
+			run(outBuf, errBuf, "-o", "data", "-c", "v2-context", "show", "task-c")
 			Expect(outBuf).To(gbytes.Say("Name: task-c\nID: 2\nCreated: Monday January 15 18:59\nPriority: 10\nState: RUNNING"))
 		})
 		It("shows the correct journal", func() {
 			if runningOnTravis {
 				Skip("I don't think the date/time is set properly when we run in Travis CI...")
 			}
-			run(outBuf, errBuf, "-o", "data", "journal")
+			run(outBuf, errBuf, "-o", "data", "-c", "v2-context", "journal")
 			Expect(outBuf).To(gbytes.Say("\\[Monday January 15 19:00\\]: Set state on task task-c from Waiting to Running"))
 			Expect(outBuf).To(gbytes.Say("\\[Monday January 15 19:00\\]: Set state on task task-a from Running to Finished"))
 			Expect(outBuf).To(gbytes.Say("\\[Monday January 15 19:00\\]: Set state on task task-b from Waiting to Blocked"))
