@@ -1,6 +1,7 @@
 package task
 
 import (
+	"encoding/json"
 	"time"
 
 	pb "github.com/ankeesler/anwork/task/proto"
@@ -24,13 +25,13 @@ const (
 // Task.
 type Event struct {
 	// A string description of the Event.
-	Title string
+	Title string `json:"title"`
 	// The time that the Event took place.
-	Date time.Time
+	Date time.Time `json:"date"`
 	// The type of Event.
-	Type EventType
+	Type EventType `json:"type"`
 	// The ID of the Task to which this Event refers.
-	TaskID int
+	TaskID int `json:"taskid"`
 }
 
 func newEvent(title string, teyep EventType, taskID int) *Event {
@@ -48,9 +49,7 @@ func newEvent(title string, teyep EventType, taskID int) *Event {
 }
 
 func (e *Event) Serialize() ([]byte, error) {
-	var eProtobuf pb.Event
-	e.toProtobuf(&eProtobuf)
-	return proto.Marshal(&eProtobuf)
+	return json.Marshal(e)
 }
 
 func (e *Event) toProtobuf(eProtobuf *pb.Event) {
@@ -63,12 +62,14 @@ func (e *Event) toProtobuf(eProtobuf *pb.Event) {
 func (e *Event) Unserialize(bytes []byte) error {
 	eProtobuf := pb.Event{}
 	err := proto.Unmarshal(bytes, &eProtobuf)
-	if err != nil {
-		return err
+	if err == nil {
+		e.fromProtobuf(&eProtobuf)
+		return nil
 	}
 
-	e.fromProtobuf(&eProtobuf)
-
+	if err := json.Unmarshal(bytes, e); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -83,17 +84,15 @@ func (e *Event) fromProtobuf(eProtobuf *pb.Event) {
 
 // A Journal is a sequence of Event's.
 type Journal struct {
-	Events []*Event
+	Events []*Event `json:"events"`
 }
 
-func newJournal() *Journal {
+func NewJournal() *Journal {
 	return &Journal{Events: make([]*Event, 0)}
 }
 
 func (j *Journal) Serialize() ([]byte, error) {
-	var jProtobuf pb.Journal
-	j.toProtobuf(&jProtobuf)
-	return proto.Marshal(&jProtobuf)
+	return json.Marshal(j)
 }
 
 func (j *Journal) toProtobuf(jProtobuf *pb.Journal) {
@@ -109,13 +108,12 @@ func (j *Journal) toProtobuf(jProtobuf *pb.Journal) {
 func (j *Journal) Unserialize(bytes []byte) error {
 	jProtobuf := pb.Journal{}
 	err := proto.Unmarshal(bytes, &jProtobuf)
-	if err != nil {
-		return err
+	if err == nil {
+		j.fromProtobuf(&jProtobuf)
+		return nil
 	}
 
-	j.fromProtobuf(&jProtobuf)
-
-	return nil
+	return json.Unmarshal(bytes, j)
 }
 
 func (j *Journal) fromProtobuf(jProtobuf *pb.Journal) {

@@ -45,8 +45,6 @@ const DefaultPriority = 10
 
 var nextTaskID int = 0
 
-//go:generate protoc --proto_path=proto --go_out=proto task.proto
-
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present." A Task also has a priority which describes its relative importance to
 // all other Task's.
@@ -73,18 +71,7 @@ type Task struct {
 }
 
 func (t *Task) Serialize() ([]byte, error) {
-	var tProtobuf pb.Task
-	t.toProtobuf(&tProtobuf)
-	return proto.Marshal(&tProtobuf)
-}
-
-func (t *Task) toProtobuf(tProtobuf *pb.Task) {
-	tProtobuf.Name = t.Name
-	tProtobuf.ID = int32(t.ID)
-	tProtobuf.Description = t.Description
-	tProtobuf.StartDate = t.StartDate.Unix()
-	tProtobuf.Priority = int32(t.Priority)
-	tProtobuf.State = pb.State(t.State)
+	return json.Marshal(t)
 }
 
 func (t *Task) Unserialize(bytes []byte) error {
@@ -111,7 +98,7 @@ func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
 
 // Create a new Task with a default priority (see DefaultPriority) in the waiting state (see
 // StateWaiting).
-func newTask(name string) *Task {
+func NewTask(name string) *Task {
 	t := &Task{
 		Name:      name,
 		ID:        nextTaskID,

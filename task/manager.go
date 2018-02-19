@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -18,7 +19,7 @@ type Manager struct {
 
 // Create a new manager with an empty list of Task's.
 func NewManager() *Manager {
-	return &Manager{tasks: make([]*Task, 0), journal: newJournal()}
+	return &Manager{tasks: make([]*Task, 0), journal: NewJournal()}
 }
 
 // Create a Task with the provided name. This function will panic if a Task with the provided name
@@ -30,7 +31,7 @@ func (m *Manager) Create(name string) {
 		panic(msg)
 	}
 
-	t = newTask(name)
+	t = NewTask(name)
 	m.tasks = append(m.tasks, t)
 
 	title := fmt.Sprintf("Created task %s", name)
@@ -165,38 +166,25 @@ func (m *Manager) Journal() *Journal {
 }
 
 func (m *Manager) Serialize() ([]byte, error) {
-	mProtobuf := pb.Manager{
-		Tasks:   make([]*pb.Task, m.Len()),
-		Journal: &pb.Journal{},
-	}
-
-	for index, t := range m.tasks {
-		mProtobuf.Tasks[index] = &pb.Task{}
-		t.toProtobuf(mProtobuf.Tasks[index])
-	}
-
-	m.journal.toProtobuf(mProtobuf.Journal)
-
-	return proto.Marshal(&mProtobuf)
+	return json.Marshal(m)
 }
 
 func (m *Manager) Unserialize(bytes []byte) error {
 	mProtobuf := pb.Manager{}
 	err := proto.Unmarshal(bytes, &mProtobuf)
-	if err != nil {
-		return err
+	if err == nil {
+		tsProtobuf := mProtobuf.GetTasks()
+		m.tasks = make([]*Task, len(tsProtobuf))
+		for index, tProtobuf := range tsProtobuf {
+			m.tasks[index] = &Task{}
+			m.tasks[index].fromProtobuf(tProtobuf)
+		}
+
+		m.journal.fromProtobuf(mProtobuf.Journal)
+		return nil
 	}
 
-	tsProtobuf := mProtobuf.GetTasks()
-	m.tasks = make([]*Task, len(tsProtobuf))
-	for index, tProtobuf := range tsProtobuf {
-		m.tasks[index] = &Task{}
-		m.tasks[index].fromProtobuf(tProtobuf)
-	}
-
-	m.journal.fromProtobuf(mProtobuf.Journal)
-
-	return nil
+	return json.Unmarshal(bytes, m)
 }
 
 func (m *Manager) String() string {
@@ -217,4 +205,36 @@ func (m *Manager) String() string {
 
 	buf.WriteString(";}")
 	return buf.String()
+}
+
+func (m *Manager) MarshalJSON() ([]byte, error) {
+	var jsonManager struct {
+		Tasks   []*Task  `json="task"`
+		Journal *Journal `json="journal"`
+	}
+	jsonManager.Tasks = m.tasks
+	jsonManager.Journal = m.journal
+	return json.Marshal(jsonManager)
+}
+
+func (m *Manager) UnmarshalJSON(bytes []byte) error {
+	var jsonManager struct {
+		Tasks   []*Task  `json="task"`
+		Journal *Journal `json="journal"`
+	}
+	if err := json.Unmarshal(bytes, &jsonManager); err != nil {
+		return err
+	}
+
+	m.tasks = jsonManager.Tasks
+	m.journal = jsonManager.Journal
+
+	for _, task := range m.tasks {
+		noteTaskID(task.ID)
+	}
+	for _, event := range m.journal.Events {
+		noteTaskID(event.TaskID)
+	}
+
+	return nil
 }

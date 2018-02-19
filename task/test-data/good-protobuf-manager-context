@@ -1,0 +1,23 @@
+Ù
+
+Created task task-a§Á¬Ô
+
+Created task task-b§Á¬Ô 
+
+Created task task-c§Á¬Ô 
+3
+)Set priority on task task-a from 10 to 20§Á¬Ô
+:
+0Set state on task task-a from Waiting to Running§Á¬Ô
+5
+)Set priority on task task-b from 10 to 25§Á¬Ô 
+5
+)Set priority on task task-c from 10 to 15§Á¬Ô 
+<
+0Set state on task task-c from Waiting to Blocked§Á¬Ô 
+
+Deleted task task-b§Á¬Ô 
+
+Deleted task task-a§Á¬Ô
+
+Deleted task task-c§Á¬Ô 

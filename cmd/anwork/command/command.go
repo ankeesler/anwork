@@ -187,7 +187,7 @@ func parseTaskSpec(str string, m *task.Manager) *task.Task {
 			panic("Error! Cannot parse task ID: " + err.Error())
 		}
 		for _, task := range m.Tasks() {
-			if task.ID() == num {
+			if task.ID == num {
 				t = task
 				break
 			}
@@ -302,8 +302,8 @@ func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 		printer := func(state task.State) {
 			fmt.Fprintf(o, "%s tasks:\n", strings.ToUpper(task.StateNames[state]))
 			for _, task := range m.Tasks() {
-				if task.State() == state {
-					fmt.Fprintf(o, "  %s (%d)\n", task.Name(), task.ID())
+				if task.State == state {
+					fmt.Fprintf(o, "  %s (%d)\n", task.Name, task.ID)
 				}
 			}
 		}
@@ -312,11 +312,11 @@ func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 		printer(task.StateWaiting)
 		printer(task.StateFinished)
 	} else {
-		fmt.Fprintf(o, "Name: %s\n", t.Name())
-		fmt.Fprintf(o, "ID: %d\n", t.ID())
-		fmt.Fprintf(o, "Created: %s\n", formatDate(t.StartDate()))
-		fmt.Fprintf(o, "Priority: %d\n", t.Priority())
-		fmt.Fprintf(o, "State: %s\n", strings.ToUpper(task.StateNames[t.State()]))
+		fmt.Fprintf(o, "Name: %s\n", t.Name)
+		fmt.Fprintf(o, "ID: %d\n", t.ID)
+		fmt.Fprintf(o, "Created: %s\n", formatDate(t.StartDate))
+		fmt.Fprintf(o, "Priority: %d\n", t.Priority)
+		fmt.Fprintf(o, "State: %s\n", strings.ToUpper(task.StateNames[t.State]))
 	}
 	return ResponseNoPersist
 }
@@ -332,7 +332,7 @@ func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 
 	t := parseTaskSpec(spec, m)
-	m.Note(t.Name(), note)
+	m.Note(t.Name, note)
 	return ResponsePersist
 }
 
@@ -343,8 +343,8 @@ func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 
 	t := parseTaskSpec(spec, m)
-	if !m.Delete(t.Name()) {
-		fmt.Fprintf(o, "Error! Unknown task: %s\n", t.Name())
+	if !m.Delete(t.Name) {
+		fmt.Fprintf(o, "Error! Unknown task: %s\n", t.Name)
 		return ResponseNoPersist
 	} else {
 		return ResponsePersist
@@ -353,7 +353,7 @@ func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 
 func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	for len(m.Tasks()) > 0 {
-		name := m.Tasks()[0].Name()
+		name := m.Tasks()[0].Name
 		if !m.Delete(name) {
 			panic("Expected to be able to successfully delete task " + name)
 		}
@@ -375,7 +375,7 @@ func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 		fmt.Fprintf(o, "Error! Could not parse priority from %s", priority)
 		return ResponseNoPersist
 	} else {
-		m.SetPriority(t.Name(), priorityInt)
+		m.SetPriority(t.Name, priorityInt)
 		return ResponsePersist
 	}
 }
@@ -401,7 +401,7 @@ func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	default:
 		panic("Unknown state: " + command)
 	}
-	m.SetState(t.Name(), state)
+	m.SetState(t.Name, state)
 	return ResponsePersist
 }
 
@@ -414,7 +414,7 @@ func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	es := m.Journal().Events
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
-		if t == nil || t.ID() == e.TaskID {
+		if t == nil || t.ID == e.TaskID {
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 		}
 	}
