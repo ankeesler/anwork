@@ -207,21 +207,18 @@ func (m *Manager) String() string {
 	return buf.String()
 }
 
+var jsonManager struct {
+	Tasks   []*Task  `json:"tasks"`
+	Journal *Journal `json:"journal"`
+}
+
 func (m *Manager) MarshalJSON() ([]byte, error) {
-	var jsonManager struct {
-		Tasks   []*Task  `json="task"`
-		Journal *Journal `json="journal"`
-	}
 	jsonManager.Tasks = m.tasks
 	jsonManager.Journal = m.journal
 	return json.Marshal(jsonManager)
 }
 
 func (m *Manager) UnmarshalJSON(bytes []byte) error {
-	var jsonManager struct {
-		Tasks   []*Task  `json="task"`
-		Journal *Journal `json="journal"`
-	}
 	if err := json.Unmarshal(bytes, &jsonManager); err != nil {
 		return err
 	}
