@@ -26,8 +26,8 @@ const (
 type Event struct {
 	// A string description of the Event.
 	Title string `json:"title"`
-	// The time that the Event took place.
-	Date time.Time `json:"date"`
+	// The time that the Event took place, represented by the number of seconds since January 1, 1970.
+	Date int64 `json:"date"`
 	// The type of Event.
 	Type EventType `json:"type"`
 	// The ID of the Task to which this Event refers.
@@ -37,26 +37,16 @@ type Event struct {
 func newEvent(title string, teyep EventType, taskID int) *Event {
 	e := &Event{
 		Title:  title,
-		Date:   time.Now(),
+		Date:   time.Now().Unix(),
 		Type:   teyep,
 		TaskID: taskID,
 	}
-
-	// Truncate the start time at the seconds since we only persist the seconds amount.
-	e.Date = e.Date.Truncate(time.Second)
 
 	return e
 }
 
 func (e *Event) Serialize() ([]byte, error) {
 	return json.Marshal(e)
-}
-
-func (e *Event) toProtobuf(eProtobuf *pb.Event) {
-	eProtobuf.Title = e.Title
-	eProtobuf.Date = e.Date.Unix()
-	eProtobuf.Type = pb.EventType(e.Type)
-	eProtobuf.TaskID = int32(e.TaskID)
 }
 
 func (e *Event) Unserialize(bytes []byte) error {
@@ -75,7 +65,7 @@ func (e *Event) Unserialize(bytes []byte) error {
 
 func (e *Event) fromProtobuf(eProtobuf *pb.Event) {
 	e.Title = eProtobuf.Title
-	e.Date = time.Unix(eProtobuf.Date, 0) // sec, nsec
+	e.Date = eProtobuf.Date
 	e.Type = EventType(eProtobuf.Type)
 	e.TaskID = int(eProtobuf.TaskID)
 
@@ -93,16 +83,6 @@ func NewJournal() *Journal {
 
 func (j *Journal) Serialize() ([]byte, error) {
 	return json.Marshal(j)
-}
-
-func (j *Journal) toProtobuf(jProtobuf *pb.Journal) {
-	var esProtobuf []*pb.Event = make([]*pb.Event, len(j.Events))
-	for index, event := range j.Events {
-		esProtobuf[index] = &pb.Event{}
-		event.toProtobuf(esProtobuf[index])
-	}
-
-	jProtobuf.Events = esProtobuf
 }
 
 func (j *Journal) Unserialize(bytes []byte) error {

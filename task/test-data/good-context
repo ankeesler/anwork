@@ -2,7 +2,7 @@
   "name": "task-a",
   "id": 0,
   "description": "Here is a description!",
-  "startdate": "2017-12-17T17:04:28-05:00",
+  "startdate": 1513548268,
   "priority": 612,
   "state": 2
 }

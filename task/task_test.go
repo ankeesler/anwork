@@ -3,7 +3,6 @@ package task_test
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/ankeesler/anwork/storage"
 	"github.com/ankeesler/anwork/task"
@@ -47,7 +46,7 @@ var _ = Describe("Task", func() {
 			Name:        "this is a task",
 			ID:          15,
 			Description: "this is a task description",
-			StartDate:   time.Unix(1, 2),
+			StartDate:   150,
 			Priority:    27,
 			State:       task.StateRunning,
 		}
@@ -99,13 +98,10 @@ var _ = Describe("Task", func() {
 					Name:        "task-a",
 					ID:          0,
 					Description: "Here is a description!",
+					StartDate:   1513548268,
 					Priority:    612,
 					State:       task.StateRunning,
 				}
-
-				var err error
-				expectedTask.StartDate, err = time.Parse(time.RFC3339, "2017-12-17T17:04:28-05:00")
-				Expect(err).NotTo(HaveOccurred())
 			})
 
 			successfulUnpersistence := func(context string) {

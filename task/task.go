@@ -58,8 +58,8 @@ type Task struct {
 	// This is a description of the Task.
 	Description string `json:"description"`
 
-	// This is when the Task was created.
-	StartDate time.Time `json:"startDate"`
+	// This is when the Task was created, represented by the number of seconds since January 1, 1970.
+	StartDate int64 `json:"startDate"`
 
 	// This is the priority of the Task. The lower the number, the higher the importance.
 	Priority int `json:"priority"`
@@ -89,7 +89,7 @@ func (t *Task) fromProtobuf(tProtobuf *pb.Task) {
 	t.Name = tProtobuf.Name
 	t.ID = int(tProtobuf.ID)
 	t.Description = tProtobuf.Description
-	t.StartDate = time.Unix(tProtobuf.StartDate, 0) // sec, nsec
+	t.StartDate = tProtobuf.StartDate
 	t.Priority = int(tProtobuf.Priority)
 	t.State = State(tProtobuf.State)
 
@@ -102,15 +102,12 @@ func NewTask(name string) *Task {
 	t := &Task{
 		Name:      name,
 		ID:        nextTaskID,
-		StartDate: time.Now(),
+		StartDate: time.Now().Unix(),
 		Priority:  DefaultPriority,
 		State:     StateWaiting,
 	}
 
 	nextTaskID++
-
-	// Truncate the start time at the seconds since we only persist the seconds amount.
-	t.StartDate = t.StartDate.Truncate(time.Second)
 
 	return t
 }

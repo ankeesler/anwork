@@ -202,7 +202,8 @@ func parseTaskSpec(str string, m *task.Manager) *task.Task {
 	return t
 }
 
-func formatDate(date time.Time) string {
+func formatDate(seconds int64) string {
+	date := time.Unix(seconds, 0)
 	return fmt.Sprintf("%s %s %d %02d:%02d", date.Weekday(), date.Month(), date.Day(), date.Hour(),
 		date.Minute())
 }

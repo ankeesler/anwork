@@ -2,7 +2,6 @@ package task_test
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/ankeesler/anwork/storage"
 	"github.com/ankeesler/anwork/task"
@@ -34,11 +33,11 @@ var _ = Describe("Event's", func() {
 		var (
 			eventA = task.Event{
 				Title: "Here is Event-A's title",
-				Date:  time.Unix(12345, 0),
+				Date:  12345,
 				Type:  task.EventTypeNote}
 			eventB = task.Event{
 				Title:  "Here is Event-B's title",
-				Date:   time.Unix(54321, 0),
+				Date:   54321,
 				Type:   task.EventTypeSetPriority,
 				TaskID: 57}
 			p storage.FilePersister = storage.FilePersister{Root: root}
@@ -67,7 +66,7 @@ var _ = Describe("Event's", func() {
 		It("are serialized via json", func() {
 			e := task.Event{
 				Title:  "title a",
-				Date:   time.Unix(1000, 0),
+				Date:   1000,
 				Type:   task.EventTypeNote,
 				TaskID: 15,
 			}
@@ -156,22 +155,22 @@ var _ = Describe("Journal", func() {
 	It("serializes to json", func() {
 		j.Events = append(j.Events, &task.Event{
 			Title: "event a",
-			Date:  time.Unix(10000, 0),
+			Date:  10000,
 			Type:  task.EventTypeNote,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title: "event b",
-			Date:  time.Unix(20000, 0),
+			Date:  20000,
 			Type:  task.EventTypeSetState,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title: "event c",
-			Date:  time.Unix(30000, 0),
+			Date:  30000,
 			Type:  task.EventTypeSetPriority,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title: "event b",
-			Date:  time.Unix(40000, 0),
+			Date:  40000,
 			Type:  task.EventTypeDelete,
 		})
 		bytes, err := j.Serialize()
@@ -188,22 +187,22 @@ var _ = Describe("Journal", func() {
 
 		j.Events = append(j.Events, &task.Event{
 			Title: "event a",
-			Date:  time.Unix(10000, 0),
+			Date:  10000,
 			Type:  task.EventTypeNote,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title: "event b",
-			Date:  time.Unix(20000, 0),
+			Date:  20000,
 			Type:  task.EventTypeSetState,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title: "event c",
-			Date:  time.Unix(30000, 0),
+			Date:  30000,
 			Type:  task.EventTypeSetPriority,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title: "event b",
-			Date:  time.Unix(40000, 0),
+			Date:  40000,
 			Type:  task.EventTypeDelete,
 		})
 		Expect(p.Unpersist(goodProtobufJournalContext, tmpJ)).To(Succeed())
@@ -216,25 +215,25 @@ var _ = Describe("Journal", func() {
 
 		j.Events = append(j.Events, &task.Event{
 			Title:  "event a",
-			Date:   time.Unix(10000, 0),
+			Date:   10000,
 			Type:   task.EventTypeNote,
 			TaskID: 3,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title:  "event b",
-			Date:   time.Unix(20000, 0),
+			Date:   20000,
 			Type:   task.EventTypeSetState,
 			TaskID: 2,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title:  "event c",
-			Date:   time.Unix(30000, 0),
+			Date:   30000,
 			Type:   task.EventTypeSetPriority,
 			TaskID: 1,
 		})
 		j.Events = append(j.Events, &task.Event{
 			Title:  "event b",
-			Date:   time.Unix(40000, 0),
+			Date:   40000,
 			Type:   task.EventTypeDelete,
 			TaskID: 0,
 		})
