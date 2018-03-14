@@ -271,12 +271,14 @@ func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
 		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
-		isWithinDays := e.Date.Add(time.Duration(daysNum*24) * time.Hour).After(now)
+		eDate := time.Unix(e.Date, 0)
+		isWithinDays := eDate.Add(time.Duration(daysNum*24) * time.Hour).After(now)
 		if isFinished && isWithinDays {
 			createE := findCreateEvent(m, e.TaskID)
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 			if createE != nil {
-				fmt.Fprintf(o, "  took %s\n", formatDuration(e.Date.Sub(createE.Date)))
+				createEDate := time.Unix(createE.Date, 0)
+				fmt.Fprintf(o, "  took %s\n", formatDuration(eDate.Sub(createEDate)))
 			}
 		}
 	}
