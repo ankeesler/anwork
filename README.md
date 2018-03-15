@@ -15,42 +15,36 @@ To get up and running with ANWORK, try the following.
 ```
 $ brew install go
 ```
-1. Clone this repo at a location that follows the directory structure described here:
-   https://golang.org/doc/code.html#Workspaces. Make sure to set your GOPATH variable accordingly!
-2. Run the following command to download the dependencies needed to run anwork.
+1. `go get` this repo.
 ```
-$ go get ./...
+$ go get github.com/ankeesler/anwork/cmd/anwork
 ```
-3. Run anwork with the following command.
+2. Build the `anwork` executable.
 ```
-$ go run cmd/anwork/main.go
+$ go install github.com/ankeesler/anwork/cmd/anwork
+```
+3. Run `anwork`.
+```
+$ $GOPATH/bin/anwork
+$ ...
 ```
 
 See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 ## Developing
 
-To develop on the anwork project, there are a number of dependencies that need to be installed.
+To develop on the anwork project, there is only one dependency that needs to be installed.
 
 0. Download Go! You can do so with Homebrew:
 ```
 $ brew install go
 ```
-1. The Google Protocol Buffers compiler (protoc). You can download it with Homebrew:
-```
-$ brew install protoc
-```
-2. The Go Protocol Buffer compiler plugin (protoc-gen-go). You can download it with "go get":
-```
-$ go get github.com/golang/protobuf/protoc-gen-go
-```
-Make sure that the $GOPATH/bin directory is in your $PATH.
 
 To run the unit tests, try the following.
 ```
-$ go get -t ./...                             # download dependencies for testing
-$ go install -v github.com/onsi/ginkgo/ginkgo # install ginkgo testing binary
-$ ginkgo ./...                                # run the tests with the ginkgo testing binary
+$ go get -t ./...                          # download dependencies for testing
+$ go install github.com/onsi/ginkgo/ginkgo # install ginkgo testing binary
+$ ginkgo -r .                              # run the tests with the ginkgo testing binary
 ```
 
 ### Style
