@@ -31,9 +31,6 @@ var _ = Describe("Backwards compatibility", func() {
 				Expect(outBuf).To(gbytes.Say("  task-a \\(0\\)"))
 			})
 			It("shows the correct task details", func() {
-				if runningOnTravis && version == 2 {
-					Skip("I don't think the date/time is set properly when we run in Travis CI...")
-				}
 				run(outBuf, errBuf, "-o", "data", "-c", context, "show", "task-a")
 				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: 0\nCreated: \\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\nPriority: 10\nState: FINISHED"))
 				run(outBuf, errBuf, "-o", "data", "-c", context, "show", "task-b")
@@ -42,9 +39,6 @@ var _ = Describe("Backwards compatibility", func() {
 				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: 2\nCreated: \\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\nPriority: 10\nState: RUNNING"))
 			})
 			It("shows the correct journal", func() {
-				if runningOnTravis && version == 2 {
-					Skip("I don't think the date/time is set properly when we run in Travis CI...")
-				}
 				run(outBuf, errBuf, "-o", "data", "-c", context, "journal")
 				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task task-c from Waiting to Running"))
 				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task task-a from Running to Finished"))
