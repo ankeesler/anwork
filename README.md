@@ -5,7 +5,7 @@ ANWORK is a personal task management system.
 [![Build Status](https://travis-ci.org/ankeesler/anwork.svg?branch=master)](https://travis-ci.org/ankeesler/anwork)
 [![codecov](https://codecov.io/gh/ankeesler/anwork/branch/master/graph/badge.svg)](https://codecov.io/gh/ankeesler/anwork)
 
-Latest release: [v2](https://github.com/ankeesler/anwork/releases/tag/v2)
+Latest release: [v3](https://github.com/ankeesler/anwork/releases/tag/v3)
 
 ## Running
 
