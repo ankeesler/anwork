@@ -1,0 +1,33 @@
+package task
+
+// A Manager is an interface through which Task's can be created, read, updated, and deleted.
+type Manager interface {
+	// Create a task with a name.
+	Create(name string)
+
+	// Delete a task with a name. Returns true iff a task was deleted.
+	Delete(name string) bool
+
+	// Find a task with an ID.
+	FindByID(id int) *Task
+	// Find a task with a name.
+	FindByName(name string) *Task
+
+	// Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer
+	// value) to lowest priority (highest integer value).
+	//
+	// When multiple tasks have the same priority, the Task's will be ordered by their (unique) ID in
+	// ascending order. This means that the older Task's will come first. This is a conscious decision.
+	// The Task's that have been around the longest are assumed to need to be completed first.
+	Tasks() []*Task
+
+	// Add a note for a task.
+	Note(name, note string)
+	// Set the priority of a task.
+	SetPriority(name string, priority int)
+	// Set the state of a task.
+	SetState(name string, state State)
+
+	// Get the journal for this task.
+	Journal() Journal
+}
