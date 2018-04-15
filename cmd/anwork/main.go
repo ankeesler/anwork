@@ -15,7 +15,7 @@ import (
 	"os"
 
 	"github.com/ankeesler/anwork/cmd/anwork/command"
-	"github.com/ankeesler/anwork/tasknew/local"
+	"github.com/ankeesler/anwork/task/local"
 )
 
 // These variables are used to store command line flag values.

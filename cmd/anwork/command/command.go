@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	task "github.com/ankeesler/anwork/tasknew"
+	"github.com/ankeesler/anwork/task"
 )
 
 //go:generate go run ../../genclidoc/main.go ../../../doc/CLI.md

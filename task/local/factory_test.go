@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	task "github.com/ankeesler/anwork/tasknew"
-	"github.com/ankeesler/anwork/tasknew/local"
+	"github.com/ankeesler/anwork/task"
+	"github.com/ankeesler/anwork/task/local"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

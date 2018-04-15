@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	task "github.com/ankeesler/anwork/tasknew"
+	"github.com/ankeesler/anwork/task"
 )
 
 type manager struct {

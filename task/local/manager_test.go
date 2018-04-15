@@ -1,8 +1,8 @@
 package local_test
 
 import (
-	task "github.com/ankeesler/anwork/tasknew"
-	"github.com/ankeesler/anwork/tasknew/local"
+	"github.com/ankeesler/anwork/task"
+	"github.com/ankeesler/anwork/task/local"
 	. "github.com/onsi/ginkgo"
 )
 

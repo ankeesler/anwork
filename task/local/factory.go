@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	task "github.com/ankeesler/anwork/tasknew"
+	"github.com/ankeesler/anwork/task"
 )
 
 type managerFactory struct {

@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/ankeesler/anwork/cmd/anwork/command"
-	task "github.com/ankeesler/anwork/tasknew"
+	"github.com/ankeesler/anwork/task"
 )
 
 type handler interface {
