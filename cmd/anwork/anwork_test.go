@@ -7,7 +7,7 @@ import (
 
 	"github.com/ankeesler/anwork/cmd/anwork/command"
 	"github.com/ankeesler/anwork/storage"
-	"github.com/ankeesler/anwork/task"
+	task "github.com/ankeesler/anwork/tasknew"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
