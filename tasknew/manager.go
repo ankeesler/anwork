@@ -1,5 +1,13 @@
 package task
 
+// A ManagerFactory is an object that can create and save Manager instances.
+type ManagerFactory interface {
+	// Create a Manager, or return an error.
+	Create() (Manager, error)
+	// Save a Manager back into the factory.
+	Save(Manager) error
+}
+
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
 type Manager interface {
 	// Create a task with a name. Return an error if the task name is not unique.

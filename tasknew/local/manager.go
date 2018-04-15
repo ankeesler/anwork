@@ -9,15 +9,11 @@ import (
 )
 
 type manager struct {
-	tasks  []*task.Task
-	events []*task.Event
+	MyTasks  []*task.Task  `json:"tasks"`
+	MyEvents []*task.Event `json:"events"`
 }
 
 var nextTaskID = 0
-
-func NewManager() task.Manager {
-	return &manager{}
-}
 
 func (m *manager) Create(name string) error {
 	if m.FindByName(name) != nil {
@@ -32,14 +28,14 @@ func (m *manager) Create(name string) error {
 		State:     task.StateWaiting,
 	}
 	nextTaskID++
-	m.tasks = append(m.tasks, t)
+	m.MyTasks = append(m.MyTasks, t)
 	m.addEvent(fmt.Sprintf("created task '%s'", name), task.EventTypeCreate, t.ID)
 	return nil
 }
 
 func (m *manager) Delete(name string) bool {
 	index := -1
-	for i, task := range m.tasks {
+	for i, task := range m.MyTasks {
 		if task.Name == name {
 			index = i
 			break
@@ -47,8 +43,8 @@ func (m *manager) Delete(name string) bool {
 	}
 
 	if index != -1 {
-		id := m.tasks[index].ID
-		m.tasks = append(m.tasks[:index], m.tasks[index+1:]...)
+		id := m.MyTasks[index].ID
+		m.MyTasks = append(m.MyTasks[:index], m.MyTasks[index+1:]...)
 		m.addEvent(fmt.Sprintf("deleted task '%s'", name), task.EventTypeDelete, id)
 		return true
 	} else {
@@ -57,7 +53,7 @@ func (m *manager) Delete(name string) bool {
 }
 
 func (m *manager) FindByID(id int) *task.Task {
-	for _, t := range m.tasks {
+	for _, t := range m.MyTasks {
 		if t.ID == id {
 			return t
 		}
@@ -66,7 +62,7 @@ func (m *manager) FindByID(id int) *task.Task {
 }
 
 func (m *manager) FindByName(name string) *task.Task {
-	for _, t := range m.tasks {
+	for _, t := range m.MyTasks {
 		if t.Name == name {
 			return t
 		}
@@ -86,7 +82,7 @@ func (m *manager) Tasks() []*task.Task {
 	if !sort.IsSorted(m) {
 		sort.Sort(m)
 	}
-	return m.tasks
+	return m.MyTasks
 }
 
 func (m *manager) Note(name, note string) {
@@ -113,7 +109,7 @@ func (m *manager) SetState(name string, newState task.State) {
 }
 
 func (m *manager) addEvent(title string, teyep task.EventType, taskID int) {
-	m.events = append(m.events, &task.Event{
+	m.MyEvents = append(m.MyEvents, &task.Event{
 		Title:  title,
 		Date:   time.Now().Unix(),
 		Type:   teyep,
@@ -122,18 +118,18 @@ func (m *manager) addEvent(title string, teyep task.EventType, taskID int) {
 }
 
 func (m *manager) Events() []*task.Event {
-	return m.events
+	return m.MyEvents
 }
 
 // Return the length of the Task's held by this Manager.
 func (m *manager) Len() int {
-	return len(m.tasks)
+	return len(m.MyTasks)
 }
 
 // Return true iff the i'th Task held by this Manager is more "important" than the j'th Task held by
 // this Manager. See the documentation for Manager. Tasks for more discussion around this design.
 func (m *manager) Less(i, j int) bool {
-	ti, tj := m.tasks[i], m.tasks[j]
+	ti, tj := m.MyTasks[i], m.MyTasks[j]
 	if ti.Priority > tj.Priority {
 		return false
 	} else if ti.Priority == tj.Priority {
@@ -145,7 +141,7 @@ func (m *manager) Less(i, j int) bool {
 
 // Swap the i'th Task held by this Manager with the j'th Task held by this Manager.
 func (m *manager) Swap(i, j int) {
-	tmp := m.tasks[i]
-	m.tasks[i] = m.tasks[j]
-	m.tasks[j] = tmp
+	tmp := m.MyTasks[i]
+	m.MyTasks[i] = m.MyTasks[j]
+	m.MyTasks[j] = tmp
 }

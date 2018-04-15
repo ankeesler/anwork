@@ -7,5 +7,5 @@ import (
 )
 
 var _ = Describe("Manager", func() {
-	task.RunManagerTests(local.NewManager)
+	task.RunManagerTests(local.NewManagerFactory("testdata", "non-existent-context"))
 })

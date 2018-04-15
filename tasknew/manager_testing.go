@@ -9,13 +9,15 @@ import (
 
 // This is a utility method to run tests with an object conforming to the
 // Manager interface.
-func RunManagerTests(createManager func() Manager) {
+func RunManagerTests(factory ManagerFactory) {
 	var (
 		manager Manager
 	)
 
 	BeforeEach(func() {
-		manager = createManager()
+		var err error
+		manager, err = factory.Create()
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Context("when no tasks are created", func() {
