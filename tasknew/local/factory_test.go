@@ -59,6 +59,9 @@ var _ = Describe("ManagerFactory", func() {
 	})
 
 	Context("when the outputDir/context data is valid", func() {
+		AfterEach(func() {
+			os.RemoveAll(filepath.Join("testdata", "good-tmp-context"))
+		})
 		It("successfully creates the manager", func() {
 			factory := local.NewManagerFactory("testdata", "good-context")
 			manager, err := factory.Create()
@@ -70,7 +73,6 @@ var _ = Describe("ManagerFactory", func() {
 		})
 		It("successfully saves the manager", func() {
 			factory := local.NewManagerFactory("testdata", "good-tmp-context")
-			defer os.RemoveAll(filepath.Join("testdata", "good-tmp-context"))
 			manager := createEmptyManager()
 			manager.Create("1")
 			manager.Create("2")
@@ -79,6 +81,16 @@ var _ = Describe("ManagerFactory", func() {
 			manager.SetState("2", task.StateRunning)
 			manager.Note("3", "tuna")
 			Expect(factory.Save(manager)).To(Succeed())
+		})
+	})
+
+	Context("when a context is passed that has multiple path segments", func() {
+		BeforeEach(func() {
+			factory = local.NewManagerFactory("testdata", "this/has/multiple/path/segments")
+		})
+		It("errors when trying to create the manager", func() {
+			_, err := factory.Create()
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })

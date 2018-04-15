@@ -15,8 +15,7 @@ import (
 	"os"
 
 	"github.com/ankeesler/anwork/cmd/anwork/command"
-	"github.com/ankeesler/anwork/storage"
-	"github.com/ankeesler/anwork/task"
+	"github.com/ankeesler/anwork/tasknew/local"
 )
 
 // These variables are used to store command line flag values.
@@ -30,33 +29,6 @@ func dbgfln(output io.Writer, format string, stuff ...interface{}) {
 		fmt.Fprintf(output, format, stuff...)
 		fmt.Fprintln(output)
 	}
-}
-
-// Returns true on success.
-func readManager(o io.Writer, p *storage.FilePersister, c string, m *task.Manager) bool {
-	err := p.Unpersist(c, m)
-	if err != nil {
-		fmt.Fprintf(o, "Error! Could not read manager from file: %s\n", err.Error())
-	}
-	return err == nil
-}
-
-// Returns true on success.
-func writeManager(o io.Writer, p *storage.FilePersister, c string, m *task.Manager) bool {
-	err := p.Persist(c, m)
-	if err != nil {
-		fmt.Fprintf(o, "Error! Could not read manager from file: %s\n", err.Error())
-	}
-	return err == nil
-}
-
-// Returns true on success.
-func deleteManager(o io.Writer, p *storage.FilePersister, c string, m *task.Manager) bool {
-	err := p.Delete(c)
-	if err != nil {
-		fmt.Fprintf(o, "Error! Could not delete context %s: %s\n", c, err.Error())
-	}
-	return err == nil
 }
 
 func usage(f *flag.FlagSet, output io.Writer) func() {
@@ -102,18 +74,11 @@ func run(args []string, output io.Writer) int {
 	}
 	firstArg := flags.Arg(0)
 
-	persister := storage.FilePersister{Root: root}
-	manager := task.NewManager()
-	if persister.Exists(context) {
-		dbgfln(output, "Context %s exists at root %s", context, root)
-		if !readManager(output, &persister, context, manager) {
-			return 1
-		}
-	} else {
-		dbgfln(output, "Context %s does not exist at root %s; creating it", context, root)
-		if !writeManager(output, &persister, context, manager) {
-			return 1
-		}
+	factory := local.NewManagerFactory(root, context)
+	manager, err := factory.Create()
+	if err != nil {
+		fmt.Fprintf(output, "Error! Could not create manager: %s\n", err.Error())
+		return 1
 	}
 	dbgfln(output, "Manager is %s", manager)
 
@@ -126,14 +91,16 @@ func run(args []string, output io.Writer) int {
 		switch cmd.Run(flags, output, manager) {
 		case command.ResponsePersist:
 			dbgfln(output, "Persisting manager back to disk")
-			if !writeManager(output, &persister, context, manager) {
+			if err := factory.Save(manager); err != nil {
+				fmt.Fprintf(output, "Error! Could not save manager: %s\n", err.Error())
 				return 1
 			}
 		case command.ResponseNoPersist:
 			dbgfln(output, "NOT persisting manager back to disk")
 		case command.ResponseReset:
 			dbgfln(output, "Completely deleting everything in context %s", context)
-			if !deleteManager(output, &persister, context, manager) {
+			if err := factory.Reset(); err != nil {
+				fmt.Fprintf(output, "Error! Could not reset context %s: %s\n", context, err.Error())
 				return 1
 			}
 		case command.ResponseArgumentError:

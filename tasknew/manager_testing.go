@@ -78,7 +78,7 @@ func RunManagerTests(factory ManagerFactory) {
 			Expect(events).To(HaveLen(3))
 			for i, name := range names {
 				t := manager.FindByName(name)
-				Expect(events[i].Title).To(Equal(fmt.Sprintf("created task '%s'", name)))
+				Expect(events[i].Title).To(Equal(fmt.Sprintf("Created task '%s'", name)))
 				Expect(events[i].Type).To(Equal(EventTypeCreate))
 				Expect(events[i].TaskID).To(Equal(t.ID))
 			}
@@ -134,7 +134,7 @@ func RunManagerTests(factory ManagerFactory) {
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
 					t := manager.FindByName(names[i-3])
-					msg := fmt.Sprintf("set priority on task '%s' from %d to %d", t.Name,
+					msg := fmt.Sprintf("Set priority on task '%s' from %d to %d", t.Name,
 						DefaultPriority, priorities[i-3])
 					Expect(events[i].Title).To(Equal(msg))
 					Expect(events[i].Type).To(Equal(EventTypeSetPriority))
@@ -162,7 +162,7 @@ func RunManagerTests(factory ManagerFactory) {
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
 					t := manager.FindByName(names[i-3])
-					msg := fmt.Sprintf("set state on task '%s' from %s to %s", t.Name,
+					msg := fmt.Sprintf("Set state on task '%s' from %s to %s", t.Name,
 						StateNames[StateWaiting], StateNames[states[i-3]])
 					Expect(events[i].Title).To(Equal(msg))
 					Expect(events[i].Type).To(Equal(EventTypeSetState))
@@ -194,7 +194,7 @@ func RunManagerTests(factory ManagerFactory) {
 				events := manager.Events()
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
-					Expect(events[i].Title).To(Equal(fmt.Sprintf("deleted task '%s'", names[i-3])))
+					Expect(events[i].Title).To(Equal(fmt.Sprintf("Deleted task '%s'", names[i-3])))
 					Expect(events[i].Type).To(Equal(EventTypeDelete))
 				}
 			})

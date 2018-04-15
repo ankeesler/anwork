@@ -9,11 +9,10 @@ import (
 )
 
 type manager struct {
-	MyTasks  []*task.Task  `json:"tasks"`
-	MyEvents []*task.Event `json:"events"`
+	MyTasks    []*task.Task  `json:"tasks"`
+	MyEvents   []*task.Event `json:"events"`
+	NextTaskID int
 }
-
-var nextTaskID = 0
 
 func (m *manager) Create(name string) error {
 	if m.FindByName(name) != nil {
@@ -22,14 +21,14 @@ func (m *manager) Create(name string) error {
 
 	t := &task.Task{
 		Name:      name,
-		ID:        nextTaskID,
+		ID:        m.NextTaskID,
 		StartDate: time.Now().Unix(),
 		Priority:  task.DefaultPriority,
 		State:     task.StateWaiting,
 	}
-	nextTaskID++
+	m.NextTaskID++
 	m.MyTasks = append(m.MyTasks, t)
-	m.addEvent(fmt.Sprintf("created task '%s'", name), task.EventTypeCreate, t.ID)
+	m.addEvent(fmt.Sprintf("Created task '%s'", name), task.EventTypeCreate, t.ID)
 	return nil
 }
 
@@ -45,7 +44,7 @@ func (m *manager) Delete(name string) bool {
 	if index != -1 {
 		id := m.MyTasks[index].ID
 		m.MyTasks = append(m.MyTasks[:index], m.MyTasks[index+1:]...)
-		m.addEvent(fmt.Sprintf("deleted task '%s'", name), task.EventTypeDelete, id)
+		m.addEvent(fmt.Sprintf("Deleted task '%s'", name), task.EventTypeDelete, id)
 		return true
 	} else {
 		return false
@@ -87,14 +86,14 @@ func (m *manager) Tasks() []*task.Task {
 
 func (m *manager) Note(name, note string) {
 	t := m.mustFindByName(name)
-	m.addEvent(fmt.Sprintf("note added to task '%s': %s", name, note), task.EventTypeNote, t.ID)
+	m.addEvent(fmt.Sprintf("Note added to task '%s': %s", name, note), task.EventTypeNote, t.ID)
 }
 
 func (m *manager) SetPriority(name string, newPriority int) {
 	t := m.mustFindByName(name)
 	oldPriority := t.Priority
 	t.Priority = newPriority
-	m.addEvent(fmt.Sprintf("set priority on task '%s' from %d to %d", name,
+	m.addEvent(fmt.Sprintf("Set priority on task '%s' from %d to %d", name,
 		oldPriority, newPriority),
 		task.EventTypeSetPriority, t.ID)
 }
@@ -103,7 +102,7 @@ func (m *manager) SetState(name string, newState task.State) {
 	t := m.mustFindByName(name)
 	oldState := t.State
 	t.State = newState
-	m.addEvent(fmt.Sprintf("set state on task '%s' from %s to %s", name,
+	m.addEvent(fmt.Sprintf("Set state on task '%s' from %s to %s", name,
 		task.StateNames[oldState], task.StateNames[newState]),
 		task.EventTypeSetState, t.ID)
 }

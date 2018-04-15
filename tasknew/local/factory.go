@@ -24,6 +24,8 @@ func NewManagerFactory(outputDir, context string) task.ManagerFactory {
 func (mf *managerFactory) Create() (task.Manager, error) {
 	if err := mf.validateOutputDir(); err != nil {
 		return nil, err
+	} else if err := mf.validateContext(); err != nil {
+		return nil, err
 	}
 
 	contextFile := mf.contextFile()
@@ -62,9 +64,21 @@ func (mf *managerFactory) Save(manager task.Manager) error {
 	return nil
 }
 
+func (mf *managerFactory) Reset() error {
+	return os.RemoveAll(mf.contextFile())
+}
+
 func (mf *managerFactory) validateOutputDir() error {
 	if _, err := os.Stat(mf.outputDir); os.IsNotExist(err) {
 		return fmt.Errorf("outputDir does not exist: %s", mf.outputDir)
+	}
+	return nil
+}
+
+func (mf *managerFactory) validateContext() error {
+	dir, _ := filepath.Split(mf.context)
+	if dir != "" {
+		return fmt.Errorf("context may not have path separators: %s", mf.context)
 	}
 	return nil
 }

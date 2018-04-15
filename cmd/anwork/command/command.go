@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ankeesler/anwork/task"
+	task "github.com/ankeesler/anwork/tasknew"
 )
 
 //go:generate go run ../../genclidoc/main.go ../../../doc/CLI.md
@@ -55,7 +55,7 @@ type Command struct {
 	// (for example, debug printing, or stuff that would normally be sent to stdout) should be
 	// written. The function should return a Response value based on the next action that the caller
 	// should take.
-	action func(f *flag.FlagSet, o io.Writer, m *task.Manager) Response
+	action func(f *flag.FlagSet, o io.Writer, m task.Manager) Response
 }
 
 // These are the Command's used by the anwork application.
@@ -155,7 +155,7 @@ func (c *Command) Usage(output io.Writer) {
 
 // Run the functionality associated with this Command. This function will return a Response value
 // indicating next steps for the caller to take.
-func (c *Command) Run(f *flag.FlagSet, o io.Writer, m *task.Manager) (r Response) {
+func (c *Command) Run(f *flag.FlagSet, o io.Writer, m task.Manager) (r Response) {
 	defer func() {
 		if p := recover(); p != nil {
 			fmt.Fprintln(o, p)
@@ -179,7 +179,7 @@ func FindCommand(name string) *Command {
 // Parse a "task spec" which is either the name of a task (i.e., "task-a") or the '@' symbol and an
 // integer value indicating the ID of a task (i.e., "@37"). This function will never return nil. If
 // the specifier is illegal, it will panic.
-func parseTaskSpec(str string, m *task.Manager) *task.Task {
+func parseTaskSpec(str string, m task.Manager) *task.Task {
 	var t *task.Task = nil
 	if strings.HasPrefix(str, "@") {
 		num, err := strconv.Atoi(str[1:])
@@ -221,12 +221,12 @@ func arg(f *flag.FlagSet, i int) (string, bool) {
 	}
 }
 
-func versionAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func versionAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	fmt.Fprintln(o, "ANWORK Version =", Version)
 	return ResponseNoPersist
 }
 
-func resetAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func resetAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	fmt.Fprintf(o, "Are you sure you want to delete all data [y/n]: ")
 
 	var answer string
@@ -245,8 +245,8 @@ func resetAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 }
 
-func findCreateEvent(m *task.Manager, taskID int) *task.Event {
-	for _, e := range m.Journal().Events {
+func findCreateEvent(m task.Manager, taskID int) *task.Event {
+	for _, e := range m.Events() {
 		if e.Type == task.EventTypeCreate && e.TaskID == taskID {
 			return e
 		}
@@ -254,7 +254,7 @@ func findCreateEvent(m *task.Manager, taskID int) *task.Event {
 	return nil
 }
 
-func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func summaryAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	days, ok := arg(f, 1)
 	if !ok {
 		return ResponseArgumentError
@@ -267,7 +267,7 @@ func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 
 	now := time.Now()
-	es := m.Journal().Events
+	es := m.Events()
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
 		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
@@ -285,17 +285,20 @@ func summaryAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	return ResponseNoPersist
 }
 
-func createAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func createAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	name, ok := arg(f, 1)
 	if !ok {
 		return ResponseArgumentError
 	}
 
-	m.Create(name)
+	if err := m.Create(name); err != nil {
+		fmt.Fprintf(o, "Error! Could not create task '%s': %s", name, err.Error())
+		return ResponseNoPersist
+	}
 	return ResponsePersist
 }
 
-func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func showAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	var t *task.Task = nil
 	if f.NArg() > 1 {
 		t = parseTaskSpec(f.Arg(1), m)
@@ -324,7 +327,7 @@ func showAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	return ResponseNoPersist
 }
 
-func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func noteAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	spec, ok := arg(f, 1)
 	if !ok {
 		return ResponseArgumentError
@@ -339,7 +342,7 @@ func noteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	return ResponsePersist
 }
 
-func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func deleteAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	spec, ok := arg(f, 1)
 	if !ok {
 		return ResponseArgumentError
@@ -354,7 +357,7 @@ func deleteAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 }
 
-func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func deleteAllAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	for len(m.Tasks()) > 0 {
 		name := m.Tasks()[0].Name
 		if !m.Delete(name) {
@@ -364,7 +367,7 @@ func deleteAllAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	return ResponsePersist
 }
 
-func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func setPriorityAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	spec, ok := arg(f, 1)
 	if !ok {
 		return ResponseArgumentError
@@ -383,7 +386,7 @@ func setPriorityAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	}
 }
 
-func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func setStateAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	spec, ok := arg(f, 1)
 	if !ok {
 		return ResponseArgumentError
@@ -408,13 +411,13 @@ func setStateAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
 	return ResponsePersist
 }
 
-func journalAction(f *flag.FlagSet, o io.Writer, m *task.Manager) Response {
+func journalAction(f *flag.FlagSet, o io.Writer, m task.Manager) Response {
 	var t *task.Task = nil
 	if f.NArg() > 1 {
 		t = parseTaskSpec(f.Arg(1), m)
 	}
 
-	es := m.Journal().Events
+	es := m.Events()
 	for i := len(es) - 1; i >= 0; i-- {
 		e := es[i]
 		if t == nil || t.ID == e.TaskID {

@@ -120,7 +120,7 @@ var _ = Describe("anwork", func() {
 		})
 		It("fails", expectFailure)
 		It("prints something about the context being bad", func() {
-			Expect(output.String()).To(ContainSubstring("Could not read manager from file"))
+			Expect(output.String()).To(ContainSubstring("Could not create manager"))
 		})
 	})
 
@@ -287,7 +287,7 @@ var _ = Describe("anwork", func() {
 				})
 				It("shows the 3 creation entries plus the 1 deletion entry in reverse order", func() {
 					regexp := fmt.Sprintf("%s: %s\n%s: %s\n%s: %s\n%s: %s", journalPrefixRegexp,
-						".*Deleted.*task-b", journalPrefixRegexp, ".*Created.*task-c.*", journalPrefixRegexp,
+						".*Deleted.*task-b.*", journalPrefixRegexp, ".*Created.*task-c.*", journalPrefixRegexp,
 						".*Created.*task-b.*", journalPrefixRegexp, ".*Created.*task-a.*")
 					Expect(output.String()).To(MatchRegexp(regexp))
 				})

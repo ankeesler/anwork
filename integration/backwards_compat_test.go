@@ -19,6 +19,11 @@ var _ = Describe("Backwards compatibility", func() {
 
 	runTests := func(version int) {
 		Context(fmt.Sprintf("version %d", version), func() {
+			BeforeEach(func() {
+				if version < 4 {
+					Skip(fmt.Sprintf("support for version %d has been discontinued as of version 4", version))
+				}
+			})
 			context := fmt.Sprintf("v%d-context", version)
 			It("shows the correct tasks", func() {
 				run(outBuf, errBuf, "-o", "data", "-c", context, "show")
