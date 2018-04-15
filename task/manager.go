@@ -1,5 +1,8 @@
 package task
 
+//go:generate counterfeiter . ManagerFactory
+//go:generate counterfeiter . Manager
+
 // A ManagerFactory is an object that can create and save Manager instances.
 type ManagerFactory interface {
 	// Create a Manager, or return an error.
