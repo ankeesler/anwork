@@ -19,7 +19,11 @@ func NewManager() task.Manager {
 	return &manager{}
 }
 
-func (m *manager) Create(name string) {
+func (m *manager) Create(name string) error {
+	if m.FindByName(name) != nil {
+		return fmt.Errorf("task '%s' has already been created", name)
+	}
+
 	t := &task.Task{
 		Name:      name,
 		ID:        nextTaskID,
@@ -30,6 +34,7 @@ func (m *manager) Create(name string) {
 	nextTaskID++
 	m.tasks = append(m.tasks, t)
 	m.addEvent(fmt.Sprintf("created task '%s'", name), task.EventTypeCreate, t.ID)
+	return nil
 }
 
 func (m *manager) Delete(name string) bool {

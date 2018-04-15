@@ -2,8 +2,8 @@ package task
 
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
 type Manager interface {
-	// Create a task with a name.
-	Create(name string)
+	// Create a task with a name. Return an error if the task name is not unique.
+	Create(name string) error
 
 	// Delete a task with a name. Returns true iff a task was deleted.
 	Delete(name string) bool

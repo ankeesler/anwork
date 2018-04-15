@@ -22,8 +22,12 @@ func RunManagerTests(createManager func() Manager) {
 		It("returns no tasks", func() {
 			Expect(manager.Tasks()).To(BeEmpty())
 		})
-		It("returns false when deleting a task", func() {
+		It("returns no journal entries", func() {
+			Expect(manager.Events()).To(BeEmpty())
+		})
+		It("returns false when deleting a task and does not add a journal entry", func() {
 			Expect(manager.Delete("1")).To(BeFalse())
+			Expect(manager.Events()).To(BeEmpty())
 		})
 	})
 
@@ -34,7 +38,7 @@ func RunManagerTests(createManager func() Manager) {
 		)
 		BeforeEach(func() {
 			for _, name := range names {
-				manager.Create(name)
+				Expect(manager.Create(name)).To(Succeed())
 			}
 
 			ids = []int{}
@@ -42,8 +46,18 @@ func RunManagerTests(createManager func() Manager) {
 				ids = append(ids, t.ID)
 			}
 		})
-		It("returns those three tasks", func() {
-			Expect(manager.Tasks()).To(HaveLen(3))
+		It("returns those three tasks in the order that they were added (since their priorities are all the same)", func() {
+			tasks := manager.Tasks()
+			Expect(tasks).To(HaveLen(3))
+			for i := range names {
+				Expect(tasks[i].Name).To(Equal(names[i]))
+				Expect(tasks[i].Priority).To(Equal(DefaultPriority))
+			}
+		})
+		It("returns an error when we try to recreate the existing tasks", func() {
+			for _, name := range names {
+				Expect(manager.Create(name)).NotTo(Succeed())
+			}
 		})
 		It("can find those tasks by id", func() {
 			for _, id := range ids {
