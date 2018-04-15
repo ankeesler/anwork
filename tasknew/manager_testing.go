@@ -58,7 +58,7 @@ func RunManagerTests(createManager func() Manager) {
 			}
 		})
 		It("returns these events in the journal", func() {
-			events := manager.Journal().Events()
+			events := manager.Events()
 			Expect(events).To(HaveLen(3))
 			for i, name := range names {
 				t := manager.FindByName(name)
@@ -87,7 +87,7 @@ func RunManagerTests(createManager func() Manager) {
 				}
 			})
 			It("returns the notes in the journal", func() {
-				events := manager.Journal().Events()
+				events := manager.Events()
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
 					t := manager.FindByName(names[i-3])
@@ -114,7 +114,7 @@ func RunManagerTests(createManager func() Manager) {
 				Expect(tasks[2].Name).To(Equal("3"))
 			})
 			It("returns these events in the journal", func() {
-				events := manager.Journal().Events()
+				events := manager.Events()
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
 					t := manager.FindByName(names[i-3])
@@ -142,7 +142,7 @@ func RunManagerTests(createManager func() Manager) {
 				}
 			})
 			It("returns these events in the journal", func() {
-				events := manager.Journal().Events()
+				events := manager.Events()
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
 					t := manager.FindByName(names[i-3])
@@ -175,7 +175,7 @@ func RunManagerTests(createManager func() Manager) {
 				}
 			})
 			It("returns these events in the journal", func() {
-				events := manager.Journal().Events()
+				events := manager.Events()
 				Expect(events).To(HaveLen(6))
 				for i := 3; i < 6; i++ {
 					Expect(events[i].Title).To(Equal(fmt.Sprintf("deleted task '%s'", names[i-3])))

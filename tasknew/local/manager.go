@@ -9,14 +9,14 @@ import (
 )
 
 type manager struct {
-	tasks   []*task.Task
-	journal *journal
+	tasks  []*task.Task
+	events []*task.Event
 }
 
 var nextTaskID = 0
 
 func NewManager() task.Manager {
-	return &manager{tasks: []*task.Task{}, journal: &journal{}}
+	return &manager{}
 }
 
 func (m *manager) Create(name string) {
@@ -29,7 +29,7 @@ func (m *manager) Create(name string) {
 	}
 	nextTaskID++
 	m.tasks = append(m.tasks, t)
-	m.journal.Add(fmt.Sprintf("created task '%s'", name), task.EventTypeCreate, t.ID)
+	m.addEvent(fmt.Sprintf("created task '%s'", name), task.EventTypeCreate, t.ID)
 }
 
 func (m *manager) Delete(name string) bool {
@@ -44,7 +44,7 @@ func (m *manager) Delete(name string) bool {
 	if index != -1 {
 		id := m.tasks[index].ID
 		m.tasks = append(m.tasks[:index], m.tasks[index+1:]...)
-		m.journal.Add(fmt.Sprintf("deleted task '%s'", name), task.EventTypeDelete, id)
+		m.addEvent(fmt.Sprintf("deleted task '%s'", name), task.EventTypeDelete, id)
 		return true
 	} else {
 		return false
@@ -86,14 +86,14 @@ func (m *manager) Tasks() []*task.Task {
 
 func (m *manager) Note(name, note string) {
 	t := m.mustFindByName(name)
-	m.journal.Add(fmt.Sprintf("note added to task '%s': %s", name, note), task.EventTypeNote, t.ID)
+	m.addEvent(fmt.Sprintf("note added to task '%s': %s", name, note), task.EventTypeNote, t.ID)
 }
 
 func (m *manager) SetPriority(name string, newPriority int) {
 	t := m.mustFindByName(name)
 	oldPriority := t.Priority
 	t.Priority = newPriority
-	m.journal.Add(fmt.Sprintf("set priority on task '%s' from %d to %d", name,
+	m.addEvent(fmt.Sprintf("set priority on task '%s' from %d to %d", name,
 		oldPriority, newPriority),
 		task.EventTypeSetPriority, t.ID)
 }
@@ -102,13 +102,22 @@ func (m *manager) SetState(name string, newState task.State) {
 	t := m.mustFindByName(name)
 	oldState := t.State
 	t.State = newState
-	m.journal.Add(fmt.Sprintf("set state on task '%s' from %s to %s", name,
+	m.addEvent(fmt.Sprintf("set state on task '%s' from %s to %s", name,
 		task.StateNames[oldState], task.StateNames[newState]),
 		task.EventTypeSetState, t.ID)
 }
 
-func (m *manager) Journal() task.Journal {
-	return m.journal
+func (m *manager) addEvent(title string, teyep task.EventType, taskID int) {
+	m.events = append(m.events, &task.Event{
+		Title:  title,
+		Date:   time.Now().Unix(),
+		Type:   teyep,
+		TaskID: taskID,
+	})
+}
+
+func (m *manager) Events() []*task.Event {
+	return m.events
 }
 
 // Return the length of the Task's held by this Manager.

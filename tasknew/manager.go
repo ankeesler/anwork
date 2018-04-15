@@ -28,6 +28,6 @@ type Manager interface {
 	// Set the state of a task.
 	SetState(name string, state State)
 
-	// Get the journal for this task.
-	Journal() Journal
+	// Get the events associated with this manager.
+	Events() []*Event
 }

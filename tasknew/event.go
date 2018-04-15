@@ -4,15 +4,14 @@ package task
 type EventType int
 
 const (
-	EventTypeCreate      = EventType(0)
-	EventTypeDelete      = EventType(1)
-	EventTypeSetState    = EventType(2)
-	EventTypeNote        = EventType(3)
-	EventTypeSetPriority = EventType(4)
+	EventTypeCreate      EventType = 0
+	EventTypeDelete      EventType = 1
+	EventTypeSetState    EventType = 2
+	EventTypeNote        EventType = 3
+	EventTypeSetPriority EventType = 4
 )
 
-// An Event is something that took place. It is stored in a Journal. Each Event refers to only one
-// Task.
+// An Event is something that took place. Each Event is associated with only one Task.
 type Event struct {
 	// A string description of the Event.
 	Title string `json:"title"`
