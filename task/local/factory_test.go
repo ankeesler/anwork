@@ -15,6 +15,8 @@ var _ = Describe("ManagerFactory", func() {
 		factory task.ManagerFactory
 	)
 
+	task.RunFactoryTests(local.NewManagerFactory("testdata", "nont-existent-context"))
+
 	Context("when an invalid outputDir is provided", func() {
 		BeforeEach(func() {
 			factory = local.NewManagerFactory("this directory does not exist", "empty-context")
@@ -55,32 +57,6 @@ var _ = Describe("ManagerFactory", func() {
 		It("returns an error", func() {
 			_, err := factory.Create()
 			Expect(err).To(HaveOccurred())
-		})
-	})
-
-	Context("when the outputDir/context data is valid", func() {
-		AfterEach(func() {
-			os.RemoveAll(filepath.Join("testdata", "good-tmp-context"))
-		})
-		It("successfully creates the manager", func() {
-			factory := local.NewManagerFactory("testdata", "good-context")
-			manager, err := factory.Create()
-			Expect(err).NotTo(HaveOccurred())
-			tasks := manager.Tasks()
-			Expect(tasks).To(HaveLen(3))
-			events := manager.Events()
-			Expect(events).To(HaveLen(6))
-		})
-		It("successfully saves the manager", func() {
-			factory := local.NewManagerFactory("testdata", "good-tmp-context")
-			manager := createEmptyManager()
-			manager.Create("1")
-			manager.Create("2")
-			manager.Create("3")
-			manager.SetPriority("1", 5)
-			manager.SetState("2", task.StateRunning)
-			manager.Note("3", "tuna")
-			Expect(factory.Save(manager)).To(Succeed())
 		})
 	})
 

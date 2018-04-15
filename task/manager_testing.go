@@ -201,3 +201,38 @@ func RunManagerTests(factory ManagerFactory) {
 		})
 	})
 }
+
+// This is a utility method to run tests with an object conforming to the
+// ManagerFactory interface. A default factory should be passed into this utility
+// method.
+func RunFactoryTests(factory ManagerFactory) {
+	BeforeEach(func() {
+		manager, err := factory.Create()
+		Expect(err).NotTo(HaveOccurred())
+
+		manager.Create("1")
+		manager.Create("2")
+		manager.Create("3")
+		manager.SetPriority("1", 5)
+		manager.SetState("2", StateRunning)
+		manager.Note("3", "tuna")
+		Expect(factory.Save(manager)).To(Succeed())
+	})
+
+	AfterEach(func() {
+		Expect(factory.Reset()).To(Succeed())
+	})
+
+	It("can successfully cycle a manager", func() {
+		manager, err := factory.Create()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(manager).To(Equal(manager))
+	})
+
+	It("can successfully reset its state", func() {
+		Expect(factory.Reset()).To(Succeed())
+		manager, err := factory.Create()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(manager.Tasks()).To(BeEmpty())
+	})
+}
