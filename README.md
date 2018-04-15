@@ -19,11 +19,7 @@ $ brew install go
 ```
 $ go get github.com/ankeesler/anwork/cmd/anwork
 ```
-2. Build the `anwork` executable.
-```
-$ go install github.com/ankeesler/anwork/cmd/anwork
-```
-3. Run `anwork`.
+2. Run `anwork`.
 ```
 $ $GOPATH/bin/anwork
 $ ...
@@ -66,3 +62,4 @@ the "go doc" command.
 | --- | --- |
 | ci | Scripts used in the Travis Continuous Integration jobs |
 | doc | Documentation about the anwork executable, e.g., a quick start guide |
+| integration | Integration tests for the anwork executable |
