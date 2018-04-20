@@ -1,6 +1,9 @@
 package runner_test
 
 import (
+	"errors"
+	"os"
+
 	"github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
@@ -28,18 +31,84 @@ var _ = Describe("Command", func() {
 		r = runner.New(factory, stdoutWriter, debugWriter)
 	})
 
-	run := func(args ...string) {
-		Expect(r.Run(args)).To(Succeed())
-	}
-
 	Describe("create", func() {
 		It("calls the manager to create a task", func() {
-			run("create", "task-a")
+			Expect(r.Run([]string{"create", "task-a"})).To(Succeed())
 			Expect(manager.CreateCallCount()).To(Equal(1))
 			Expect(manager.CreateArgsForCall(0)).To(Equal("task-a"))
+		})
+
+		Context("when the manager fails to create a task", func() {
+			BeforeEach(func() {
+				factory.CreateReturnsOnCall(1, manager, nil)
+				manager.CreateReturnsOnCall(1, errors.New("failed to create task"))
+			})
+
+			It("returns a helpful error message", func() {
+				Expect(r.Run([]string{"create", "task-a"})).To(Succeed())
+
+				err := r.Run([]string{"create", "task-a"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("failed to create task"))
+			})
 		})
 	})
 
 	Describe("reset", func() {
+		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to 'y'", func() {
+			var envVarBefore string
+
+			BeforeEach(func() {
+				envVarBefore = os.Getenv("ANWORK_TEST_RESET_ANSWER")
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "y")).To(Succeed())
+			})
+
+			AfterEach(func() {
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
+			})
+
+			It("asks the user to confirm", func() {
+				r.Run([]string{"reset"})
+				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
+			})
+
+			It("tells the user the data is being deleted", func() {
+				r.Run([]string{"reset"})
+				Eventually(stdoutWriter).Should(gbytes.Say("OK, deleting all data"))
+			})
+
+			XIt("returns an error (the reset error)", func() {
+				err := r.Run([]string{"reset"})
+				Expect(err).NotTo(BeNil())
+			})
+		})
+
+		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to something other than 'y'", func() {
+			var envVarBefore string
+
+			BeforeEach(func() {
+				envVarBefore = os.Getenv("ANWORK_TEST_RESET_ANSWER")
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "tuna")).To(Succeed())
+			})
+
+			AfterEach(func() {
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
+			})
+
+			It("asks the user to confirm", func() {
+				r.Run([]string{"reset"})
+				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
+			})
+
+			It("tells the user the data is not being deleted", func() {
+				r.Run([]string{"reset"})
+				Eventually(stdoutWriter).Should(gbytes.Say("NOT deleting all data"))
+			})
+
+			It("returns no error", func() {
+				err := r.Run([]string{"reset"})
+				Expect(err).To(BeNil())
+			})
+		})
 	})
 })
