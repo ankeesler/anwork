@@ -91,8 +91,9 @@ var _ = Describe("AnworkRunner", func() {
 		BeforeEach(func() {
 			factory.CreateReturnsOnCall(0, nil, errors.New("some error"))
 		})
+
 		It("returns a helpful error", func() {
-			err := r.Run([]string{})
+			err := r.Run([]string{"create", "task-a"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Could not create manager: some error"))
 		})

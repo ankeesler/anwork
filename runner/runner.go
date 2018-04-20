@@ -31,12 +31,6 @@ func New(factory task.ManagerFactory, stdoutWriter, debugWriter io.Writer) *Runn
 // and run the appropriate piece of functionality. See runner.Runner.Usage() for
 // a print out of the usage of this Runner.
 func (a *Runner) Run(args []string) error {
-	manager, err := a.factory.Create()
-	if err != nil {
-		return fmt.Errorf("Could not create manager: %s", err.Error())
-	}
-	a.debug("Manager is %s", manager)
-
 	cmd := findCommand(args[0])
 	if cmd == nil {
 		return fmt.Errorf("Unknown command: '%s'", args[0])
@@ -46,6 +40,12 @@ func (a *Runner) Run(args []string) error {
 		return fmt.Errorf("Invalid argument passed to command '%s':\n\tGot: %s\n\tExpected: %s",
 			args[0], args[1:], cmd.Args)
 	}
+
+	manager, err := a.factory.Create()
+	if err != nil {
+		return fmt.Errorf("Could not create manager: %s", err.Error())
+	}
+	a.debug("Manager is %s", manager)
 
 	if err := cmd.Action(cmd, args, a.stdoutWriter, manager); err != nil {
 		if _, ok := err.(*resetError); ok {
