@@ -213,7 +213,7 @@ FINISHED tasks:
 					Expect(r.Run([]string{"show", "task-b"})).To(Succeed())
 					expectedOutput := `Name: task-b
 ID: 20
-Created: \w+ \w+ \d\d \d\d:\d\d
+Created: \w+ \w+ \d\d? \d\d:\d\d
 Priority: 3
 State: WAITING`
 					Expect(stdoutWriter).To(gbytes.Say(expectedOutput))
