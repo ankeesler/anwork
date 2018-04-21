@@ -67,19 +67,15 @@ var _ = Describe("Command", func() {
 				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
 			})
 
-			It("asks the user to confirm", func() {
+			It("asks the user to confirm and tells them their data is being deleted", func() {
 				r.Run([]string{"reset"})
 				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
-			})
-
-			It("tells the user the data is being deleted", func() {
-				r.Run([]string{"reset"})
 				Eventually(stdoutWriter).Should(gbytes.Say("OK, deleting all data"))
 			})
 
-			XIt("returns an error (the reset error)", func() {
-				err := r.Run([]string{"reset"})
-				Expect(err).NotTo(BeNil())
+			It("tells the factory to reset", func() {
+				Expect(r.Run([]string{"reset"})).To(Succeed())
+				Expect(factory.ResetCallCount()).To(Equal(1))
 			})
 		})
 
@@ -95,19 +91,15 @@ var _ = Describe("Command", func() {
 				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
 			})
 
-			It("asks the user to confirm", func() {
-				r.Run([]string{"reset"})
+			It("asks the user to confirm and tells them their data is not being deleted", func() {
+				Expect(r.Run([]string{"reset"})).To(Succeed())
 				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
-			})
-
-			It("tells the user the data is not being deleted", func() {
-				r.Run([]string{"reset"})
 				Eventually(stdoutWriter).Should(gbytes.Say("NOT deleting all data"))
 			})
 
-			It("returns no error", func() {
-				err := r.Run([]string{"reset"})
-				Expect(err).To(BeNil())
+			It("does not tell the factory to reset", func() {
+				Expect(r.Run([]string{"reset"})).To(Succeed())
+				Expect(factory.ResetCallCount()).To(Equal(0))
 			})
 		})
 	})
