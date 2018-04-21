@@ -5,6 +5,7 @@ package runner
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/ankeesler/anwork/task"
 )
@@ -36,7 +37,7 @@ func (a *Runner) Run(args []string) error {
 		return fmt.Errorf("Unknown command: '%s'", args[0])
 	}
 
-	if (len(args) - 1) != len(cmd.Args) {
+	if !validateArgs(cmd, args) {
 		return fmt.Errorf("Invalid argument passed to command '%s':\n\tGot: %s\n\tExpected: %s",
 			args[0], args[1:], cmd.Args)
 	}
@@ -66,4 +67,20 @@ func (a *Runner) Run(args []string) error {
 
 func (a *Runner) debug(format string, args ...interface{}) {
 	fmt.Fprintln(a.debugWriter, format, args)
+}
+
+func validateArgs(cmd *command, args []string) bool {
+	if len(cmd.Args) == (len(args) - 1) {
+		return true
+	}
+
+	// optional argument (e.g., [task-name])
+	if (len(cmd.Args) - 1) == (len(args) - 1) {
+		lastArg := cmd.Args[len(cmd.Args)-1]
+		if strings.HasPrefix(lastArg, "[") && strings.HasSuffix(lastArg, "]") {
+			return true
+		}
+	}
+
+	return false
 }

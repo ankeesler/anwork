@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ankeesler/anwork/runner"
+	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,6 +32,13 @@ var _ = Describe("Command", func() {
 		r = runner.New(factory, stdoutWriter, debugWriter)
 	})
 
+	Describe("version", func() {
+		It("prints out the version", func() {
+			Expect(r.Run([]string{"version"})).To(Succeed())
+			Expect(stdoutWriter).To(gbytes.Say("ANWORK Version = 3"))
+		})
+	})
+
 	Describe("create", func() {
 		It("calls the manager to create a task", func() {
 			Expect(r.Run([]string{"create", "task-a"})).To(Succeed())
@@ -50,6 +58,166 @@ var _ = Describe("Command", func() {
 				err := r.Run([]string{"create", "task-a"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to create task"))
+			})
+		})
+	})
+
+	Describe("delete", func() {
+		Context("when the manager successfully deletes the task", func() {
+			BeforeEach(func() {
+				manager.DeleteReturnsOnCall(0, true)
+			})
+
+			It("successfully deletes existing tasks", func() {
+				Expect(r.Run([]string{"delete", "task-a"})).To(Succeed())
+				Expect(manager.DeleteCallCount()).To(Equal(1))
+				Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+			})
+		})
+
+		Context("when the task does not exist", func() {
+			BeforeEach(func() {
+				manager.DeleteReturnsOnCall(0, false)
+			})
+
+			It("prints out a helpful message saying that the task was unknown", func() {
+				Expect(r.Run([]string{"delete", "task-a"})).To(Succeed())
+				Expect(manager.DeleteCallCount()).To(Equal(1))
+				Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+				Expect(stdoutWriter).To(gbytes.Say("Unknown task: task-a"))
+			})
+		})
+	})
+
+	Describe("delete-all", func() {
+		Context("when there are no tasks", func() {
+			It("does not tell the manager to delete anything", func() {
+				Expect(r.Run([]string{"delete-all"})).To(Succeed())
+				Expect(manager.DeleteCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("when there are multiple tasks", func() {
+			BeforeEach(func() {
+				tasks := []*task.Task{
+					&task.Task{Name: "task-a"},
+					&task.Task{Name: "task-b"},
+					&task.Task{Name: "task-c"},
+				}
+				manager.TasksReturnsOnCall(0, tasks)
+			})
+
+			Context("when the manager successfully deletes each task", func() {
+				BeforeEach(func() {
+					manager.DeleteReturnsOnCall(0, true)
+					manager.DeleteReturnsOnCall(1, true)
+					manager.DeleteReturnsOnCall(2, true)
+				})
+
+				It("calls delete on each task", func() {
+					Expect(r.Run([]string{"delete-all"})).To(Succeed())
+					Expect(manager.DeleteCallCount()).To(Equal(3))
+					Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+					Expect(manager.DeleteArgsForCall(1)).To(Equal("task-b"))
+					Expect(manager.DeleteArgsForCall(2)).To(Equal("task-c"))
+				})
+			})
+
+			Context("when the manager fails to delete a task", func() {
+				BeforeEach(func() {
+					manager.DeleteReturnsOnCall(0, false)
+					manager.DeleteReturnsOnCall(1, true)
+					manager.DeleteReturnsOnCall(2, false)
+				})
+
+				It("notifies the user of which task was not able to be deleted", func() {
+					Expect(r.Run([]string{"delete-all"})).To(Succeed())
+					Expect(manager.DeleteCallCount()).To(Equal(3))
+					Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+					Expect(manager.DeleteArgsForCall(1)).To(Equal("task-b"))
+					Expect(manager.DeleteArgsForCall(2)).To(Equal("task-c"))
+
+					Expect(stdoutWriter).To(gbytes.Say("Error! Unable to delete task task-a"))
+					Expect(stdoutWriter).To(gbytes.Say("Error! Unable to delete task task-c"))
+				})
+			})
+
+		})
+	})
+
+	Describe("show", func() {
+		Context("when there are no tasks", func() {
+			It("just prints out the task states", func() {
+				Expect(r.Run([]string{"show"})).To(Succeed())
+				Expect(stdoutWriter).To(gbytes.Say("RUNNING tasks:\nBLOCKED tasks:\nWAITING tasks:\nFINISHED tasks:\n"))
+			})
+
+			Context("when a task name argument is passed", func() {
+				It("prints an error an unknown task", func() {
+					Expect(r.Run([]string{"show", "task-a"})).To(Succeed())
+					Expect(stdoutWriter).To(gbytes.Say("Error! Unknown task: task-a"))
+				})
+			})
+		})
+
+		Context("when there are multiple tasks", func() {
+			BeforeEach(func() {
+				tasks := []*task.Task{
+					&task.Task{
+						Name:  "task-a",
+						ID:    10,
+						State: task.StateRunning,
+					},
+					&task.Task{
+						Name:     "task-b",
+						Priority: 3,
+						ID:       20,
+						State:    task.StateWaiting,
+					},
+					&task.Task{
+						Name:  "task-c",
+						ID:    30,
+						State: task.StateWaiting,
+					},
+					&task.Task{
+						Name:  "task-d",
+						ID:    40,
+						State: task.StateFinished,
+					},
+				}
+				manager.TasksReturnsOnCall(0, tasks)
+				manager.FindByNameStub = func(name string) *task.Task {
+					for _, t := range tasks {
+						if t.Name == name {
+							return t
+						}
+					}
+					return nil
+				}
+			})
+			It("just prints out the task underneath their states in order", func() {
+				Expect(r.Run([]string{"show"})).To(Succeed())
+				expectedOutput := `RUNNING tasks:
+  task-a \(10\)
+BLOCKED tasks:
+WAITING tasks:
+  task-b \(20\)
+  task-c \(30\)
+FINISHED tasks:
+  task-d \(40\)`
+				Expect(stdoutWriter).To(gbytes.Say(expectedOutput))
+			})
+
+			Context("when a task name argument is passed", func() {
+				It("prints the details about a task", func() {
+					Expect(r.Run([]string{"show", "task-b"})).To(Succeed())
+					expectedOutput := `Name: task-b
+ID: 20
+Created: Wednesday December 31 19:00
+Priority: 3
+State: WAITING`
+					Expect(stdoutWriter).To(gbytes.Say(expectedOutput))
+				})
 			})
 		})
 	})

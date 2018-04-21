@@ -68,6 +68,22 @@ var _ = Describe("AnworkRunner", func() {
 		})
 	})
 
+	Context("when a command takes an optional argument", func() {
+		It("allows the optional argument not to be passed", func() {
+			Expect(r.Run([]string{"show"})).To(Succeed())
+		})
+
+		It("allows the optional argument not to be", func() {
+			Expect(r.Run([]string{"show", "tuna"})).To(Succeed())
+		})
+
+		It("fails if more than the optional argument is passed", func() {
+			err := r.Run([]string{"show", "tuna", "fish"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Invalid argument passed to command 'show'"))
+		})
+	})
+
 	Context("when the command fails", func() {
 		BeforeEach(func() {
 			manager.CreateReturnsOnCall(0, errors.New("some error"))
