@@ -35,7 +35,7 @@ type Manager interface {
 	Tasks() []*Task
 
 	// Add a note for a task.
-	Note(name, note string)
+	Note(name, note string) error
 	// Set the priority of a task.
 	SetPriority(name string, priority int)
 	// Set the state of a task.

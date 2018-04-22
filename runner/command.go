@@ -85,12 +85,12 @@ var commands = []command{
 		Args:        []string{"[task-name]"},
 		Action:      showAction,
 	},
-	//	command{
-	//		Name:        "note",
-	//		Description: "Add a note to a task",
-	//		Args:        []string{"task-name", "note"},
-	//		action:      noteAction,
-	//	},
+	command{
+		Name:        "note",
+		Description: "Add a note to a task",
+		Args:        []string{"task-name", "note"},
+		Action:      noteAction,
+	},
 	//	command{
 	//		Name:        "set-priority",
 	//		Description: "Set the priority of a task",
@@ -300,21 +300,14 @@ func showAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 	return nil
 }
 
-//
-//func noteAction(args []string, o io.Writer, m task.Manager) response {
-//	spec, ok := arg(f, 1)
-//	if !ok {
-//		return responseArgumentError
-//	}
-//	note, ok := arg(f, 2)
-//	if !ok {
-//		return responseArgumentError
-//	}
-//
-//	t := parseTaskSpec(spec, m)
-//	m.Note(t.Name, note)
-//	return responsePersist
-//}
+func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+	//t := parseTaskSpec(spec, m)
+	err := m.Note(args[1], args[2])
+	if err != nil {
+		fmt.Fprintf(o, "Error! Cannot add note: %s", err.Error())
+	}
+	return nil
+}
 
 //func setPriorityAction(args []string, o io.Writer, m task.Manager) response {
 //	spec, ok := arg(f, 1)

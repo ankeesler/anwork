@@ -31,6 +31,11 @@ func RunManagerTests(factory ManagerFactory) {
 			Expect(manager.Delete("1")).To(BeFalse())
 			Expect(manager.Events()).To(BeEmpty())
 		})
+		It("fails to add a note for any task", func() {
+			for _, name := range []string{"a", "b", "c"} {
+				Expect(manager.Note(name, "tuna")).To(HaveOccurred())
+			}
+		})
 	})
 
 	Context("when three tasks are created", func() {
@@ -196,6 +201,11 @@ func RunManagerTests(factory ManagerFactory) {
 				for i := 3; i < 6; i++ {
 					Expect(events[i].Title).To(Equal(fmt.Sprintf("Deleted task '%s'", names[i-3])))
 					Expect(events[i].Type).To(Equal(EventTypeDelete))
+				}
+			})
+			It("fails to add a note for those tasks", func() {
+				for _, name := range names {
+					Expect(manager.Note(name, "tuna")).To(HaveOccurred())
 				}
 			})
 		})

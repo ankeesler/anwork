@@ -222,6 +222,34 @@ State: WAITING`
 		})
 	})
 
+	Describe("note", func() {
+		Context("when the task exists", func() {
+			It("adds a note to the task", func() {
+				Expect(r.Run([]string{"note", "task-a", "tuna"})).To(Succeed())
+
+				name, note := manager.NoteArgsForCall(0)
+				Expect(name).To(Equal("task-a"))
+				Expect(note).To(Equal("tuna"))
+			})
+		})
+
+		Context("when the manager fails to add a note", func() {
+			BeforeEach(func() {
+				manager.NoteReturnsOnCall(0, errors.New("task does not exist"))
+			})
+
+			It("displays the error to the user", func() {
+				Expect(r.Run([]string{"note", "task-a", "tuna"})).To(Succeed())
+
+				name, note := manager.NoteArgsForCall(0)
+				Expect(name).To(Equal("task-a"))
+				Expect(note).To(Equal("tuna"))
+
+				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot add note: task does not exist"))
+			})
+		})
+	})
+
 	Describe("reset", func() {
 		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to 'y'", func() {
 			var envVarBefore string

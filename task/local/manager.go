@@ -84,9 +84,13 @@ func (m *manager) Tasks() []*task.Task {
 	return m.MyTasks
 }
 
-func (m *manager) Note(name, note string) {
-	t := m.mustFindByName(name)
+func (m *manager) Note(name, note string) error {
+	t := m.FindByName(name)
+	if t == nil {
+		return fmt.Errorf("cannot find task with name %s", name)
+	}
 	m.addEvent(fmt.Sprintf("Note added to task '%s': %s", name, note), task.EventTypeNote, t.ID)
+	return nil
 }
 
 func (m *manager) SetPriority(name string, newPriority int) {

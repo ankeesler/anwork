@@ -61,11 +61,17 @@ type FakeManager struct {
 	tasksReturnsOnCall map[int]struct {
 		result1 []*task.Task
 	}
-	NoteStub        func(name, note string)
+	NoteStub        func(name, note string) error
 	noteMutex       sync.RWMutex
 	noteArgsForCall []struct {
 		name string
 		note string
+	}
+	noteReturns struct {
+		result1 error
+	}
+	noteReturnsOnCall map[int]struct {
+		result1 error
 	}
 	SetPriorityStub        func(name string, priority int)
 	setPriorityMutex       sync.RWMutex
@@ -324,8 +330,9 @@ func (fake *FakeManager) TasksReturnsOnCall(i int, result1 []*task.Task) {
 	}{result1}
 }
 
-func (fake *FakeManager) Note(name string, note string) {
+func (fake *FakeManager) Note(name string, note string) error {
 	fake.noteMutex.Lock()
+	ret, specificReturn := fake.noteReturnsOnCall[len(fake.noteArgsForCall)]
 	fake.noteArgsForCall = append(fake.noteArgsForCall, struct {
 		name string
 		note string
@@ -333,8 +340,12 @@ func (fake *FakeManager) Note(name string, note string) {
 	fake.recordInvocation("Note", []interface{}{name, note})
 	fake.noteMutex.Unlock()
 	if fake.NoteStub != nil {
-		fake.NoteStub(name, note)
+		return fake.NoteStub(name, note)
 	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.noteReturns.result1
 }
 
 func (fake *FakeManager) NoteCallCount() int {
@@ -347,6 +358,25 @@ func (fake *FakeManager) NoteArgsForCall(i int) (string, string) {
 	fake.noteMutex.RLock()
 	defer fake.noteMutex.RUnlock()
 	return fake.noteArgsForCall[i].name, fake.noteArgsForCall[i].note
+}
+
+func (fake *FakeManager) NoteReturns(result1 error) {
+	fake.NoteStub = nil
+	fake.noteReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) NoteReturnsOnCall(i int, result1 error) {
+	fake.NoteStub = nil
+	if fake.noteReturnsOnCall == nil {
+		fake.noteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.noteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeManager) SetPriority(name string, priority int) {
