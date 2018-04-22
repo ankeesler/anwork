@@ -73,17 +73,29 @@ type FakeManager struct {
 	noteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SetPriorityStub        func(name string, priority int)
+	SetPriorityStub        func(name string, priority int) error
 	setPriorityMutex       sync.RWMutex
 	setPriorityArgsForCall []struct {
 		name     string
 		priority int
 	}
-	SetStateStub        func(name string, state task.State)
+	setPriorityReturns struct {
+		result1 error
+	}
+	setPriorityReturnsOnCall map[int]struct {
+		result1 error
+	}
+	SetStateStub        func(name string, state task.State) error
 	setStateMutex       sync.RWMutex
 	setStateArgsForCall []struct {
 		name  string
 		state task.State
+	}
+	setStateReturns struct {
+		result1 error
+	}
+	setStateReturnsOnCall map[int]struct {
+		result1 error
 	}
 	EventsStub        func() []*task.Event
 	eventsMutex       sync.RWMutex
@@ -379,8 +391,9 @@ func (fake *FakeManager) NoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) SetPriority(name string, priority int) {
+func (fake *FakeManager) SetPriority(name string, priority int) error {
 	fake.setPriorityMutex.Lock()
+	ret, specificReturn := fake.setPriorityReturnsOnCall[len(fake.setPriorityArgsForCall)]
 	fake.setPriorityArgsForCall = append(fake.setPriorityArgsForCall, struct {
 		name     string
 		priority int
@@ -388,8 +401,12 @@ func (fake *FakeManager) SetPriority(name string, priority int) {
 	fake.recordInvocation("SetPriority", []interface{}{name, priority})
 	fake.setPriorityMutex.Unlock()
 	if fake.SetPriorityStub != nil {
-		fake.SetPriorityStub(name, priority)
+		return fake.SetPriorityStub(name, priority)
 	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.setPriorityReturns.result1
 }
 
 func (fake *FakeManager) SetPriorityCallCount() int {
@@ -404,8 +421,28 @@ func (fake *FakeManager) SetPriorityArgsForCall(i int) (string, int) {
 	return fake.setPriorityArgsForCall[i].name, fake.setPriorityArgsForCall[i].priority
 }
 
-func (fake *FakeManager) SetState(name string, state task.State) {
+func (fake *FakeManager) SetPriorityReturns(result1 error) {
+	fake.SetPriorityStub = nil
+	fake.setPriorityReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SetPriorityReturnsOnCall(i int, result1 error) {
+	fake.SetPriorityStub = nil
+	if fake.setPriorityReturnsOnCall == nil {
+		fake.setPriorityReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setPriorityReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SetState(name string, state task.State) error {
 	fake.setStateMutex.Lock()
+	ret, specificReturn := fake.setStateReturnsOnCall[len(fake.setStateArgsForCall)]
 	fake.setStateArgsForCall = append(fake.setStateArgsForCall, struct {
 		name  string
 		state task.State
@@ -413,8 +450,12 @@ func (fake *FakeManager) SetState(name string, state task.State) {
 	fake.recordInvocation("SetState", []interface{}{name, state})
 	fake.setStateMutex.Unlock()
 	if fake.SetStateStub != nil {
-		fake.SetStateStub(name, state)
+		return fake.SetStateStub(name, state)
 	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.setStateReturns.result1
 }
 
 func (fake *FakeManager) SetStateCallCount() int {
@@ -427,6 +468,25 @@ func (fake *FakeManager) SetStateArgsForCall(i int) (string, task.State) {
 	fake.setStateMutex.RLock()
 	defer fake.setStateMutex.RUnlock()
 	return fake.setStateArgsForCall[i].name, fake.setStateArgsForCall[i].state
+}
+
+func (fake *FakeManager) SetStateReturns(result1 error) {
+	fake.SetStateStub = nil
+	fake.setStateReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SetStateReturnsOnCall(i int, result1 error) {
+	fake.SetStateStub = nil
+	if fake.setStateReturnsOnCall == nil {
+		fake.setStateReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setStateReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeManager) Events() []*task.Event {

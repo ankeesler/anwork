@@ -37,9 +37,9 @@ type Manager interface {
 	// Add a note for a task.
 	Note(name, note string) error
 	// Set the priority of a task.
-	SetPriority(name string, priority int)
+	SetPriority(name string, priority int) error
 	// Set the state of a task.
-	SetState(name string, state State)
+	SetState(name string, state State) error
 
 	// Get the events associated with this manager.
 	Events() []*Event

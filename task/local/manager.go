@@ -69,14 +69,6 @@ func (m *manager) FindByName(name string) *task.Task {
 	return nil
 }
 
-func (m *manager) mustFindByName(name string) *task.Task {
-	t := m.FindByName(name)
-	if t == nil {
-		panic(fmt.Sprintf("cannot find task with name %s", name))
-	}
-	return t
-}
-
 func (m *manager) Tasks() []*task.Task {
 	if !sort.IsSorted(m) {
 		sort.Sort(m)
@@ -93,22 +85,34 @@ func (m *manager) Note(name, note string) error {
 	return nil
 }
 
-func (m *manager) SetPriority(name string, newPriority int) {
-	t := m.mustFindByName(name)
+func (m *manager) SetPriority(name string, newPriority int) error {
+	t := m.FindByName(name)
+	if t == nil {
+		return fmt.Errorf("cannot find task with name %s", name)
+	}
+
 	oldPriority := t.Priority
 	t.Priority = newPriority
 	m.addEvent(fmt.Sprintf("Set priority on task '%s' from %d to %d", name,
 		oldPriority, newPriority),
 		task.EventTypeSetPriority, t.ID)
+
+	return nil
 }
 
-func (m *manager) SetState(name string, newState task.State) {
-	t := m.mustFindByName(name)
+func (m *manager) SetState(name string, newState task.State) error {
+	t := m.FindByName(name)
+	if t == nil {
+		return fmt.Errorf("cannot find task with name %s", name)
+	}
+
 	oldState := t.State
 	t.State = newState
 	m.addEvent(fmt.Sprintf("Set state on task '%s' from %s to %s", name,
 		task.StateNames[oldState], task.StateNames[newState]),
 		task.EventTypeSetState, t.ID)
+
+	return nil
 }
 
 func (m *manager) addEvent(title string, teyep task.EventType, taskID int) {

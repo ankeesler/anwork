@@ -32,9 +32,13 @@ func RunManagerTests(factory ManagerFactory) {
 			Expect(manager.Events()).To(BeEmpty())
 		})
 		It("fails to add a note for any task", func() {
-			for _, name := range []string{"a", "b", "c"} {
-				Expect(manager.Note(name, "tuna")).To(HaveOccurred())
-			}
+			Expect(manager.Note("1", "tuna")).To(HaveOccurred())
+		})
+		It("fails to add a set the state of a task", func() {
+			Expect(manager.SetState("1", StateRunning)).To(HaveOccurred())
+		})
+		It("fails to add a set the priority of a task", func() {
+			Expect(manager.SetPriority("1", 5)).To(HaveOccurred())
 		})
 	})
 
@@ -104,7 +108,7 @@ func RunManagerTests(factory ManagerFactory) {
 			)
 			BeforeEach(func() {
 				for i := range notes {
-					manager.Note(names[i], notes[i])
+					Expect(manager.Note(names[i], notes[i])).To(Succeed())
 				}
 			})
 			It("returns the notes in the journal", func() {
@@ -125,7 +129,7 @@ func RunManagerTests(factory ManagerFactory) {
 			)
 			BeforeEach(func() {
 				for i := range priorities {
-					manager.SetPriority(names[i], priorities[i])
+					Expect(manager.SetPriority(names[i], priorities[i])).To(Succeed())
 				}
 			})
 			It("returns the tasks in the order of priority", func() {
@@ -154,7 +158,7 @@ func RunManagerTests(factory ManagerFactory) {
 			)
 			BeforeEach(func() {
 				for i := range states {
-					manager.SetState(names[i], states[i])
+					Expect(manager.SetState(names[i], states[i])).To(Succeed())
 				}
 			})
 			It("returns the tasks with the correct state", func() {
@@ -208,6 +212,16 @@ func RunManagerTests(factory ManagerFactory) {
 					Expect(manager.Note(name, "tuna")).To(HaveOccurred())
 				}
 			})
+			It("fails to set the priority for those tasks", func() {
+				for _, name := range names {
+					Expect(manager.SetPriority(name, 5)).To(HaveOccurred())
+				}
+			})
+			It("fails to set the state for those tasks", func() {
+				for _, name := range names {
+					Expect(manager.SetState(name, StateRunning)).To(HaveOccurred())
+				}
+			})
 		})
 	})
 }
@@ -220,12 +234,12 @@ func RunFactoryTests(factory ManagerFactory) {
 		manager, err := factory.Create()
 		Expect(err).NotTo(HaveOccurred())
 
-		manager.Create("1")
-		manager.Create("2")
-		manager.Create("3")
-		manager.SetPriority("1", 5)
-		manager.SetState("2", StateRunning)
-		manager.Note("3", "tuna")
+		Expect(manager.Create("1")).To(Succeed())
+		Expect(manager.Create("2")).To(Succeed())
+		Expect(manager.Create("3")).To(Succeed())
+		Expect(manager.SetPriority("1", 5)).To(Succeed())
+		Expect(manager.SetState("2", StateRunning)).To(Succeed())
+		Expect(manager.Note("3", "tuna")).To(Succeed())
 		Expect(factory.Save(manager)).To(Succeed())
 	})
 
