@@ -241,11 +241,39 @@ State: WAITING`
 			It("displays the error to the user", func() {
 				Expect(r.Run([]string{"note", "task-a", "tuna"})).To(Succeed())
 
-				name, note := manager.NoteArgsForCall(0)
-				Expect(name).To(Equal("task-a"))
-				Expect(note).To(Equal("tuna"))
-
 				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot add note: task does not exist"))
+			})
+		})
+	})
+
+	Describe("set-priority", func() {
+		Context("when the task exists", func() {
+			It("sets the priority on the task", func() {
+				Expect(r.Run([]string{"set-priority", "task-a", "10"})).To(Succeed())
+
+				name, prio := manager.SetPriorityArgsForCall(0)
+				Expect(name).To(Equal("task-a"))
+				Expect(prio).To(Equal(10))
+			})
+		})
+
+		Context("when the manager fails to set the priority", func() {
+			BeforeEach(func() {
+				manager.SetPriorityReturnsOnCall(0, errors.New("task does not exist"))
+			})
+
+			It("displays the error to the user", func() {
+				Expect(r.Run([]string{"set-priority", "task-a", "10"})).To(Succeed())
+
+				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot set priority: task does not exist"))
+			})
+		})
+
+		Context("when the second argument is not a number", func() {
+			It("displays the error to the user", func() {
+				Expect(r.Run([]string{"set-priority", "task-a", "tuna"})).To(Succeed())
+
+				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot set priority: invalid priority: 'tuna'"))
 			})
 		})
 	})

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -91,12 +92,12 @@ var commands = []command{
 		Args:        []string{"task-name", "note"},
 		Action:      noteAction,
 	},
-	//	command{
-	//		Name:        "set-priority",
-	//		Description: "Set the priority of a task",
-	//		Args:        []string{"task-name", "priority"},
-	//		action:      setPriorityAction,
-	//	},
+	command{
+		Name:        "set-priority",
+		Description: "Set the priority of a task",
+		Args:        []string{"task-name", "priority"},
+		Action:      setPriorityAction,
+	},
 	//	command{
 	//		Name:        "set-running",
 	//		Description: "Mark a task as running",
@@ -309,24 +310,20 @@ func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 	return nil
 }
 
-//func setPriorityAction(args []string, o io.Writer, m task.Manager) response {
-//	spec, ok := arg(f, 1)
-//	if !ok {
-//		return responseArgumentError
-//	}
-//
-//	t := parseTaskSpec(spec, m)
-//	priority := f.Arg(2)
-//
-//	priorityInt, err := strconv.Atoi(priority)
-//	if err != nil {
-//		fmt.Fprintf(o, "Error! Could not parse priority from %s", priority)
-//		return responseNoPersist
-//	} else {
-//		m.SetPriority(t.Name, priorityInt)
-//		return responsePersist
-//	}
-//}
+func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+	prio, err := strconv.Atoi(args[2])
+	if err != nil {
+		fmt.Fprintf(o, "Error! Cannot set priority: invalid priority: '%s'", args[2])
+		return nil
+	}
+
+	if err := m.SetPriority(args[1], prio); err != nil {
+		fmt.Fprintf(o, "Error! Cannot set priority: %s", err.Error())
+	}
+
+	return nil
+}
+
 //
 //func setStateAction(args []string, o io.Writer, m task.Manager) response {
 //	spec, ok := arg(f, 1)
