@@ -2,6 +2,7 @@ package runner_test
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/ankeesler/anwork/runner"
@@ -24,7 +25,7 @@ var _ = Describe("Command", func() {
 		manager = &taskfakes.FakeManager{}
 
 		factory = &taskfakes.FakeManagerFactory{}
-		factory.CreateReturnsOnCall(0, manager, nil)
+		factory.CreateReturns(manager, nil)
 
 		stdoutWriter = gbytes.NewBuffer()
 		debugWriter = gbytes.NewBuffer()
@@ -274,6 +275,52 @@ State: WAITING`
 				Expect(r.Run([]string{"set-priority", "task-a", "tuna"})).To(Succeed())
 
 				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot set priority: invalid priority: 'tuna'"))
+			})
+		})
+	})
+
+	Describe("set-<state>", func() {
+		BeforeEach(func() {
+			manager.FindByNameReturns(&task.Task{Name: "task-a"})
+		})
+
+		It("sets the state correctly for all valid states", func() {
+			states := []task.State{
+				task.StateRunning,
+				task.StateBlocked,
+				task.StateWaiting,
+				task.StateFinished,
+			}
+			stateStrings := []string{"running", "blocked", "waiting", "finished"}
+			for i, state := range states {
+				stateString := stateStrings[i]
+				cmd := fmt.Sprintf("set-%s", stateString)
+				Expect(r.Run([]string{cmd, "task-a"})).To(Succeed(), "Command = %s", cmd)
+				name, stateArg := manager.SetStateArgsForCall(i)
+				Expect(name).To(Equal("task-a"))
+				Expect(stateArg).To(Equal(state), "Command = %s", cmd)
+			}
+		})
+
+		Context("when manager.SetState returns an error", func() {
+			BeforeEach(func() {
+				manager.SetStateReturns(errors.New("failed to set state"))
+			})
+
+			It("prints the error to the user", func() {
+				Expect(r.Run([]string{"set-running", "task-a"})).To(Succeed())
+				Expect(stdoutWriter).To(gbytes.Say("Error! Cannot set state: failed to set state"))
+			})
+		})
+
+		Context("when the task does not exist", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturns(nil)
+			})
+
+			It("prints the error to the user", func() {
+				Expect(r.Run([]string{"set-running", "task-a"})).To(Succeed())
+				Expect(stdoutWriter).To(gbytes.Say("Error! Cannot set state: unknown task task-a"))
 			})
 		})
 	})

@@ -1,6 +1,9 @@
 // TODO: when we panic in this code, the command line interface looks really ugly. We should pass
 // string error messages to the callers of these commands so that they are more nicely formatted
 // when they appear on the command line.
+//
+// TODO: return an error and then print it out in the runner instead of printing it out in the
+// command implementation.
 package runner
 
 import (
@@ -98,30 +101,30 @@ var commands = []command{
 		Args:        []string{"task-name", "priority"},
 		Action:      setPriorityAction,
 	},
-	//	command{
-	//		Name:        "set-running",
-	//		Description: "Mark a task as running",
-	//		Args:        []string{"task-name"},
-	//		action:      setStateAction,
-	//	},
-	//	command{
-	//		Name:        "set-blocked",
-	//		Description: "Mark a task as blocked",
-	//		Args:        []string{"task-name"},
-	//		action:      setStateAction,
-	//	},
-	//	command{
-	//		Name:        "set-waiting",
-	//		Description: "Mark a task as waiting",
-	//		Args:        []string{"task-name"},
-	//		action:      setStateAction,
-	//	},
-	//	command{
-	//		Name:        "set-finished",
-	//		Description: "Mark a task as finished",
-	//		Args:        []string{"task-name"},
-	//		action:      setStateAction,
-	//	},
+	command{
+		Name:        "set-running",
+		Description: "Mark a task as running",
+		Args:        []string{"task-name"},
+		Action:      setStateAction,
+	},
+	command{
+		Name:        "set-blocked",
+		Description: "Mark a task as blocked",
+		Args:        []string{"task-name"},
+		Action:      setStateAction,
+	},
+	command{
+		Name:        "set-waiting",
+		Description: "Mark a task as waiting",
+		Args:        []string{"task-name"},
+		Action:      setStateAction,
+	},
+	command{
+		Name:        "set-finished",
+		Description: "Mark a task as finished",
+		Args:        []string{"task-name"},
+		Action:      setStateAction,
+	},
 	//	command{
 	//		Name:        "journal",
 	//		Description: "Show the journal; optionally pass a task name to only show events for that task",
@@ -324,31 +327,35 @@ func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager)
 	return nil
 }
 
-//
-//func setStateAction(args []string, o io.Writer, m task.Manager) response {
-//	spec, ok := arg(f, 1)
-//	if !ok {
-//		return responseArgumentError
-//	}
-//
-//	t := parseTaskSpec(spec, m)
-//
-//	var state task.State
-//	switch command := strings.TrimPrefix(f.Arg(0), "set-"); command {
-//	case "running":
-//		state = task.StateRunning
-//	case "blocked":
-//		state = task.StateBlocked
-//	case "waiting":
-//		state = task.StateWaiting
-//	case "finished":
-//		state = task.StateFinished
-//	default:
-//		panic("Unknown state: " + command)
-//	}
-//	m.SetState(t.Name, state)
-//	return responsePersist
-//}
+func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+	//t := parseTaskSpec(spec, m)
+	t := m.FindByName(args[1])
+	if t == nil {
+		fmt.Fprintf(o, "Error! Cannot set state: unknown task %s", args[1])
+		return nil
+	}
+
+	var state task.State
+	switch command := strings.TrimPrefix(args[0], "set-"); command {
+	case "running":
+		state = task.StateRunning
+	case "blocked":
+		state = task.StateBlocked
+	case "waiting":
+		state = task.StateWaiting
+	case "finished":
+		state = task.StateFinished
+	default:
+		panic("Unknown state: " + command)
+	}
+
+	if err := m.SetState(t.Name, state); err != nil {
+		fmt.Fprintf(o, "Error! Cannot set state: %s", err.Error())
+	}
+
+	return nil
+}
+
 //
 //func journalAction(args []string, o io.Writer, m task.Manager) response {
 //	var t *task.Task = nil
