@@ -125,12 +125,12 @@ var commands = []command{
 		Args:        []string{"task-name"},
 		Action:      setStateAction,
 	},
-	//	command{
-	//		Name:        "journal",
-	//		Description: "Show the journal; optionally pass a task name to only show events for that task",
-	//		Args:        []string{"[task-name]"},
-	//		action:      journalAction,
-	//	},
+	command{
+		Name:        "journal",
+		Description: "Show the journal; optionally pass a task name to only show events for that task",
+		Args:        []string{"[task-name]"},
+		Action:      journalAction,
+	},
 }
 
 // Find the command with the provided name.
@@ -356,19 +356,21 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) er
 	return nil
 }
 
-//
-//func journalAction(args []string, o io.Writer, m task.Manager) response {
-//	var t *task.Task = nil
-//	if f.NArg() > 1 {
-//		t = parseTaskSpec(f.Arg(1), m)
-//	}
-//
-//	es := m.Events()
-//	for i := len(es) - 1; i >= 0; i-- {
-//		e := es[i]
-//		if t == nil || t.ID == e.TaskID {
-//			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
-//		}
-//	}
-//	return responseNoPersist
-//}
+func journalAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+	var t *task.Task = nil
+	if len(args) > 1 {
+		if t = m.FindByName(args[1]); t == nil {
+			fmt.Fprintf(o, "Error! Cannot get journal: unknown task %s", args[1])
+			return nil
+		}
+	}
+
+	es := m.Events()
+	for i := len(es) - 1; i >= 0; i-- {
+		e := es[i]
+		if t == nil || t.ID == e.TaskID {
+			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
+		}
+	}
+	return nil
+}

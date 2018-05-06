@@ -40,6 +40,56 @@ var _ = Describe("Command", func() {
 		})
 	})
 
+	Describe("reset", func() {
+		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to 'y'", func() {
+			var envVarBefore string
+
+			BeforeEach(func() {
+				envVarBefore = os.Getenv("ANWORK_TEST_RESET_ANSWER")
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "y")).To(Succeed())
+			})
+
+			AfterEach(func() {
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
+			})
+
+			It("asks the user to confirm and tells them their data is being deleted", func() {
+				r.Run([]string{"reset"})
+				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
+				Eventually(stdoutWriter).Should(gbytes.Say("OK, deleting all data"))
+			})
+
+			It("tells the factory to reset", func() {
+				Expect(r.Run([]string{"reset"})).To(Succeed())
+				Expect(factory.ResetCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to something other than 'y'", func() {
+			var envVarBefore string
+
+			BeforeEach(func() {
+				envVarBefore = os.Getenv("ANWORK_TEST_RESET_ANSWER")
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "tuna")).To(Succeed())
+			})
+
+			AfterEach(func() {
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
+			})
+
+			It("asks the user to confirm and tells them their data is not being deleted", func() {
+				Expect(r.Run([]string{"reset"})).To(Succeed())
+				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
+				Eventually(stdoutWriter).Should(gbytes.Say("NOT deleting all data"))
+			})
+
+			It("does not tell the factory to reset", func() {
+				Expect(r.Run([]string{"reset"})).To(Succeed())
+				Expect(factory.ResetCallCount()).To(Equal(0))
+			})
+		})
+	})
+
 	Describe("create", func() {
 		It("calls the manager to create a task", func() {
 			Expect(r.Run([]string{"create", "task-a"})).To(Succeed())
@@ -325,52 +375,59 @@ State: WAITING`
 		})
 	})
 
-	Describe("reset", func() {
-		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to 'y'", func() {
-			var envVarBefore string
-
-			BeforeEach(func() {
-				envVarBefore = os.Getenv("ANWORK_TEST_RESET_ANSWER")
-				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "y")).To(Succeed())
-			})
-
-			AfterEach(func() {
-				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
-			})
-
-			It("asks the user to confirm and tells them their data is being deleted", func() {
-				r.Run([]string{"reset"})
-				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
-				Eventually(stdoutWriter).Should(gbytes.Say("OK, deleting all data"))
-			})
-
-			It("tells the factory to reset", func() {
-				Expect(r.Run([]string{"reset"})).To(Succeed())
-				Expect(factory.ResetCallCount()).To(Equal(1))
+	Describe("journal", func() {
+		BeforeEach(func() {
+			manager.EventsReturnsOnCall(0, []*task.Event{
+				&task.Event{
+					TaskID: 1,
+					Title:  "event-a",
+				},
+				&task.Event{
+					TaskID: 5,
+					Title:  "event-b",
+				},
+				&task.Event{
+					TaskID: 1,
+					Title:  "event-c",
+				},
+				&task.Event{
+					TaskID: 5,
+					Title:  "event-d",
+				},
 			})
 		})
 
-		Context("when the ANWORK_TEST_RESET_ANSWER environmental variable is set to something other than 'y'", func() {
-			var envVarBefore string
+		Context("when no task name is passed", func() {
+			It("prints all journal entries in correct order", func() {
+				Expect(r.Run([]string{"journal"})).To(Succeed())
+				Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-d"))
+				Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-c"))
+				Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-b"))
+				Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-a"))
+			})
+		})
 
-			BeforeEach(func() {
-				envVarBefore = os.Getenv("ANWORK_TEST_RESET_ANSWER")
-				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "tuna")).To(Succeed())
+		Context("when task name is passed", func() {
+
+			Context("when the task does exist", func() {
+				BeforeEach(func() {
+					manager.FindByNameReturnsOnCall(0, &task.Task{
+						ID: 1,
+					})
+				})
+
+				It("prints the journal entries associated with that task", func() {
+					Expect(r.Run([]string{"journal", "task-a"})).To(Succeed())
+					Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-c"))
+					Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-a"))
+				})
 			})
 
-			AfterEach(func() {
-				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
-			})
-
-			It("asks the user to confirm and tells them their data is not being deleted", func() {
-				Expect(r.Run([]string{"reset"})).To(Succeed())
-				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
-				Eventually(stdoutWriter).Should(gbytes.Say("NOT deleting all data"))
-			})
-
-			It("does not tell the factory to reset", func() {
-				Expect(r.Run([]string{"reset"})).To(Succeed())
-				Expect(factory.ResetCallCount()).To(Equal(0))
+			Context("when the task does not exist", func() {
+				It("prints an error", func() {
+					Expect(r.Run([]string{"journal", "not-a-real-task"})).To(Succeed())
+					Expect(stdoutWriter).To(gbytes.Say("Error! Cannot get journal: unknown task not-a-real-task"))
+				})
 			})
 		})
 	})
