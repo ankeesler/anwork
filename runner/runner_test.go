@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ankeesler/anwork/runner"
+	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -69,11 +70,15 @@ var _ = Describe("AnworkRunner", func() {
 	})
 
 	Context("when a command takes an optional argument", func() {
+		BeforeEach(func() {
+			manager.FindByNameReturnsOnCall(0, &task.Task{})
+		})
+
 		It("allows the optional argument not to be passed", func() {
 			Expect(r.Run([]string{"show"})).To(Succeed())
 		})
 
-		It("allows the optional argument not to be", func() {
+		It("allows the optional argument to be passed", func() {
 			Expect(r.Run([]string{"show", "tuna"})).To(Succeed())
 		})
 

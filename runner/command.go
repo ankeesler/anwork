@@ -1,12 +1,10 @@
 // TODO: when we panic in this code, the command line interface looks really ugly. We should pass
 // string error messages to the callers of these commands so that they are more nicely formatted
 // when they appear on the command line.
-//
-// TODO: return an error and then print it out in the runner instead of printing it out in the
-// command implementation.
 package runner
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -28,6 +26,14 @@ type resetError struct {
 
 func (a resetError) Error() string {
 	return ""
+}
+
+type unknownTaskError struct {
+	name string
+}
+
+func (u unknownTaskError) Error() string {
+	return fmt.Sprintf("unknown task: %s", u.name)
 }
 
 // A Command represents a keyword (see Name field) passed to the anwork executable that incites some
@@ -257,19 +263,27 @@ func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager) erro
 
 	//t := parseTaskSpec(spec, m)
 	if !m.Delete(spec) {
-		fmt.Fprintf(o, "Error! Unknown task: %s\n", spec)
+		return unknownTaskError{name: spec}
 	}
+
 	return nil
 }
 
 func deleteAllAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	tasks := m.Tasks()
+	errMsgs := []string{}
 	for i := 0; i < len(tasks); i++ {
 		name := tasks[i].Name
 		if !m.Delete(name) {
-			fmt.Fprintf(o, "Error! Unable to delete task %s", name)
+			msg := fmt.Sprintf("\n\tunable to delete task %s", name)
+			errMsgs = append(errMsgs, msg)
 		}
 	}
+
+	if len(errMsgs) > 0 {
+		return errors.New(strings.Join(errMsgs, ""))
+	}
+
 	return nil
 }
 
@@ -291,8 +305,7 @@ func showAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 	} else {
 		t := m.FindByName(args[1])
 		if t == nil {
-			fmt.Fprintf(o, "Error! Unknown task: %s", args[1])
-			return nil
+			return unknownTaskError{name: args[1]}
 		}
 
 		fmt.Fprintf(o, "Name: %s\n", t.Name)
@@ -308,20 +321,20 @@ func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 	//t := parseTaskSpec(spec, m)
 	err := m.Note(args[1], args[2])
 	if err != nil {
-		fmt.Fprintf(o, "Error! Cannot add note: %s", err.Error())
+		return fmt.Errorf("cannot add note: %s", err.Error())
 	}
+
 	return nil
 }
 
 func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	prio, err := strconv.Atoi(args[2])
 	if err != nil {
-		fmt.Fprintf(o, "Error! Cannot set priority: invalid priority: '%s'", args[2])
-		return nil
+		return fmt.Errorf("cannot set priority: invalid priority: '%s'", args[2])
 	}
 
 	if err := m.SetPriority(args[1], prio); err != nil {
-		fmt.Fprintf(o, "Error! Cannot set priority: %s", err.Error())
+		return fmt.Errorf("cannot set priority: %s", err.Error())
 	}
 
 	return nil
@@ -331,8 +344,7 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) er
 	//t := parseTaskSpec(spec, m)
 	t := m.FindByName(args[1])
 	if t == nil {
-		fmt.Fprintf(o, "Error! Cannot set state: unknown task %s", args[1])
-		return nil
+		return unknownTaskError{name: args[1]}
 	}
 
 	var state task.State
@@ -350,7 +362,7 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) er
 	}
 
 	if err := m.SetState(t.Name, state); err != nil {
-		fmt.Fprintf(o, "Error! Cannot set state: %s", err.Error())
+		return fmt.Errorf("cannot set state: %s", err.Error())
 	}
 
 	return nil
@@ -360,8 +372,7 @@ func journalAction(cmd *command, args []string, o io.Writer, m task.Manager) err
 	var t *task.Task = nil
 	if len(args) > 1 {
 		if t = m.FindByName(args[1]); t == nil {
-			fmt.Fprintf(o, "Error! Cannot get journal: unknown task %s", args[1])
-			return nil
+			return unknownTaskError{name: args[1]}
 		}
 	}
 

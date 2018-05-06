@@ -99,13 +99,10 @@ var _ = Describe("Command", func() {
 
 		Context("when the manager fails to create a task", func() {
 			BeforeEach(func() {
-				factory.CreateReturnsOnCall(1, manager, nil)
-				manager.CreateReturnsOnCall(1, errors.New("failed to create task"))
+				manager.CreateReturnsOnCall(0, errors.New("failed to create task"))
 			})
 
 			It("returns a helpful error message", func() {
-				Expect(r.Run([]string{"create", "task-a"})).To(Succeed())
-
 				err := r.Run([]string{"create", "task-a"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to create task"))
@@ -132,10 +129,9 @@ var _ = Describe("Command", func() {
 			})
 
 			It("prints out a helpful message saying that the task was unknown", func() {
-				Expect(r.Run([]string{"delete", "task-a"})).To(Succeed())
-				Expect(manager.DeleteCallCount()).To(Equal(1))
-				Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
-				Expect(stdoutWriter).To(gbytes.Say("Unknown task: task-a"))
+				err := r.Run([]string{"delete", "task-a"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unknown task: task-a"))
 			})
 		})
 	})
@@ -182,14 +178,15 @@ var _ = Describe("Command", func() {
 				})
 
 				It("notifies the user of which task was not able to be deleted", func() {
-					Expect(r.Run([]string{"delete-all"})).To(Succeed())
+					err := r.Run([]string{"delete-all"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unable to delete task task-a"))
+					Expect(err.Error()).To(ContainSubstring("unable to delete task task-c"))
+
 					Expect(manager.DeleteCallCount()).To(Equal(3))
 					Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
 					Expect(manager.DeleteArgsForCall(1)).To(Equal("task-b"))
 					Expect(manager.DeleteArgsForCall(2)).To(Equal("task-c"))
-
-					Expect(stdoutWriter).To(gbytes.Say("Error! Unable to delete task task-a"))
-					Expect(stdoutWriter).To(gbytes.Say("Error! Unable to delete task task-c"))
 				})
 			})
 
@@ -205,8 +202,9 @@ var _ = Describe("Command", func() {
 
 			Context("when a task name argument is passed", func() {
 				It("prints an error an unknown task", func() {
-					Expect(r.Run([]string{"show", "task-a"})).To(Succeed())
-					Expect(stdoutWriter).To(gbytes.Say("Error! Unknown task: task-a"))
+					err := r.Run([]string{"show", "task-a"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task: task-a"))
 				})
 			})
 		})
@@ -290,9 +288,9 @@ State: WAITING`
 			})
 
 			It("displays the error to the user", func() {
-				Expect(r.Run([]string{"note", "task-a", "tuna"})).To(Succeed())
-
-				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot add note: task does not exist"))
+				err := r.Run([]string{"note", "task-a", "tuna"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("cannot add note: task does not exist"))
 			})
 		})
 	})
@@ -314,17 +312,17 @@ State: WAITING`
 			})
 
 			It("displays the error to the user", func() {
-				Expect(r.Run([]string{"set-priority", "task-a", "10"})).To(Succeed())
-
-				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot set priority: task does not exist"))
+				err := r.Run([]string{"set-priority", "task-a", "10"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("cannot set priority: task does not exist"))
 			})
 		})
 
 		Context("when the second argument is not a number", func() {
 			It("displays the error to the user", func() {
-				Expect(r.Run([]string{"set-priority", "task-a", "tuna"})).To(Succeed())
-
-				Eventually(stdoutWriter).Should(gbytes.Say("Error! Cannot set priority: invalid priority: 'tuna'"))
+				err := r.Run([]string{"set-priority", "task-a", "tuna"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("cannot set priority: invalid priority: 'tuna'"))
 			})
 		})
 	})
@@ -358,8 +356,9 @@ State: WAITING`
 			})
 
 			It("prints the error to the user", func() {
-				Expect(r.Run([]string{"set-running", "task-a"})).To(Succeed())
-				Expect(stdoutWriter).To(gbytes.Say("Error! Cannot set state: failed to set state"))
+				err := r.Run([]string{"set-running", "task-a"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("cannot set state: failed to set state"))
 			})
 		})
 
@@ -369,8 +368,9 @@ State: WAITING`
 			})
 
 			It("prints the error to the user", func() {
-				Expect(r.Run([]string{"set-running", "task-a"})).To(Succeed())
-				Expect(stdoutWriter).To(gbytes.Say("Error! Cannot set state: unknown task task-a"))
+				err := r.Run([]string{"set-running", "task-a"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unknown task: task-a"))
 			})
 		})
 	})
@@ -425,8 +425,9 @@ State: WAITING`
 
 			Context("when the task does not exist", func() {
 				It("prints an error", func() {
-					Expect(r.Run([]string{"journal", "not-a-real-task"})).To(Succeed())
-					Expect(stdoutWriter).To(gbytes.Say("Error! Cannot get journal: unknown task not-a-real-task"))
+					err := r.Run([]string{"journal", "not-a-real-task"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task: not-a-real-task"))
 				})
 			})
 		})
