@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task"
@@ -86,6 +87,74 @@ var _ = Describe("Command", func() {
 			It("does not tell the factory to reset", func() {
 				Expect(r.Run([]string{"reset"})).To(Succeed())
 				Expect(factory.ResetCallCount()).To(Equal(0))
+			})
+		})
+	})
+
+	Describe("summary", func() {
+		BeforeEach(func() {
+			twoDaysAgo := time.Now().Add(-1 * (time.Hour * 24 * 2))
+			tenDaysAgo := time.Now().Add(-1 * (time.Hour * 24 * 10))
+			manager.EventsReturns([]*task.Event{
+				&task.Event{
+					Type:   task.EventTypeSetState,
+					Title:  "foo",
+					TaskID: 1,
+				},
+				&task.Event{
+					Type:   task.EventTypeCreate,
+					Title:  "task-a created",
+					Date:   twoDaysAgo.Unix(),
+					TaskID: 5,
+				},
+				&task.Event{
+					Type:   task.EventTypeSetState,
+					Title:  "task-a changed to Finished",
+					Date:   twoDaysAgo.Unix(),
+					TaskID: 5,
+				},
+				&task.Event{
+					Type:   task.EventTypeSetState,
+					Title:  "task-b changed to Finished",
+					Date:   tenDaysAgo.Unix(),
+					TaskID: 10,
+				},
+			})
+		})
+
+		It("shows the tasks that have been completed in the provided number of days", func() {
+			Expect(r.Run([]string{"summary", "5"})).To(Succeed())
+
+			Eventually(stdoutWriter).Should(gbytes.Say("\\[.*\\]: task-a changed to Finished"))
+			Eventually(stdoutWriter).Should(gbytes.Say("  took \\d+\\w"))
+		})
+
+		It("does not show the tasks that haven't been completed in the provided number of days", func() {
+			Expect(r.Run([]string{"summary", "5"})).To(Succeed())
+
+			Eventually(stdoutWriter).ShouldNot(gbytes.Say("foo"))
+			Eventually(stdoutWriter).ShouldNot(gbytes.Say("task-b changed to Finished"))
+		})
+
+		Context("when the number of days is invalid", func() {
+			It("doesn't display anything", func() {
+				err := r.Run([]string{"summary", "tuna"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Cannot convert days tuna to number"))
+			})
+		})
+
+		Context("when the number of days is 0", func() {
+			It("doesn't display anything", func() {
+				Expect(r.Run([]string{"summary", "0"})).To(Succeed())
+				Expect(stdoutWriter.Contents()).To(BeEmpty())
+			})
+		})
+
+		Context("when the number of days is negative", func() {
+			It("doesn't display anything", func() {
+				Expect(r.Run([]string{"summary", "-3"})).To(Succeed())
+				Expect(stdoutWriter.Contents()).To(BeEmpty())
 			})
 		})
 	})

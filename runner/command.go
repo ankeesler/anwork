@@ -1,6 +1,3 @@
-// TODO: when we panic in this code, the command line interface looks really ugly. We should pass
-// string error messages to the callers of these commands so that they are more nicely formatted
-// when they appear on the command line.
 package runner
 
 import (
@@ -65,12 +62,12 @@ var commands = []command{
 		Args:        []string{},
 		Action:      resetAction,
 	},
-	//	command{
-	//		Name:        "summary",
-	//		Description: "Show a summary of the tasks completed in the past days",
-	//		Args:        []string{"days"},
-	//		action:      summaryAction,
-	//	},
+	command{
+		Name:        "summary",
+		Description: "Show a summary of the tasks completed in the past days",
+		Args:        []string{"days"},
+		Action:      summaryAction,
+	},
 	command{
 		Name:        "create",
 		Description: "Create a new task",
@@ -150,8 +147,7 @@ func findCommand(name string) *command {
 }
 
 // Parse a "task spec" which is either the name of a task (i.e., "task-a") or the '@' symbol and an
-// integer value indicating the ID of a task (i.e., "@37"). This function will never return nil. If
-// the specifier is illegal, it will panic.
+// integer value indicating the ID of a task (i.e., "@37").
 func parseTaskSpec(str string, m task.Manager) (*task.Task, error) {
 	var t *task.Task = nil
 	if strings.HasPrefix(str, "@") {
@@ -180,9 +176,9 @@ func formatDate(seconds int64) string {
 		date.Minute())
 }
 
-//func formatDuration(duration time.Duration) string {
-//	return fmt.Sprintf("%s", duration.String())
-//}
+func formatDuration(duration time.Duration) string {
+	return fmt.Sprintf("%s", duration.String())
+}
 
 func versionAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	fmt.Fprintln(o, "ANWORK Version =", version)
@@ -207,46 +203,41 @@ func resetAction(cmd *command, args []string, o io.Writer, m task.Manager) error
 	}
 }
 
-//
-//func findCreateEvent(m task.Manager, taskID int) *task.Event {
-//	for _, e := range m.Events() {
-//		if e.Type == task.EventTypeCreate && e.TaskID == taskID {
-//			return e
-//		}
-//	}
-//	return nil
-//}
-//
-//func summaryAction(args []string, o io.Writer, m task.Manager) response {
-//	days, ok := arg(f, 1)
-//	if !ok {
-//		return responseArgumentError
-//	}
-//
-//	daysNum, err := strconv.Atoi(days)
-//	if err != nil {
-//		msg := fmt.Sprintf("Cannot convert days %s to number: %s", days, err.Error())
-//		panic(msg)
-//	}
-//
-//	now := time.Now()
-//	es := m.Events()
-//	for i := len(es) - 1; i >= 0; i-- {
-//		e := es[i]
-//		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
-//		eDate := time.Unix(e.Date, 0)
-//		isWithinDays := eDate.Add(time.Duration(daysNum*24) * time.Hour).After(now)
-//		if isFinished && isWithinDays {
-//			createE := findCreateEvent(m, e.TaskID)
-//			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
-//			if createE != nil {
-//				createEDate := time.Unix(createE.Date, 0)
-//				fmt.Fprintf(o, "  took %s\n", formatDuration(eDate.Sub(createEDate)))
-//			}
-//		}
-//	}
-//	return responseNoPersist
-//}
+func findCreateEvent(m task.Manager, taskID int) *task.Event {
+	for _, e := range m.Events() {
+		if e.Type == task.EventTypeCreate && e.TaskID == taskID {
+			return e
+		}
+	}
+	return nil
+}
+
+func summaryAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+	daysNum, err := strconv.Atoi(args[1])
+	if err != nil {
+		return fmt.Errorf("Cannot convert days %s to number: %s", args[1], err.Error())
+	}
+	_ = daysNum
+
+	now := time.Now()
+	es := m.Events()
+	for i := len(es) - 1; i >= 0; i-- {
+		e := es[i]
+		isFinished := e.Type == task.EventTypeSetState && strings.Contains(e.Title, "to Finished")
+		eDate := time.Unix(e.Date, 0)
+		isWithinDays := eDate.Add(time.Duration(daysNum*24) * time.Hour).After(now)
+		if isFinished && isWithinDays {
+			createE := findCreateEvent(m, e.TaskID)
+			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
+			if createE != nil {
+				createEDate := time.Unix(createE.Date, 0)
+				fmt.Fprintf(o, "  took %s\n", formatDuration(eDate.Sub(createEDate)))
+			}
+		}
+	}
+
+	return nil
+}
 
 func createAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	name := args[1]
