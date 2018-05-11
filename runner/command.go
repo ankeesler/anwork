@@ -152,29 +152,28 @@ func findCommand(name string) *command {
 // Parse a "task spec" which is either the name of a task (i.e., "task-a") or the '@' symbol and an
 // integer value indicating the ID of a task (i.e., "@37"). This function will never return nil. If
 // the specifier is illegal, it will panic.
-//func parseTaskSpec(str string, m task.Manager) *task.Task {
-//	var t *task.Task = nil
-//	if strings.HasPrefix(str, "@") {
-//		num, err := strconv.Atoi(str[1:])
-//		if err != nil {
-//			panic("Error! Cannot parse task ID: " + err.Error())
-//		}
-//		for _, task := range m.Tasks() {
-//			if task.ID == num {
-//				t = task
-//				break
-//			}
-//		}
-//	} else {
-//		t = m.FindByName(str) // str is the name of a task
-//	}
-//
-//	if t == nil {
-//		panic("Error! Unknown task for specifier: " + str)
-//	}
-//	return t
-//}
-//
+func parseTaskSpec(str string, m task.Manager) (*task.Task, error) {
+	var t *task.Task = nil
+	if strings.HasPrefix(str, "@") {
+		num, err := strconv.Atoi(str[1:])
+		if err != nil {
+			return nil, fmt.Errorf("cannot parse task ID: %s", err.Error())
+		}
+
+		t = m.FindByID(num)
+		if t == nil {
+			return nil, fmt.Errorf("unknown task ID in task spec: %d", num)
+		}
+	} else {
+		t = m.FindByName(str) // str is the name of a task
+		if t == nil {
+			return nil, unknownTaskError{name: str}
+		}
+	}
+
+	return t, nil
+}
+
 func formatDate(seconds int64) string {
 	date := time.Unix(seconds, 0)
 	return fmt.Sprintf("%s %s %d %02d:%02d", date.Weekday(), date.Month(), date.Day(), date.Hour(),
@@ -261,8 +260,12 @@ func createAction(cmd *command, args []string, o io.Writer, m task.Manager) erro
 func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	spec := args[1]
 
-	//t := parseTaskSpec(spec, m)
-	if !m.Delete(spec) {
+	t, err := parseTaskSpec(spec, m)
+	if err != nil {
+		return err
+	}
+
+	if !m.Delete(t.Name) {
 		return unknownTaskError{name: spec}
 	}
 
@@ -303,9 +306,9 @@ func showAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 		printer(task.StateWaiting)
 		printer(task.StateFinished)
 	} else {
-		t := m.FindByName(args[1])
-		if t == nil {
-			return unknownTaskError{name: args[1]}
+		t, err := parseTaskSpec(args[1], m)
+		if err != nil {
+			return err
 		}
 
 		fmt.Fprintf(o, "Name: %s\n", t.Name)
@@ -318,9 +321,12 @@ func showAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 }
 
 func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
-	//t := parseTaskSpec(spec, m)
-	err := m.Note(args[1], args[2])
+	t, err := parseTaskSpec(args[1], m)
 	if err != nil {
+		return err
+	}
+
+	if err = m.Note(t.Name, args[2]); err != nil {
 		return fmt.Errorf("cannot add note: %s", err.Error())
 	}
 
@@ -328,12 +334,17 @@ func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 }
 
 func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+	t, err := parseTaskSpec(args[1], m)
+	if err != nil {
+		return err
+	}
+
 	prio, err := strconv.Atoi(args[2])
 	if err != nil {
 		return fmt.Errorf("cannot set priority: invalid priority: '%s'", args[2])
 	}
 
-	if err := m.SetPriority(args[1], prio); err != nil {
+	if err := m.SetPriority(t.Name, prio); err != nil {
 		return fmt.Errorf("cannot set priority: %s", err.Error())
 	}
 
@@ -341,10 +352,9 @@ func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager)
 }
 
 func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
-	//t := parseTaskSpec(spec, m)
-	t := m.FindByName(args[1])
-	if t == nil {
-		return unknownTaskError{name: args[1]}
+	t, err := parseTaskSpec(args[1], m)
+	if err != nil {
+		return err
 	}
 
 	var state task.State
@@ -371,8 +381,10 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) er
 func journalAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	var t *task.Task = nil
 	if len(args) > 1 {
-		if t = m.FindByName(args[1]); t == nil {
-			return unknownTaskError{name: args[1]}
+		var err error
+		t, err = parseTaskSpec(args[1], m)
+		if err != nil {
+			return err
 		}
 	}
 

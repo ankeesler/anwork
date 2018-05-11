@@ -114,12 +114,46 @@ var _ = Describe("Command", func() {
 		Context("when the manager successfully deletes the task", func() {
 			BeforeEach(func() {
 				manager.DeleteReturnsOnCall(0, true)
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
 			})
 
 			It("successfully deletes existing tasks", func() {
 				Expect(r.Run([]string{"delete", "task-a"})).To(Succeed())
 				Expect(manager.DeleteCallCount()).To(Equal(1))
 				Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+			})
+		})
+
+		Context("when a task spec is passed", func() {
+			BeforeEach(func() {
+				manager.DeleteReturnsOnCall(0, true)
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
+			It("parses the task spec and deletes the correct task", func() {
+				Expect(r.Run([]string{"delete", "@1"})).To(Succeed())
+				Expect(manager.FindByIDArgsForCall(0)).To(Equal(1))
+				Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+			})
+
+			Context("when the task spec is totally bogus", func() {
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"delete", "@tuna"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot parse task ID"))
+				})
+			})
+
+			Context("when the task spec is not a valid task ID", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil)
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"delete", "@1"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
+				})
 			})
 		})
 
@@ -269,10 +303,58 @@ State: WAITING`
 				})
 			})
 		})
+
+		Context("when a task spec is passed", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0,
+					&task.Task{
+						Name:     "task-a",
+						ID:       10,
+						State:    task.StateWaiting,
+						Priority: 3,
+					},
+				)
+			})
+
+			It("parses the task spec and prints out information about the task", func() {
+				Expect(r.Run([]string{"show", "@1"})).To(Succeed())
+				Expect(manager.FindByIDArgsForCall(0)).To(Equal(1))
+				expectedOutput := `Name: task-a
+ID: 10
+Created: \w+ \w+ \d\d? \d\d:\d\d
+Priority: 3
+State: WAITING`
+				Expect(stdoutWriter).To(gbytes.Say(expectedOutput))
+			})
+
+			Context("when the task spec is totally bogus", func() {
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"show", "@tuna"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot parse task ID"))
+				})
+			})
+
+			Context("when the task spec is not a valid task ID", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil)
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"show", "@1"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
+				})
+			})
+		})
 	})
 
 	Describe("note", func() {
 		Context("when the task exists", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
 			It("adds a note to the task", func() {
 				Expect(r.Run([]string{"note", "task-a", "tuna"})).To(Succeed())
 
@@ -284,6 +366,7 @@ State: WAITING`
 
 		Context("when the manager fails to add a note", func() {
 			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
 				manager.NoteReturnsOnCall(0, errors.New("task does not exist"))
 			})
 
@@ -293,10 +376,50 @@ State: WAITING`
 				Expect(err.Error()).To(ContainSubstring("cannot add note: task does not exist"))
 			})
 		})
+
+		Context("when a task spec is passed", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
+			It("parses the task spec and adds a note to the correct task", func() {
+				Expect(r.Run([]string{"note", "@1", "tuna"})).To(Succeed())
+
+				Expect(manager.FindByIDArgsForCall(0)).To(Equal(1))
+
+				name, note := manager.NoteArgsForCall(0)
+				Expect(name).To(Equal("task-a"))
+				Expect(note).To(Equal("tuna"))
+			})
+
+			Context("when the task spec is totally bogus", func() {
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"note", "@tuna", "fish"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot parse task ID"))
+				})
+			})
+
+			Context("when the task spec is not a valid task ID", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil)
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"note", "@1", "tuna"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
+				})
+			})
+		})
 	})
 
 	Describe("set-priority", func() {
 		Context("when the task exists", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
 			It("sets the priority on the task", func() {
 				Expect(r.Run([]string{"set-priority", "task-a", "10"})).To(Succeed())
 
@@ -308,6 +431,7 @@ State: WAITING`
 
 		Context("when the manager fails to set the priority", func() {
 			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
 				manager.SetPriorityReturnsOnCall(0, errors.New("task does not exist"))
 			})
 
@@ -319,10 +443,50 @@ State: WAITING`
 		})
 
 		Context("when the second argument is not a number", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
 			It("displays the error to the user", func() {
 				err := r.Run([]string{"set-priority", "task-a", "tuna"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("cannot set priority: invalid priority: 'tuna'"))
+			})
+		})
+
+		Context("when a task spec is passed", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
+			It("parses the task spec and sets the priority on the task", func() {
+				Expect(r.Run([]string{"set-priority", "@1", "5"})).To(Succeed())
+
+				Expect(manager.FindByIDArgsForCall(0)).To(Equal(1))
+
+				name, prio := manager.SetPriorityArgsForCall(0)
+				Expect(name).To(Equal("task-a"))
+				Expect(prio).To(Equal(5))
+			})
+
+			Context("when the task spec is totally bogus", func() {
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"set-priority", "@tuna", "5"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot parse task ID"))
+				})
+			})
+
+			Context("when the task spec is not a valid task ID", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil)
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"set-priority", "@1", "5"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
+				})
 			})
 		})
 	})
@@ -371,6 +535,42 @@ State: WAITING`
 				err := r.Run([]string{"set-running", "task-a"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("unknown task: task-a"))
+			})
+		})
+
+		Context("when a task spec is passed", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+			})
+
+			It("parses the task spec and sets the state on the task", func() {
+				Expect(r.Run([]string{"set-running", "@1"})).To(Succeed())
+
+				Expect(manager.FindByIDArgsForCall(0)).To(Equal(1))
+
+				name, state := manager.SetStateArgsForCall(0)
+				Expect(name).To(Equal("task-a"))
+				Expect(state).To(Equal(task.StateRunning))
+			})
+
+			Context("when the task spec is totally bogus", func() {
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"set-running", "@tuna"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot parse task ID"))
+				})
+			})
+
+			Context("when the task spec is not a valid task ID", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil)
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"set-running", "@1"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
+				})
 			})
 		})
 	})
@@ -428,6 +628,58 @@ State: WAITING`
 					err := r.Run([]string{"journal", "not-a-real-task"})
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("unknown task: not-a-real-task"))
+				})
+			})
+		})
+
+		Context("when a task spec is passed", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a", ID: 1})
+				manager.EventsReturnsOnCall(0, []*task.Event{
+					&task.Event{
+						TaskID: 1,
+						Title:  "event-a",
+					},
+					&task.Event{
+						TaskID: 5,
+						Title:  "event-b",
+					},
+					&task.Event{
+						TaskID: 1,
+						Title:  "event-c",
+					},
+					&task.Event{
+						TaskID: 5,
+						Title:  "event-d",
+					},
+				})
+			})
+
+			It("parses the task spec and displays the journal", func() {
+				Expect(r.Run([]string{"journal", "@1"})).To(Succeed())
+
+				Expect(manager.FindByIDArgsForCall(0)).To(Equal(1))
+
+				Expect(stdoutWriter).To(gbytes.Say("\\[.*\\]: event-c"))
+			})
+
+			Context("when the task spec is totally bogus", func() {
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"journal", "@tuna"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot parse task ID"))
+				})
+			})
+
+			Context("when the task spec is not a valid task ID", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil)
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"journal", "@1"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
 				})
 			})
 		})
