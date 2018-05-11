@@ -22,7 +22,7 @@ var _ = Describe("anwork", func() {
 	})
 
 	AfterEach(func() {
-		run(nil, nil, "reset", "y")
+		run(outBuf, errBuf, "reset")
 	})
 
 	Context("when no args are passed", func() {
@@ -50,7 +50,7 @@ var _ = Describe("anwork", func() {
 	Context("when a bad command is passed", func() {
 		It("fails and prints the usage", func() {
 			runWithStatus(1, outBuf, errBuf, "tuna")
-			Expect(outBuf).To(gbytes.Say("Usage of anwork"))
+			Expect(errBuf).To(gbytes.Say("Usage of anwork"))
 		})
 	})
 

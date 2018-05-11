@@ -1,13 +1,13 @@
 package integration
 
 import (
-	"io"
 	"os"
 	"os/exec"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -17,14 +17,15 @@ var (
 	runningOnTravis bool
 )
 
-func run(outBuf, errBuf io.Writer, args ...string) {
+func run(outBuf, errBuf *gbytes.Buffer, args ...string) {
 	runWithStatus(0, outBuf, errBuf, args...)
 }
 
-func runWithStatus(exitCode int, outBuf, errBuf io.Writer, args ...string) {
+func runWithStatus(exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) {
 	s, err := gexec.Start(exec.Command(anworkBin, args...), outBuf, errBuf)
 	ExpectWithOffset(1, err).To(Succeed())
-	EventuallyWithOffset(1, s).Should(gexec.Exit(exitCode))
+	EventuallyWithOffset(1, s).Should(gexec.Exit(exitCode), "STDOUT: %s, STDERR: %s",
+		string(outBuf.Contents()), string(errBuf.Contents()))
 }
 
 func TestIntegration(t *testing.T) {
@@ -36,6 +37,8 @@ func TestIntegration(t *testing.T) {
 		Expect(err).ToNot(HaveOccurred())
 
 		_, runningOnTravis = os.LookupEnv("TRAVIS")
+
+		Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "1")).To(Succeed())
 	})
 	AfterSuite(func() {
 		gexec.CleanupBuildArtifacts()
