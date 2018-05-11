@@ -15,12 +15,74 @@ var _ = Describe("anwork", func() {
 	var (
 		outBuf, errBuf *gbytes.Buffer
 	)
+
 	BeforeEach(func() {
 		outBuf = gbytes.NewBuffer()
 		errBuf = gbytes.NewBuffer()
 	})
+
 	AfterEach(func() {
 		run(nil, nil, "reset", "y")
+	})
+
+	Context("when no args are passed", func() {
+		It("prints the usage", func() {
+			run(outBuf, errBuf)
+			Expect(outBuf).To(gbytes.Say("Usage of anwork"))
+		})
+	})
+
+	Context("when help is requested", func() {
+		It("prints the usage (only once!)", func() {
+			run(outBuf, errBuf, "-h")
+			Expect(outBuf).To(gbytes.Say("Usage of anwork"))
+			Expect(outBuf).NotTo(gbytes.Say("Usage of anwork"))
+		})
+	})
+
+	Context("when a bad flag is passed", func() {
+		It("fails and prints the usage", func() {
+			runWithStatus(1, outBuf, errBuf, "-tuna")
+			Expect(outBuf).To(gbytes.Say("Usage of anwork"))
+		})
+	})
+
+	Context("when a bad command is passed", func() {
+		It("fails and prints the usage", func() {
+			runWithStatus(1, outBuf, errBuf, "tuna")
+			Expect(outBuf).To(gbytes.Say("Usage of anwork"))
+		})
+	})
+
+	Context("when a comment expects an arg but doesn't get one", func() {
+		It("fails and prints the usage for that command", func() {
+			runWithStatus(1, outBuf, errBuf, "create")
+			Expect(outBuf).To(gbytes.Say("create task-name"))
+		})
+
+		It("prints something about the missing argument", func() {
+			runWithStatus(1, outBuf, errBuf, "create")
+			Expect(outBuf).To(gbytes.Say("Error! Wrong arguments passed to command"))
+		})
+	})
+
+	Context("when a bad context is passed", func() {
+		It("fails", func() {
+			runWithStatus(1, outBuf, errBuf, "-c", "/i/really/hope/this/file/doesnt/exist", "show")
+		})
+	})
+
+	Context("when the context is corrupt", func() {
+		It("fails", func() {
+			runWithStatus(1, outBuf, errBuf, "-c", "data", "-o", "bad-context", "show")
+		})
+	})
+
+	Context("when the version command is passed", func() {
+		It("prints out the version", func() {
+			run(outBuf, errBuf, "version")
+			Expect(outBuf).To(gbytes.Say("ANWORK Version = 3"))
+		})
 	})
 
 	Context("when creating a task", func() {
