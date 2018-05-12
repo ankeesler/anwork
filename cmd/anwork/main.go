@@ -28,16 +28,6 @@ func (dw *debugWriter) Write(data []byte) (int, error) {
 	return 0, nil
 }
 
-func usage(r *runner.Runner, f *flag.FlagSet) func() {
-	return func() {
-		fmt.Println("Usage of anwork")
-		fmt.Println("Flags")
-		f.PrintDefaults()
-		fmt.Println("Commands")
-		r.Usage(os.Stdout)
-	}
-}
-
 func main() {
 	var (
 		context, root string
@@ -51,9 +41,13 @@ func main() {
 	flags.StringVar(&context, "c", "default-context", "Set the persistence context")
 	flags.StringVar(&root, "o", ".", "Set the persistence root directory")
 
-	factory := local.NewManagerFactory(root, context)
-	r := runner.New(factory, os.Stdout, &dw)
-	flags.Usage = usage(r, flags)
+	flags.Usage = func() {
+		fmt.Println("Usage of anwork")
+		fmt.Println("Flags")
+		flags.PrintDefaults()
+		fmt.Println("Commands")
+		runner.Usage(os.Stdout)
+	}
 
 	if err := flags.Parse(os.Args[1:]); err == flag.ErrHelp {
 		// Looks like help is printed by the flag package...
@@ -70,7 +64,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	if err := r.Run(os.Args[1:]); err != nil {
+	factory := local.NewManagerFactory(root, context)
+	r := runner.New(factory, os.Stdout, &dw)
+	if err := r.Run(flags.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)
 	}

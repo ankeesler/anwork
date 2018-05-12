@@ -37,7 +37,7 @@ var _ = Describe("Command", func() {
 	Describe("version", func() {
 		It("prints out the version", func() {
 			Expect(r.Run([]string{"version"})).To(Succeed())
-			Expect(stdoutWriter).To(gbytes.Say("ANWORK Version = 3"))
+			Expect(stdoutWriter).To(gbytes.Say(fmt.Sprintf("ANWORK Version = %d", runner.Version)))
 		})
 	})
 

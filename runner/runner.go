@@ -10,6 +10,14 @@ import (
 	"github.com/ankeesler/anwork/task"
 )
 
+// Print the usage of every anwork runner command to the provided output writer.
+func Usage(output io.Writer) {
+	for _, c := range commands {
+		fmt.Fprintf(output, "  %s %s\n", c.Name, strings.Join(c.Args, " "))
+		fmt.Fprintf(output, "        %s\n", c.Description)
+	}
+}
+
 // A Runner is an object that can run the various pieces of anwork functionality, e.g.,
 // create tasks, show tasks, print out version information, etc.
 type Runner struct {
@@ -63,14 +71,6 @@ func (a *Runner) Run(args []string) error {
 	}
 
 	return nil
-}
-
-// Print the usage of every anwork runner command to the provided output writer.
-func (a *Runner) Usage(output io.Writer) {
-	for _, c := range commands {
-		fmt.Fprintf(output, "  %s %s\n", c.Name, strings.Join(c.Args, " "))
-		fmt.Fprintf(output, "        %s\n", c.Description)
-	}
 }
 
 func (a *Runner) debug(format string, args ...interface{}) {

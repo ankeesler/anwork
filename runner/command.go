@@ -15,7 +15,7 @@ import (
 //go:generate go run ../../genclidoc/main.go ../../../doc/CLI.md
 
 // This is the version of this anwork application command set.
-const version = 3
+const Version = 4
 
 // This error is used to indicate that the manager factory should be reset.
 type resetError struct {
@@ -181,7 +181,7 @@ func formatDuration(duration time.Duration) string {
 }
 
 func versionAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
-	fmt.Fprintln(o, "ANWORK Version =", version)
+	fmt.Fprintln(o, "ANWORK Version =", Version)
 	return nil
 }
 

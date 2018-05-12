@@ -153,7 +153,7 @@ var _ = Describe("AnworkRunner", func() {
 	Describe("Usage", func() {
 		It("prints the usage information for every command in a common format", func() {
 			buffer := gbytes.NewBuffer()
-			r.Usage(buffer)
+			runner.Usage(buffer)
 			Expect(buffer).To(gbytes.Say("  create task-name"))
 			Expect(buffer).To(gbytes.Say("   Create a new task"))
 			Expect(buffer).To(gbytes.Say("  show \\[task-name\\]"))
