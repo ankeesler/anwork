@@ -12,7 +12,7 @@ import (
 	"github.com/ankeesler/anwork/task"
 )
 
-//go:generate go run ../../genclidoc/main.go ../../../doc/CLI.md
+//go:generate go run ../cmd/genclidoc/main.go ../doc/CLI.md
 
 // This is the version of this anwork application command set.
 const Version = 4

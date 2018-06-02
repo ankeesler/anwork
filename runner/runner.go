@@ -18,6 +18,21 @@ func Usage(output io.Writer) {
 	}
 }
 
+// Print the usage of every anwork runner command in Github markdown format
+// to the provided output writer.
+func MarkdownUsage(output io.Writer) {
+	for _, c := range commands {
+		fmt.Fprintf(output, "### `anwork %s", c.Name)
+		for _, a := range c.Args {
+			fmt.Fprintf(output, " %s", a)
+		}
+		fmt.Fprintln(output, "`")
+
+		fmt.Fprintf(output, "* %s", c.Description)
+		fmt.Fprintln(output)
+	}
+}
+
 // A Runner is an object that can run the various pieces of anwork functionality, e.g.,
 // create tasks, show tasks, print out version information, etc.
 type Runner struct {

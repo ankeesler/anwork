@@ -157,13 +157,24 @@ var _ = Describe("AnworkRunner", func() {
 	})
 
 	Describe("Usage", func() {
-		It("prints the usage information for every command in a common format", func() {
+		It("prints the usage information for every command in a command line format", func() {
 			buffer := gbytes.NewBuffer()
 			runner.Usage(buffer)
 			Expect(buffer).To(gbytes.Say("  create task-name"))
 			Expect(buffer).To(gbytes.Say("   Create a new task"))
 			Expect(buffer).To(gbytes.Say("  show \\[task-name\\]"))
 			Expect(buffer).To(gbytes.Say("   Show the current tasks, or the details of a specific task"))
+		})
+	})
+
+	Describe("MarkdownUsage", func() {
+		It("prints the usage information for every command in a github markdown format", func() {
+			buffer := gbytes.NewBuffer()
+			runner.MarkdownUsage(buffer)
+			Expect(buffer).To(gbytes.Say("### `anwork create task-name`"))
+			Expect(buffer).To(gbytes.Say("\\* Create a new task"))
+			Expect(buffer).To(gbytes.Say("### `anwork show \\[task-name\\]`"))
+			Expect(buffer).To(gbytes.Say("\\* Show the current tasks, or the details of a specific task"))
 		})
 	})
 })
