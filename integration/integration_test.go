@@ -3,6 +3,7 @@ package integration
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -19,10 +20,6 @@ var _ = Describe("anwork", func() {
 	BeforeEach(func() {
 		outBuf = gbytes.NewBuffer()
 		errBuf = gbytes.NewBuffer()
-	})
-
-	AfterEach(func() {
-		run(outBuf, errBuf, "reset")
 	})
 
 	Context("when no args are passed", func() {
@@ -48,21 +45,22 @@ var _ = Describe("anwork", func() {
 	})
 
 	Context("when a bad command is passed", func() {
-		It("fails and prints the usage", func() {
+		It("fails with a somewhat helpful error message", func() {
 			runWithStatus(1, outBuf, errBuf, "tuna")
-			Expect(errBuf).To(gbytes.Say("Usage of anwork"))
+			Expect(errBuf).To(gbytes.Say("Unknown command: 'tuna'"))
 		})
 	})
 
-	Context("when a comment expects an arg but doesn't get one", func() {
+	Context("when a command expects an arg but doesn't get one", func() {
 		It("fails and prints the usage for that command", func() {
 			runWithStatus(1, outBuf, errBuf, "create")
-			Expect(outBuf).To(gbytes.Say("create task-name"))
+			Expect(errBuf).To(gbytes.Say("Got: \\[]"))
+			Expect(errBuf).To(gbytes.Say("Expected: \\[task-name\\]"))
 		})
 
 		It("prints something about the missing argument", func() {
 			runWithStatus(1, outBuf, errBuf, "create")
-			Expect(outBuf).To(gbytes.Say("Error! Wrong arguments passed to command"))
+			Expect(errBuf).To(gbytes.Say("Invalid argument passed to command 'create'"))
 		})
 	})
 
@@ -79,15 +77,21 @@ var _ = Describe("anwork", func() {
 	})
 
 	Context("when the version command is passed", func() {
+		AfterEach(func() {
+			run(nil, nil, "reset")
+		})
 		It("prints out the version", func() {
 			run(outBuf, errBuf, "version")
-			Expect(outBuf).To(gbytes.Say("ANWORK Version = 3"))
+			Expect(outBuf).To(gbytes.Say("ANWORK Version = %d", version))
 		})
 	})
 
 	Context("when creating a task", func() {
 		BeforeEach(func() {
 			run(outBuf, errBuf, "create", "task-a")
+		})
+		AfterEach(func() {
+			run(nil, nil, "reset")
 		})
 		It("shows the task as waiting", func() {
 			run(outBuf, errBuf, "show")
@@ -112,6 +116,9 @@ var _ = Describe("anwork", func() {
 			run(outBuf, errBuf, "create", "task-a")
 			run(outBuf, errBuf, "create", "task-b")
 			run(outBuf, errBuf, "create", "task-c")
+		})
+		AfterEach(func() {
+			run(nil, nil, "reset")
 		})
 		It("shows the tasks as waiting in the order in which they were created", func() {
 			run(outBuf, errBuf, "show")
@@ -272,6 +279,8 @@ var _ = Describe("anwork", func() {
 				stdin io.Writer
 			)
 			BeforeEach(func() {
+				Expect(os.Unsetenv("ANWORK_TEST_RESET_ANSWER")).To(Succeed())
+
 				var err error
 				cmd := exec.Command(anworkBin, "reset")
 				stdin, err = cmd.StdinPipe()
@@ -281,6 +290,8 @@ var _ = Describe("anwork", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Eventually(outBuf).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
+
+				Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "y")).To(Succeed())
 			})
 			AfterEach(func() {
 				s.Interrupt()
@@ -329,16 +340,9 @@ var _ = Describe("anwork", func() {
 		})
 	})
 
-	Measure("creating 10 tasks", func(b Benchmarker) {
-		runtime := b.Time("runtime", func() {
-			for i := 0; i < 10; i++ {
-				run(nil, nil, "create", fmt.Sprintf("task-%d", i))
-			}
-		})
-		Expect(runtime.Seconds()).To(BeNumerically("<", 1))
-	}, 5)
-
 	Measure("CRUD'ing 10 tasks", func(b Benchmarker) {
+		defer run(nil, nil, "reset")
+
 		runtime := b.Time("runtime", func() {
 			for i := 0; i < 10; i++ {
 				name := fmt.Sprintf("task-%d", i)

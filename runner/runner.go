@@ -64,9 +64,7 @@ func (a *Runner) Run(args []string) error {
 		} else {
 			return fmt.Errorf("Command '%s' failed: %s", args[0], err.Error())
 		}
-	}
-
-	if err := a.factory.Save(manager); err != nil {
+	} else if err := a.factory.Save(manager); err != nil {
 		return fmt.Errorf("Could not save manager: %s", err.Error())
 	}
 

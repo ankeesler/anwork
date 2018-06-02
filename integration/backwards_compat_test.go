@@ -56,7 +56,7 @@ var _ = Describe("Backwards compatibility", func() {
 		})
 	}
 
-	runTests(2)
-	runTests(3)
-
+	for i := 0; i < version; i++ {
+		runTests(i)
+	}
 })

@@ -138,6 +138,12 @@ var _ = Describe("AnworkRunner", func() {
 			Expect(factory.ResetCallCount()).To(Equal(1))
 		})
 
+		It("does NOT tell the manager to save anything", func() {
+			err := r.Run([]string{"reset"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(factory.SaveCallCount()).To(Equal(0))
+		})
+
 		Context("when the factory fails to reset", func() {
 			BeforeEach(func() {
 				factory.ResetReturnsOnCall(0, errors.New("some error"))

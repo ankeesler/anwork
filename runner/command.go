@@ -265,11 +265,15 @@ func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager) erro
 
 func deleteAllAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
 	tasks := m.Tasks()
+	taskNames := make([]string, len(tasks))
+	for i := range tasks {
+		taskNames[i] = tasks[i].Name
+	}
+
 	errMsgs := []string{}
-	for i := 0; i < len(tasks); i++ {
-		name := tasks[i].Name
-		if !m.Delete(name) {
-			msg := fmt.Sprintf("\n\tunable to delete task %s", name)
+	for _, taskName := range taskNames {
+		if !m.Delete(taskName) {
+			msg := fmt.Sprintf("\n\tunable to delete task %s", taskName)
 			errMsgs = append(errMsgs, msg)
 		}
 	}

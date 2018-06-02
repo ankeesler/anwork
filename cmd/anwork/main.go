@@ -44,6 +44,7 @@ func main() {
 	flags.Usage = func() {
 		fmt.Println("Usage of anwork")
 		fmt.Println("Flags")
+		flags.SetOutput(os.Stdout)
 		flags.PrintDefaults()
 		fmt.Println("Commands")
 		runner.Usage(os.Stdout)
