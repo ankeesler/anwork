@@ -8,6 +8,14 @@ import (
 	"github.com/ankeesler/anwork/task"
 )
 
+type unknownTaskError struct {
+	name string
+}
+
+func (e unknownTaskError) Error() string {
+	return fmt.Sprintf("cannot find task with name %s", e.name)
+}
+
 type manager struct {
 	MyTasks    []*task.Task  `json:"tasks"`
 	MyEvents   []*task.Event `json:"events"`
@@ -32,7 +40,7 @@ func (m *manager) Create(name string) error {
 	return nil
 }
 
-func (m *manager) Delete(name string) bool {
+func (m *manager) Delete(name string) error {
 	index := -1
 	for i, task := range m.MyTasks {
 		if task.Name == name {
@@ -45,9 +53,9 @@ func (m *manager) Delete(name string) bool {
 		id := m.MyTasks[index].ID
 		m.MyTasks = append(m.MyTasks[:index], m.MyTasks[index+1:]...)
 		m.addEvent(fmt.Sprintf("Deleted task '%s'", name), task.EventTypeDelete, id)
-		return true
+		return nil
 	} else {
-		return false
+		return unknownTaskError{name: name}
 	}
 }
 
@@ -79,7 +87,7 @@ func (m *manager) Tasks() []*task.Task {
 func (m *manager) Note(name, note string) error {
 	t := m.FindByName(name)
 	if t == nil {
-		return fmt.Errorf("cannot find task with name %s", name)
+		return unknownTaskError{name: name}
 	}
 	m.addEvent(fmt.Sprintf("Note added to task '%s': %s", name, note), task.EventTypeNote, t.ID)
 	return nil
@@ -88,7 +96,7 @@ func (m *manager) Note(name, note string) error {
 func (m *manager) SetPriority(name string, newPriority int) error {
 	t := m.FindByName(name)
 	if t == nil {
-		return fmt.Errorf("cannot find task with name %s", name)
+		return unknownTaskError{name: name}
 	}
 
 	oldPriority := t.Priority
@@ -103,7 +111,7 @@ func (m *manager) SetPriority(name string, newPriority int) error {
 func (m *manager) SetState(name string, newState task.State) error {
 	t := m.FindByName(name)
 	if t == nil {
-		return fmt.Errorf("cannot find task with name %s", name)
+		return unknownTaskError{name: name}
 	}
 
 	oldState := t.State

@@ -19,16 +19,16 @@ type FakeManager struct {
 	createReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStub        func(name string) bool
+	DeleteStub        func(name string) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
 		name string
 	}
 	deleteReturns struct {
-		result1 bool
+		result1 error
 	}
 	deleteReturnsOnCall map[int]struct {
-		result1 bool
+		result1 error
 	}
 	FindByIDStub        func(id int) *task.Task
 	findByIDMutex       sync.RWMutex
@@ -158,7 +158,7 @@ func (fake *FakeManager) CreateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) Delete(name string) bool {
+func (fake *FakeManager) Delete(name string) error {
 	fake.deleteMutex.Lock()
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
@@ -187,22 +187,22 @@ func (fake *FakeManager) DeleteArgsForCall(i int) string {
 	return fake.deleteArgsForCall[i].name
 }
 
-func (fake *FakeManager) DeleteReturns(result1 bool) {
+func (fake *FakeManager) DeleteReturns(result1 error) {
 	fake.DeleteStub = nil
 	fake.deleteReturns = struct {
-		result1 bool
+		result1 error
 	}{result1}
 }
 
-func (fake *FakeManager) DeleteReturnsOnCall(i int, result1 bool) {
+func (fake *FakeManager) DeleteReturnsOnCall(i int, result1 error) {
 	fake.DeleteStub = nil
 	if fake.deleteReturnsOnCall == nil {
 		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 bool
+			result1 error
 		})
 	}
 	fake.deleteReturnsOnCall[i] = struct {
-		result1 bool
+		result1 error
 	}{result1}
 }
 

@@ -182,7 +182,7 @@ var _ = Describe("Command", func() {
 	Describe("delete", func() {
 		Context("when the manager successfully deletes the task", func() {
 			BeforeEach(func() {
-				manager.DeleteReturnsOnCall(0, true)
+				manager.DeleteReturnsOnCall(0, nil)
 				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
 			})
 
@@ -195,7 +195,7 @@ var _ = Describe("Command", func() {
 
 		Context("when a task spec is passed", func() {
 			BeforeEach(func() {
-				manager.DeleteReturnsOnCall(0, true)
+				manager.DeleteReturnsOnCall(0, nil)
 				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
 			})
 
@@ -226,15 +226,16 @@ var _ = Describe("Command", func() {
 			})
 		})
 
-		Context("when the task does not exist", func() {
+		Context("when the manager fails to delete the task", func() {
 			BeforeEach(func() {
-				manager.DeleteReturnsOnCall(0, false)
+				manager.DeleteReturnsOnCall(0, errors.New("some delete error"))
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
 			})
 
-			It("prints out a helpful message saying that the task was unknown", func() {
+			It("returns the error that manager returned", func() {
 				err := r.Run([]string{"delete", "task-a"})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("unknown task: task-a"))
+				Expect(err.Error()).To(ContainSubstring("some delete error"))
 			})
 		})
 	})
@@ -259,9 +260,9 @@ var _ = Describe("Command", func() {
 
 			Context("when the manager successfully deletes each task", func() {
 				BeforeEach(func() {
-					manager.DeleteReturnsOnCall(0, true)
-					manager.DeleteReturnsOnCall(1, true)
-					manager.DeleteReturnsOnCall(2, true)
+					manager.DeleteReturnsOnCall(0, nil)
+					manager.DeleteReturnsOnCall(1, nil)
+					manager.DeleteReturnsOnCall(2, nil)
 				})
 
 				It("calls delete on each task", func() {
@@ -275,16 +276,16 @@ var _ = Describe("Command", func() {
 
 			Context("when the manager fails to delete a task", func() {
 				BeforeEach(func() {
-					manager.DeleteReturnsOnCall(0, false)
-					manager.DeleteReturnsOnCall(1, true)
-					manager.DeleteReturnsOnCall(2, false)
+					manager.DeleteReturnsOnCall(0, errors.New("delete failure 0"))
+					manager.DeleteReturnsOnCall(1, nil)
+					manager.DeleteReturnsOnCall(2, errors.New("delete failure 2"))
 				})
 
 				It("notifies the user of which task was not able to be deleted", func() {
 					err := r.Run([]string{"delete-all"})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("unable to delete task task-a"))
-					Expect(err.Error()).To(ContainSubstring("unable to delete task task-c"))
+					Expect(err.Error()).To(ContainSubstring("unable to delete task task-a: delete failure 0"))
+					Expect(err.Error()).To(ContainSubstring("unable to delete task task-c: delete failure 2"))
 
 					Expect(manager.DeleteCallCount()).To(Equal(3))
 					Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))

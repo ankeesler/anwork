@@ -18,8 +18,8 @@ type Manager interface {
 	// Create a task with a name. Return an error if the task name is not unique.
 	Create(name string) error
 
-	// Delete a task with a name. Returns true iff a task was deleted.
-	Delete(name string) bool
+	// Delete a task with a name. Returns an error if the task was not able to be deleted.
+	Delete(name string) error
 
 	// Find a task with an ID.
 	FindByID(id int) *Task

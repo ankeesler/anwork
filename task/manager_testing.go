@@ -27,8 +27,10 @@ func RunManagerTests(factory ManagerFactory) {
 		It("returns no journal entries", func() {
 			Expect(manager.Events()).To(BeEmpty())
 		})
-		It("returns false when deleting a task and does not add a journal entry", func() {
-			Expect(manager.Delete("1")).To(BeFalse())
+		It("returns an error when deleting a task and does not add a journal entry", func() {
+			err := manager.Delete("1")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cannot find task with name 1"))
 			Expect(manager.Events()).To(BeEmpty())
 		})
 		It("fails to add a note for any task", func() {
@@ -183,15 +185,17 @@ func RunManagerTests(factory ManagerFactory) {
 		Context("when those three tasks are deleted", func() {
 			BeforeEach(func() {
 				for _, name := range names {
-					Expect(manager.Delete(name)).To(BeTrue())
+					Expect(manager.Delete(name)).To(Succeed())
 				}
 			})
 			It("returns no tasks", func() {
 				Expect(manager.Tasks()).To(BeEmpty())
 			})
-			It("returns false when trying to delete the tasks again", func() {
+			It("returns an error when trying to delete the tasks again", func() {
 				for _, name := range names {
-					Expect(manager.Delete(name)).To(BeFalse())
+					err := manager.Delete(name)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("cannot find task with name %s", name))
 				}
 			})
 			It("cannot find those tasks by name", func() {

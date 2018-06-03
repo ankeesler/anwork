@@ -256,8 +256,8 @@ func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager) erro
 		return err
 	}
 
-	if !m.Delete(t.Name) {
-		return unknownTaskError{name: spec}
+	if err := m.Delete(t.Name); err != nil {
+		return err
 	}
 
 	return nil
@@ -272,8 +272,8 @@ func deleteAllAction(cmd *command, args []string, o io.Writer, m task.Manager) e
 
 	errMsgs := []string{}
 	for _, taskName := range taskNames {
-		if !m.Delete(taskName) {
-			msg := fmt.Sprintf("\n\tunable to delete task %s", taskName)
+		if err := m.Delete(taskName); err != nil {
+			msg := fmt.Sprintf("\n\tunable to delete task %s: %s", taskName, err.Error())
 			errMsgs = append(errMsgs, msg)
 		}
 	}
