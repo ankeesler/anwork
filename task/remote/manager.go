@@ -51,7 +51,24 @@ func (m *manager) Create(name string) error {
 }
 
 func (m *manager) Delete(name string) error {
-	url := fmt.Sprintf("%s/api/v1/tasks/%s", m.address, name)
+	tasks, err := m.getTasks()
+	if err != nil {
+		return err
+	}
+
+	var toDelete *task.Task
+	for _, task := range tasks {
+		if task.Name == name {
+			toDelete = task
+			break
+		}
+	}
+
+	if toDelete == nil {
+		return fmt.Errorf("unknown task with name %s", name)
+	}
+
+	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, toDelete.ID)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		panic(err)
@@ -85,8 +102,26 @@ func (m *manager) Tasks() []*task.Task {
 }
 
 func (m *manager) FindByName(name string) *task.Task {
-	url := fmt.Sprintf("%s/api/v1/tasks/%s", m.address, name)
+	tasks, err := m.getTasks()
+	if err != nil {
+		panic(err)
+	}
+
+	var foundIt *task.Task
+	for _, task := range tasks {
+		if task.Name == name {
+			foundIt = task
+			break
+		}
+	}
+
+	return foundIt
+}
+
+func (m *manager) FindByID(id int) *task.Task {
+	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, id)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req.Header["Accept"] = []string{"application/json"}
 	if err != nil {
 		panic(err)
 	}
@@ -108,21 +143,6 @@ func (m *manager) FindByName(name string) *task.Task {
 	return task
 }
 
-func (m *manager) FindByID(id int) *task.Task {
-	tasks, err := m.getTasks()
-	if err != nil {
-		panic(err)
-	}
-
-	for _, task := range tasks {
-		if task.ID == id {
-			return task
-		}
-	}
-
-	return nil
-}
-
 func (m *manager) SetPriority(name string, prio int) error {
 	return m.updateTask(name, api.SetRequest{Priority: prio})
 }
@@ -138,6 +158,7 @@ func (m *manager) Note(name, note string) error {
 func (m *manager) Events() []*task.Event {
 	url := fmt.Sprintf("%s/api/v1/events", m.address)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req.Header["Accept"] = []string{"application/json"}
 	if err != nil {
 		panic(err)
 	}
@@ -164,6 +185,7 @@ func (m *manager) Events() []*task.Event {
 func (m *manager) getTasks() ([]*task.Task, error) {
 	url := fmt.Sprintf("%s/api/v1/tasks", m.address)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req.Header["Accept"] = []string{"application/json"}
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +210,12 @@ func (m *manager) getTasks() ([]*task.Task, error) {
 }
 
 func (m *manager) updateTask(name string, update api.SetRequest) error {
-	url := fmt.Sprintf("%s/api/v1/tasks/%s", m.address, name)
+	task := m.FindByName(name)
+	if task == nil {
+		return fmt.Errorf("unknown task %s", name)
+	}
+
+	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, task.ID)
 	payload, err := json.Marshal(update)
 	if err != nil {
 		panic(err)

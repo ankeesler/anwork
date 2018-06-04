@@ -15,9 +15,6 @@ var _ = Describe("Manager", func() {
 	var (
 		server  *ghttp.Server
 		manager task.Manager
-
-		statusCode int
-		body       interface{}
 	)
 
 	BeforeEach(func() {
@@ -25,10 +22,6 @@ var _ = Describe("Manager", func() {
 		server = ghttp.NewServer()
 		manager, err = remote.NewManagerFactory(server.URL()).Create()
 		Expect(err).NotTo(HaveOccurred())
-
-		server.AppendHandlers(ghttp.CombineHandlers(
-			ghttp.RespondWithJSONEncodedPtr(&statusCode, &body),
-		))
 	})
 
 	AfterEach(func() {
@@ -37,21 +30,30 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		BeforeEach(func() {
-			statusCode = http.StatusCreated
-			server.WrapHandler(0, ghttp.CombineHandlers(
+			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("POST", "/api/v1/tasks"),
 				ghttp.VerifyJSONRepresenting(api.CreateRequest{Name: "a"}),
+				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+				ghttp.RespondWith(http.StatusCreated, nil),
 			))
 		})
 
 		It("successfully can create tasks via a POST to /api/v1/tasks", func() {
 			Expect(manager.Create("a")).To(Succeed())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		Context("when the request returns a failure", func() {
 			BeforeEach(func() {
-				statusCode = http.StatusBadRequest
-				body = api.ErrorResponse{Message: "failed to create task"}
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/api/v1/tasks"),
+					ghttp.VerifyJSONRepresenting(api.CreateRequest{Name: "a"}),
+					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.RespondWithJSONEncoded(
+						http.StatusBadRequest,
+						api.ErrorResponse{Message: "failed to create task"},
+					),
+				))
 			})
 
 			It("prints the failure message", func() {
@@ -72,20 +74,38 @@ var _ = Describe("Manager", func() {
 
 	Describe("Delete", func() {
 		BeforeEach(func() {
-			statusCode = http.StatusNoContent
-			server.WrapHandler(0, ghttp.CombineHandlers(
-				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/a"),
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					[]*task.Task{
+						&task.Task{Name: "a", ID: 1},
+						&task.Task{Name: "b", ID: 2},
+						&task.Task{Name: "c", ID: 3},
+					}),
+			))
+
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
 
-		It("successfully can delete tasks via a DELETE to /api/v1/tasks/:name", func() {
+		It("successfully can delete tasks via a DELETE to /api/v1/tasks/:id", func() {
 			Expect(manager.Delete("a")).To(Succeed())
+			Expect(server.ReceivedRequests()).To(HaveLen(2))
 		})
 
 		Context("when the request returns a failure", func() {
 			BeforeEach(func() {
-				statusCode = http.StatusBadRequest
-				body = api.ErrorResponse{Message: "failed to delete task"}
+				server.SetHandler(1, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
+					ghttp.RespondWithJSONEncoded(
+						http.StatusBadRequest,
+						api.ErrorResponse{Message: "failed to delete task"},
+					),
+				))
 			})
 
 			It("prints the failure message", func() {
@@ -98,8 +118,10 @@ var _ = Describe("Manager", func() {
 				server.Close()
 			})
 
-			It("...panics, I guess?", func() {
-				Expect(func() { manager.Delete("a") }).To(Panic())
+			It("returns an error", func() {
+				err := manager.Delete("a")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("connection refused"))
 			})
 		})
 	})
@@ -108,16 +130,15 @@ var _ = Describe("Manager", func() {
 		var tasks []*task.Task
 
 		BeforeEach(func() {
-			statusCode = http.StatusOK
 			tasks = []*task.Task{
 				&task.Task{Name: "task-a", ID: 1},
 				&task.Task{Name: "task-b", ID: 2},
 				&task.Task{Name: "task-c", ID: 3},
 			}
-			body = tasks
-
-			server.WrapHandler(0, ghttp.CombineHandlers(
+			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
 			))
 		})
 
@@ -125,6 +146,8 @@ var _ = Describe("Manager", func() {
 			actualTasks := manager.Tasks()
 			Expect(actualTasks).ToNot(BeNil())
 			Expect(actualTasks).To(Equal(tasks))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		Context("when the request fails", func() {
@@ -142,27 +165,41 @@ var _ = Describe("Manager", func() {
 		var expectedTask *task.Task
 
 		BeforeEach(func() {
-			statusCode = http.StatusOK
-			expectedTask = &task.Task{Name: "task-a", ID: 1}
-			body = expectedTask
-
-			server.WrapHandler(0, ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/api/v1/tasks/task-a"),
+			tasks := []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			expectedTask = tasks[0]
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
 			))
 		})
 
-		It("returns the task via a GET to /api/v1/tasks/:name endpoint", func() {
+		It("returns the task via a GET to /api/v1/tasks endpoint", func() {
 			actualTask := manager.FindByName("task-a")
 			Expect(actualTask).ToNot(BeNil())
 			Expect(actualTask).To(Equal(expectedTask))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		Context("when the task does not exist", func() {
 			BeforeEach(func() {
-				statusCode = http.StatusNotFound
+				tasks := []*task.Task{
+					&task.Task{Name: "task-b", ID: 2},
+					&task.Task{Name: "task-c", ID: 3},
+				}
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+					ghttp.VerifyHeaderKV("Accept", "application/json"),
+					ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+				))
 			})
 
-			It("returns nil after hitting the /api/v1/tasks/:name endpoint", func() {
+			It("returns nil after hitting the /api/v1/tasks endpoint", func() {
 				actualTask := manager.FindByName("task-a")
 				Expect(actualTask).To(BeNil())
 			})
@@ -180,37 +217,35 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("FindByID", func() {
-		var tasks []*task.Task
 		var expectedTask *task.Task
 
 		BeforeEach(func() {
-			statusCode = http.StatusOK
-			tasks = []*task.Task{
-				&task.Task{Name: "task-a", ID: 1},
-				&task.Task{Name: "task-b", ID: 2},
-				&task.Task{Name: "task-c", ID: 3},
-			}
-			expectedTask = tasks[0]
-			body = tasks
-
-			server.WrapHandler(0, ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+			expectedTask = &task.Task{Name: "task-a", ID: 1}
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks/1"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, expectedTask),
 			))
 		})
 
-		It("returns the task via a GET to /api/v1/tasks endpoint", func() {
+		It("returns the task via a GET to /api/v1/tasks/:id endpoint", func() {
 			actualTask := manager.FindByID(1)
 			Expect(actualTask).ToNot(BeNil())
 			Expect(actualTask).To(Equal(expectedTask))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		Context("when the task does not exist", func() {
 			BeforeEach(func() {
-				tasks = tasks[1:]
-				body = tasks
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/tasks/1"),
+					ghttp.VerifyHeaderKV("Accept", "application/json"),
+					ghttp.RespondWith(http.StatusNotFound, nil),
+				))
 			})
 
-			It("returns nil after hitting the /api/v1/tasks endpoint", func() {
+			It("returns nil after hitting the /api/v1/tasks/1 endpoint", func() {
 				actualTask := manager.FindByID(1)
 				Expect(actualTask).To(BeNil())
 			})
@@ -222,31 +257,48 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("...panics, I guess?", func() {
-				Expect(func() { manager.FindByID(1234) }).To(Panic())
+				Expect(func() { manager.FindByName("tuna") }).To(Panic())
 			})
 		})
 	})
 
 	Describe("SetPriority", func() {
 		BeforeEach(func() {
-			statusCode = http.StatusNoContent
-			server.WrapHandler(0, ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/api/v1/tasks/task-a"),
+			tasks := []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
 				ghttp.VerifyJSONRepresenting(api.SetRequest{Priority: 10}),
+				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
 
-		It("updates the task via a PUT to /api/v1/tasks/:name endpoint", func() {
+		It("updates the task via a PUT to /api/v1/tasks/:id endpoint", func() {
 			Expect(manager.SetPriority("task-a", 10)).To(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(2))
 		})
 
 		Context("when the task does not exist", func() {
 			BeforeEach(func() {
-				statusCode = http.StatusNotFound
-				body = api.ErrorResponse{Message: "unknown task"}
+				tasks := []*task.Task{
+					&task.Task{Name: "task-b", ID: 2},
+					&task.Task{Name: "task-c", ID: 3},
+				}
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+					ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+				))
 			})
 
-			It("returns an error after hitting the /api/v1/tasks/:name endpoint", func() {
+			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
 				err := manager.SetPriority("task-a", 10)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("unknown task"))
@@ -266,24 +318,41 @@ var _ = Describe("Manager", func() {
 
 	Describe("SetState", func() {
 		BeforeEach(func() {
-			statusCode = http.StatusNoContent
-			server.WrapHandler(0, ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/api/v1/tasks/task-a"),
+			tasks := []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
 				ghttp.VerifyJSONRepresenting(api.SetRequest{State: task.StateRunning}),
+				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
 
-		It("updates the task via a PUT to /api/v1/tasks/:name endpoint", func() {
+		It("updates the task via a PUT to /api/v1/tasks/:id endpoint", func() {
 			Expect(manager.SetState("task-a", task.StateRunning)).To(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(2))
 		})
 
 		Context("when the task does not exist", func() {
 			BeforeEach(func() {
-				statusCode = http.StatusNotFound
-				body = api.ErrorResponse{Message: "unknown task"}
+				tasks := []*task.Task{
+					&task.Task{Name: "task-b", ID: 2},
+					&task.Task{Name: "task-c", ID: 3},
+				}
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+					ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+				))
 			})
 
-			It("returns an error after hitting the /api/v1/tasks/:name endpoint", func() {
+			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
 				err := manager.SetState("task-a", task.StateRunning)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("unknown task"))
@@ -296,7 +365,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("...panics, I guess?", func() {
-				Expect(func() { manager.SetState("task-a", task.StateRunning) }).To(Panic())
+				Expect(func() { manager.SetPriority("task-a", 1234) }).To(Panic())
 			})
 		})
 	})
@@ -308,16 +377,15 @@ var _ = Describe("Manager", func() {
 		var events []*task.Event
 
 		BeforeEach(func() {
-			statusCode = http.StatusOK
 			events = []*task.Event{
 				&task.Event{Title: "task-a", TaskID: 1},
 				&task.Event{Title: "task-b", TaskID: 2},
 				&task.Event{Title: "task-c", TaskID: 3},
 			}
-			body = events
-
-			server.WrapHandler(0, ghttp.CombineHandlers(
+			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("GET", "/api/v1/events"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, events),
 			))
 		})
 
