@@ -20,6 +20,8 @@ var _ = Describe("Manager", func() {
 	BeforeEach(func() {
 		var err error
 		server = ghttp.NewServer()
+		server.Writer = GinkgoWriter
+
 		manager, err = remote.NewManagerFactory(server.URL()).Create()
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -275,7 +277,7 @@ var _ = Describe("Manager", func() {
 			))
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-				ghttp.VerifyJSONRepresenting(api.SetRequest{Priority: 10}),
+				ghttp.VerifyJSONRepresenting(api.UpdateTaskRequest{Priority: 10}),
 				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
@@ -329,7 +331,7 @@ var _ = Describe("Manager", func() {
 			))
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-				ghttp.VerifyJSONRepresenting(api.SetRequest{State: task.StateRunning}),
+				ghttp.VerifyJSONRepresenting(api.UpdateTaskRequest{State: task.StateRunning}),
 				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
@@ -371,6 +373,70 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("Note", func() {
+		BeforeEach(func() {
+			tasks := []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("POST", "/api/v1/events"),
+				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+		})
+
+		It("adds a note via a POST to /api/v1/events", func() {
+			Expect(manager.Note("task-a", "here is a note")).To(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(2))
+
+			// TODO: how do we test that the body has the right stuff???
+			// Is this a sign that we should be using an interface for time.Now()...
+			//var payload api.AddEventRequest
+			//body := server.ReceivedRequests()[1].Body
+			//decoder := json.NewDecoder(body)
+			//Expect(decoder.Decode(&payload)).To(Succeed())
+			//Expect(payload.Title).To(Equal("Note added to task task-a: here is a note"))
+			//Expect(payload.Date).To(BeNumerically("<=", time.Now().Unix()))
+			//Expect(payload.Type).To(Equal(task.EventTypeNote))
+			//Expect(payload.TaskID).To(Equal(1))
+		})
+
+		Context("when the task does not exist", func() {
+			BeforeEach(func() {
+				tasks := []*task.Task{
+					&task.Task{Name: "task-b", ID: 2},
+					&task.Task{Name: "task-c", ID: 3},
+				}
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+					ghttp.VerifyHeaderKV("Accept", "application/json"),
+					ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+				))
+			})
+
+			It("returns a helpful error", func() {
+				err := manager.Note("task-a", "here is a note")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unknown task task-a"))
+			})
+		})
+
+		Context("when the request fails", func() {
+			BeforeEach(func() {
+				server.Close()
+			})
+
+			It("...panics, I guess?", func() {
+				Expect(func() { manager.Events() }).To(Panic())
+			})
+		})
 	})
 
 	Describe("Events", func() {
@@ -392,6 +458,8 @@ var _ = Describe("Manager", func() {
 		It("updates the task via a GET to the /api/v1/events endpoint", func() {
 			actualEvents := manager.Events()
 			Expect(actualEvents).To(Equal(events))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		Context("when the request fails", func() {

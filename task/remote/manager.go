@@ -1,3 +1,5 @@
+// This package contains a task.Manager that acts as an HTTP client for the anwork
+// API. All of the state that this type manipulates lives on a remote system.
 package remote
 
 import (
@@ -5,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task"
@@ -27,11 +30,11 @@ func (m *manager) Create(name string) error {
 	}
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
-	req.Header["content-type"] = []string{"application/json"}
 	if err != nil {
 		panic(err)
 	}
 
+	req.Header["content-type"] = []string{"application/json"}
 	rsp, err := m.httpClient.Do(req)
 	if err != nil {
 		panic(err)
@@ -121,11 +124,11 @@ func (m *manager) FindByName(name string) *task.Task {
 func (m *manager) FindByID(id int) *task.Task {
 	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, id)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
-	req.Header["Accept"] = []string{"application/json"}
 	if err != nil {
 		panic(err)
 	}
 
+	req.Header["Accept"] = []string{"application/json"}
 	rsp, err := m.httpClient.Do(req)
 	if err != nil {
 		panic(err)
@@ -144,25 +147,53 @@ func (m *manager) FindByID(id int) *task.Task {
 }
 
 func (m *manager) SetPriority(name string, prio int) error {
-	return m.updateTask(name, api.SetRequest{Priority: prio})
+	return m.updateTask(name, api.UpdateTaskRequest{Priority: prio})
 }
 
 func (m *manager) SetState(name string, state task.State) error {
-	return m.updateTask(name, api.SetRequest{State: state})
+	return m.updateTask(name, api.UpdateTaskRequest{State: state})
 }
 
 func (m *manager) Note(name, note string) error {
+	t := m.FindByName(name)
+	if t == nil {
+		return fmt.Errorf("unknown task %s", name)
+	}
+
+	url := fmt.Sprintf("%s/api/v1/events", m.address)
+	payload, err := json.Marshal(api.AddEventRequest{
+		Title:  fmt.Sprintf("Note added to task %s: %s", name, note),
+		Date:   time.Now().Unix(),
+		Type:   task.EventTypeNote,
+		TaskID: t.ID,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header["Content-Type"] = []string{"application/json"}
+	rsp, err := m.httpClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer rsp.Body.Close()
+
 	return nil
 }
 
 func (m *manager) Events() []*task.Event {
 	url := fmt.Sprintf("%s/api/v1/events", m.address)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
-	req.Header["Accept"] = []string{"application/json"}
 	if err != nil {
 		panic(err)
 	}
 
+	req.Header["Accept"] = []string{"application/json"}
 	rsp, err := m.httpClient.Do(req)
 	if err != nil {
 		panic(err)
@@ -185,11 +216,11 @@ func (m *manager) Events() []*task.Event {
 func (m *manager) getTasks() ([]*task.Task, error) {
 	url := fmt.Sprintf("%s/api/v1/tasks", m.address)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
-	req.Header["Accept"] = []string{"application/json"}
 	if err != nil {
 		return nil, err
 	}
 
+	req.Header["Accept"] = []string{"application/json"}
 	rsp, err := m.httpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -209,7 +240,7 @@ func (m *manager) getTasks() ([]*task.Task, error) {
 	return tasks, nil
 }
 
-func (m *manager) updateTask(name string, update api.SetRequest) error {
+func (m *manager) updateTask(name string, update api.UpdateTaskRequest) error {
 	task := m.FindByName(name)
 	if task == nil {
 		return fmt.Errorf("unknown task %s", name)
@@ -222,11 +253,11 @@ func (m *manager) updateTask(name string, update api.SetRequest) error {
 	}
 
 	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-	req.Header["content-type"] = []string{"application/json"}
 	if err != nil {
 		panic(err)
 	}
 
+	req.Header["content-type"] = []string{"application/json"}
 	rsp, err := m.httpClient.Do(req)
 	if err != nil {
 		panic(err)

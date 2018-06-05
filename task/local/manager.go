@@ -1,3 +1,5 @@
+// This package contains a task.Manager that stores its state in RAM (during use)
+// and on the local file system via a output/context pair.
 package local
 
 import (

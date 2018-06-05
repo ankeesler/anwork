@@ -20,7 +20,15 @@ type CreateRequest struct {
 
 // This is the payload in a PUT to /tasks/:name. It is used to update the
 // priority or the state of a task.
-type SetRequest struct {
+type UpdateTaskRequest struct {
 	Priority int        `json:"priority"`
 	State    task.State `json:"state"`
+}
+
+// This is the payload in a PUT to /events. It is used to add a new event.
+type AddEventRequest struct {
+	Title  string
+	Date   int64
+	Type   task.EventType
+	TaskID int
 }
