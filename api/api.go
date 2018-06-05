@@ -8,9 +8,8 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"strconv"
-	"strings"
 
+	"github.com/ankeesler/anwork/api/handlers"
 	"github.com/ankeesler/anwork/task"
 )
 
@@ -56,11 +55,11 @@ func (a *Api) Start(address string, errChan chan error) error {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/v1/health", &healthHandler{log: a.log})
-	mux.Handle("/api/v1/tasks", &tasksHandler{log: a.log})
-	mux.Handle("/api/v1/tasks/", &taskIDHandler{log: a.log})
-	mux.Handle("/api/v1/events", &eventsHandler{log: a.log})
-	mux.Handle("/api/v1/events/", &eventIDHandler{log: a.log})
+	//mux.Handle("/api/v1/health", &healthHandler{log: a.log})
+	mux.Handle("/api/v1/tasks", handlers.NewTasksHandler(a.manager, a.log))
+	//mux.Handle("/api/v1/tasks/", &taskIDHandler{log: a.log})
+	//mux.Handle("/api/v1/events", &eventsHandler{log: a.log})
+	//mux.Handle("/api/v1/events/", &eventIDHandler{log: a.log})
 
 	a.httpServer.Addr = address
 	a.httpServer.Handler = mux
@@ -75,10 +74,4 @@ func (a *Api) Start(address string, errChan chan error) error {
 // Stop running the API server. Returns an error if we fail to do so.
 func (a *Api) Stop() error {
 	return a.httpServer.Close()
-}
-
-func parseLastPathSegment(r *http.Request) (int, error) {
-	segs := strings.Split(r.URL.EscapedPath(), "/")
-	lastSeg := segs[len(segs)-1]
-	return strconv.Atoi(lastSeg)
 }

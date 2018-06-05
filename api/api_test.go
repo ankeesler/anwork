@@ -46,4 +46,24 @@ var _ = Describe("API", func() {
 
 	Describe("Stop", func() {
 	})
+
+	XDescribe("/api/v1/tasks", func() {
+		var errChan chan error
+		BeforeEach(func() {
+			errChan = make(chan error)
+			Expect(a.Start(address, errChan)).To(Succeed())
+		})
+
+		AfterEach(func() {
+			a.Stop()
+			Expect(errChan).To(BeEmpty())
+		})
+
+		Describe("GET", func() {
+			It("does some stuff", func() {
+				_, err := get("/api/v1/tasks")
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
 })
