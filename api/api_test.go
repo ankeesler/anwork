@@ -12,58 +12,20 @@ import (
 
 var _ = Describe("API", func() {
 	var (
-		manager *taskfakes.FakeManager
+		factory *taskfakes.FakeManagerFactory
 		a       *api.Api
 
 		logWriter *gbytes.Buffer
 	)
 
 	BeforeEach(func() {
+		factory = &taskfakes.FakeManagerFactory{}
 		logWriter = gbytes.NewBuffer()
 		l := log.New(logWriter, "api_test.go log: ", 0)
-		a = api.New(manager, l)
+		a = api.New(address, factory, l)
 	})
 
-	Describe("Start", func() {
-		AfterEach(func() {
-			a.Stop()
-		})
-
-		It("logs that the server is starting", func() {
-			errChan := make(chan error)
-			Expect(a.Start(address, errChan)).To(Succeed())
-			Eventually(logWriter).Should(gbytes.Say("API server starting on %s", address))
-			Expect(errChan).To(BeEmpty())
-		})
-
-		Context("when the listen address is totally bad", func() {
-			It("returns an error message", func() {
-				errChan := make(chan error)
-				Expect(a.Start("tuna", errChan)).NotTo(Succeed())
-			})
-		})
-	})
-
-	Describe("Stop", func() {
-	})
-
-	XDescribe("/api/v1/tasks", func() {
-		var errChan chan error
-		BeforeEach(func() {
-			errChan = make(chan error)
-			Expect(a.Start(address, errChan)).To(Succeed())
-		})
-
-		AfterEach(func() {
-			a.Stop()
-			Expect(errChan).To(BeEmpty())
-		})
-
-		Describe("GET", func() {
-			It("does some stuff", func() {
-				_, err := get("/api/v1/tasks")
-				Expect(err).NotTo(HaveOccurred())
-			})
-		})
+	It("runs", func() {
+		Expect(a.Run()).To(Succeed())
 	})
 })

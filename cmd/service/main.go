@@ -1,18 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"log"
 	"os"
+
+	"github.com/ankeesler/anwork/api"
+	"github.com/ankeesler/anwork/task/local"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "54321"
-	}
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
-		fmt.Println("ERROR!", err)
-		os.Exit(1)
+	address := ":12345"
+	factory := local.NewManagerFactory("/tmp", "default-context")
+	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Llongfile)
+	api := api.New(address, factory, log)
+	if err := api.Run(); err != nil {
+		log.Fatalf("ERROR! api.Run() returned: %s", err.Error())
+	} else {
+		log.Fatalf("ERROR! api.Run() returned: nil")
 	}
 }
