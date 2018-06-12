@@ -5,7 +5,6 @@ package api
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/ankeesler/anwork/task"
 )
@@ -23,6 +22,6 @@ func New(address string, factory task.ManagerFactory, log *log.Logger) *Api {
 // Run the API server. This calls http.ListenAndServe so it will block.
 func (a *Api) Run() error {
 	a.log.Printf("API server starting on %s", a.address)
-	return http.ListenAndServe(a.address, nil)
-	//return nil
+	//return http.ListenAndServe(a.address, nil)
+	return nil
 }
