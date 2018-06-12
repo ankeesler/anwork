@@ -1,7 +1,11 @@
 package api_test
 
 import (
+	"context"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
 
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task/taskfakes"
@@ -16,16 +20,34 @@ var _ = Describe("API", func() {
 		a       *api.Api
 
 		logWriter *gbytes.Buffer
+
+		ctx    context.Context
+		cancel func()
 	)
 
 	BeforeEach(func() {
 		factory = &taskfakes.FakeManagerFactory{}
 		logWriter = gbytes.NewBuffer()
-		l := log.New(logWriter, "api_test.go log: ", 0)
+		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", 0)
 		a = api.New(address, factory, l)
+
+		ctx, cancel = context.WithCancel(context.Background())
 	})
 
-	It("runs", func() {
-		Expect(a.Run()).To(Succeed())
+	Context("context", func() {
+		BeforeEach(func() {
+			a.Run(ctx)
+		})
+
+		AfterEach(func() {
+			cancel()
+			Eventually(logWriter).Should(gbytes.Say("API server successfully closed listener socket"))
+		})
+
+		It("runs", func() {
+			_, err := http.Get(fmt.Sprintf("http://%s/", address))
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 	})
 })
