@@ -21,8 +21,7 @@ var _ = Describe("API", func() {
 
 		logWriter *gbytes.Buffer
 
-		ctx    context.Context
-		cancel func()
+		ctx, cancel = context.WithCancel(context.Background())
 	)
 
 	BeforeEach(func() {
@@ -30,8 +29,6 @@ var _ = Describe("API", func() {
 		logWriter = gbytes.NewBuffer()
 		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", 0)
 		a = api.New(address, factory, l)
-
-		ctx, cancel = context.WithCancel(context.Background())
 	})
 
 	Context("context", func() {
