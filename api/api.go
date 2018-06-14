@@ -28,29 +28,53 @@ func New(address string, factory task.ManagerFactory, log *log.Logger) *Api {
 func (a *Api) Run(ctx context.Context) error {
 	a.log.Printf("API server starting on %s", a.address)
 
+	server, err := a.makeServer()
+	if err != nil {
+		a.log.Printf("failed to make server %s", err.Error())
+		return err
+	}
+
 	listener, err := net.Listen("tcp", a.address)
 	if err != nil {
+		a.log.Printf("failed to listen on address %s: %s", a.address, err.Error())
 		return err
 	}
 
 	go func() {
-		err := http.Serve(listener, nil)
+		<-ctx.Done()
+		err := server.Shutdown(context.Background())
 		if err != nil {
-			a.log.Printf("API server exited with error: %s", err.Error())
-		} else {
-			a.log.Printf("API server exited successfully")
+			a.log.Printf("failed to shutdown HTTP server: %s", err.Error())
 		}
+
+		//err = listener.Close()
+		//if err != nil {
+		//	a.log.Printf("failed to close listener socket: %s", err.Error())
+		//}
+
+		a.log.Printf("listener closed")
 	}()
 
 	go func() {
-		<-ctx.Done()
-		err := listener.Close()
-		if err != nil {
-			a.log.Printf("API server failed to close listener socket: %s", err.Error())
-		} else {
-			a.log.Printf("API server successfully closed listener socket")
+		err := server.Serve(listener)
+		if err != nil && err != http.ErrServerClosed {
+			a.log.Printf("API server exited with error: %s", err.Error())
 		}
+
+		a.log.Printf("server has finished serving")
 	}()
 
 	return nil
+}
+
+func (a *Api) makeServer() (*http.Server, error) {
+	manager, err := a.factory.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/api/v1/tasks", newTasksHandler(manager, a.log))
+
+	return &http.Server{Handler: mux}, nil
 }

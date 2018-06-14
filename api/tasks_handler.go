@@ -1,4 +1,4 @@
-package handlers
+package api
 
 import (
 	"log"
@@ -12,7 +12,7 @@ type tasksHandler struct {
 	log     *log.Logger
 }
 
-func NewTasksHandler(manager task.Manager, log *log.Logger) http.Handler {
+func newTasksHandler(manager task.Manager, log *log.Logger) http.Handler {
 	return &tasksHandler{manager: manager, log: log}
 }
 

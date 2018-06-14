@@ -2,10 +2,10 @@ package api_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"log"
-	"net/http"
+	"net"
 
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task/taskfakes"
@@ -14,7 +14,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = Describe("API", func() {
+var _ = XDescribe("API", func() {
 	var (
 		factory *taskfakes.FakeManagerFactory
 		a       *api.Api
@@ -26,25 +26,60 @@ var _ = Describe("API", func() {
 
 	BeforeEach(func() {
 		factory = &taskfakes.FakeManagerFactory{}
+		manager := &taskfakes.FakeManager{}
+		factory.CreateReturnsOnCall(0, manager, nil)
+
 		logWriter = gbytes.NewBuffer()
-		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", 0)
+		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
+
 		a = api.New(address, factory, l)
 	})
 
-	Context("context", func() {
+	Context("when listening on the address fails", func() {
+		var listener net.Listener
+
 		BeforeEach(func() {
-			a.Run(ctx)
+			var err error
+			listener, err = net.Listen("tcp", address)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			Expect(listener.Close()).To(Succeed())
+		})
+
+		It("returns an error", func() {
+			Expect(a.Run(ctx)).NotTo(Succeed())
+		})
+	})
+
+	Context("when creating a manager fails", func() {
+		BeforeEach(func() {
+			factory.CreateReturnsOnCall(0, nil, errors.New("some factory error"))
+		})
+
+		It("returns the error", func() {
+			Expect(a.Run(ctx)).To(MatchError("some factory error"))
+		})
+	})
+
+	Describe("Run", func() {
+		BeforeEach(func() {
+			Expect(a.Run(ctx)).To(Succeed())
 		})
 
 		AfterEach(func() {
 			cancel()
-			Eventually(logWriter).Should(gbytes.Say("API server successfully closed listener socket"))
+			Eventually(logWriter).Should(gbytes.Say("listener closed"))
 		})
 
-		It("runs", func() {
-			_, err := http.Get(fmt.Sprintf("http://%s/", address))
+		It("starts a server on the provided address", func() {
+			_, err := get("/")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+		It("logs that it started", func() {
+			Eventually(logWriter).Should(gbytes.Say("API server starting on %s", address))
+		})
 	})
 })

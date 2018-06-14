@@ -1,10 +1,12 @@
-package handlers_test
+package api_test
 
 import (
+	"context"
+	"io"
 	"log"
 	"net/http"
 
-	"github.com/ankeesler/anwork/api/handlers"
+	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
@@ -12,22 +14,35 @@ import (
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = Describe("TasksHandler", func() {
+var _ = XDescribe("TasksHandler", func() {
 	var (
-		manager   *taskfakes.FakeManager
+		manager *taskfakes.FakeManager
+
 		logWriter *gbytes.Buffer
-		h         http.Handler
+
+		ctx, cancel = context.WithCancel(context.Background())
 	)
 
 	BeforeEach(func() {
+		factory := &taskfakes.FakeManagerFactory{}
 		manager = &taskfakes.FakeManager{}
+		factory.CreateReturnsOnCall(0, manager, nil)
+
 		logWriter = gbytes.NewBuffer()
-		log := log.New(logWriter, "tasks_handler_test.go log: ", 0)
-		h = handlers.NewTasksHandler(manager, log)
+		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+		a := api.New(address, factory, l)
+		Expect(a.Run(ctx)).To(Succeed())
+	})
+
+	AfterEach(func() {
+		cancel()
+		Eventually(logWriter).Should(gbytes.Say("listener closed"))
 	})
 
 	It("logs that handling is happening", func() {
-		handleGet(h, "/tasks")
+		_, err := get("/api/v1/tasks")
+		Expect(err).NotTo(HaveOccurred())
 		Eventually(logWriter).Should(gbytes.Say("Handling /api/v1/tasks..."))
 	})
 
@@ -41,11 +56,12 @@ var _ = Describe("TasksHandler", func() {
 		})
 
 		It("responds with the tasks from the manager", func() {
-			rsp := handleGet(h, "/api/v1/tasks")
+			rsp, err := get("/api/v1/tasks")
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(manager.TasksCallCount()).To(Equal(1))
 
-			Expect(rsp.Code).To(Equal(http.StatusOK))
+			Expect(rsp.StatusCode).To(Equal(http.StatusOK))
 			// TODO: Content-Type is application/json
 			// TODO: Body is tasks from above
 		})

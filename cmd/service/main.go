@@ -13,7 +13,7 @@ import (
 func main() {
 	address := ":12345"
 	factory := local.NewManagerFactory("/tmp", "default-context")
-	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Llongfile)
+	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Lshortfile)
 	api := api.New(address, factory, log)
 
 	ctx, cancel := context.WithCancel(context.Background())
