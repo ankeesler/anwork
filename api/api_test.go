@@ -14,7 +14,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = XDescribe("API", func() {
+var _ = Describe("API", func() {
 	var (
 		factory *taskfakes.FakeManagerFactory
 		a       *api.Api
@@ -35,6 +35,21 @@ var _ = XDescribe("API", func() {
 		a = api.New(address, factory, l)
 	})
 
+	Context("when creating a manager fails", func() {
+		BeforeEach(func() {
+			factory.CreateReturnsOnCall(0, nil, errors.New("some factory error"))
+		})
+
+		It("returns the error", func() {
+			Expect(a.Run(ctx)).To(MatchError("some factory error"))
+		})
+
+		It("logs an error", func() {
+			a.Run(ctx)
+			Eventually(logWriter).Should(gbytes.Say("failed to make server:"))
+		})
+	})
+
 	Context("when listening on the address fails", func() {
 		var listener net.Listener
 
@@ -49,17 +64,13 @@ var _ = XDescribe("API", func() {
 		})
 
 		It("returns an error", func() {
-			Expect(a.Run(ctx)).NotTo(Succeed())
-		})
-	})
-
-	Context("when creating a manager fails", func() {
-		BeforeEach(func() {
-			factory.CreateReturnsOnCall(0, nil, errors.New("some factory error"))
+			err := a.Run(ctx)
+			Expect(err).To(HaveOccurred())
 		})
 
-		It("returns the error", func() {
-			Expect(a.Run(ctx)).To(MatchError("some factory error"))
+		It("logs an error", func() {
+			a.Run(ctx)
+			Eventually(logWriter).Should(gbytes.Say("failed to listen on address %s:", address))
 		})
 	})
 

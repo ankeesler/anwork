@@ -1,12 +1,14 @@
-package api_test
+package handlers_test
 
 import (
-	"context"
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httptest"
 
-	"github.com/ankeesler/anwork/api"
+	"github.com/ankeesler/anwork/api/handlers"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
@@ -14,13 +16,13 @@ import (
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = XDescribe("TasksHandler", func() {
+var _ = Describe("TasksHandler", func() {
 	var (
 		manager *taskfakes.FakeManager
 
 		logWriter *gbytes.Buffer
 
-		ctx, cancel = context.WithCancel(context.Background())
+		handler http.Handler
 	)
 
 	BeforeEach(func() {
@@ -31,40 +33,46 @@ var _ = XDescribe("TasksHandler", func() {
 		logWriter = gbytes.NewBuffer()
 		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-		a := api.New(address, factory, l)
-		Expect(a.Run(ctx)).To(Succeed())
-	})
-
-	AfterEach(func() {
-		cancel()
-		Eventually(logWriter).Should(gbytes.Say("listener closed"))
+		handler = handlers.NewTasksHandler(manager, l)
 	})
 
 	It("logs that handling is happening", func() {
-		_, err := get("/api/v1/tasks")
-		Expect(err).NotTo(HaveOccurred())
+		serve(handler)
 		Eventually(logWriter).Should(gbytes.Say("Handling /api/v1/tasks..."))
 	})
 
 	Describe("GET", func() {
+		var tasks []*task.Task
 		BeforeEach(func() {
-			manager.TasksReturnsOnCall(0, []*task.Task{
+			tasks = []*task.Task{
 				&task.Task{Name: "task-a", ID: 1},
 				&task.Task{Name: "task-b", ID: 2},
 				&task.Task{Name: "task-c", ID: 3},
-			})
+			}
+			manager.TasksReturnsOnCall(0, tasks)
 		})
 
 		It("responds with the tasks from the manager", func() {
-			rsp, err := get("/api/v1/tasks")
-			Expect(err).NotTo(HaveOccurred())
+			rsp := serve(handler)
 
 			Expect(manager.TasksCallCount()).To(Equal(1))
 
-			Expect(rsp.StatusCode).To(Equal(http.StatusOK))
-			// TODO: Content-Type is application/json
-			// TODO: Body is tasks from above
+			Expect(rsp.Code).To(Equal(http.StatusOK))
+			Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
+
+			expectedTasksJson, err := json.Marshal(tasks)
+			Expect(err).NotTo(HaveOccurred())
+			actualTasksJson, err := ioutil.ReadAll(rsp.Body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actualTasksJson).To(Equal(expectedTasksJson))
 		})
 	})
 
 })
+
+func serve(handler http.Handler) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks", nil)
+	rsp := httptest.NewRecorder()
+	handler.ServeHTTP(rsp, req)
+	return rsp
+}

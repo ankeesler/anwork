@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/ankeesler/anwork/api/handlers"
 	"github.com/ankeesler/anwork/task"
 )
 
@@ -30,7 +31,7 @@ func (a *Api) Run(ctx context.Context) error {
 
 	server, err := a.makeServer()
 	if err != nil {
-		a.log.Printf("failed to make server %s", err.Error())
+		a.log.Printf("failed to make server: %s", err.Error())
 		return err
 	}
 
@@ -42,27 +43,15 @@ func (a *Api) Run(ctx context.Context) error {
 
 	go func() {
 		<-ctx.Done()
-		err := server.Shutdown(context.Background())
+		err = listener.Close()
 		if err != nil {
-			a.log.Printf("failed to shutdown HTTP server: %s", err.Error())
+			a.log.Printf("failed to close listener socket: %s", err.Error())
 		}
-
-		//err = listener.Close()
-		//if err != nil {
-		//	a.log.Printf("failed to close listener socket: %s", err.Error())
-		//}
 
 		a.log.Printf("listener closed")
 	}()
 
-	go func() {
-		err := server.Serve(listener)
-		if err != nil && err != http.ErrServerClosed {
-			a.log.Printf("API server exited with error: %s", err.Error())
-		}
-
-		a.log.Printf("server has finished serving")
-	}()
+	go server.Serve(listener)
 
 	return nil
 }
@@ -74,7 +63,7 @@ func (a *Api) makeServer() (*http.Server, error) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/v1/tasks", newTasksHandler(manager, a.log))
+	mux.Handle("/api/v1/tasks", handlers.NewTasksHandler(manager, a.log))
 
 	return &http.Server{Handler: mux}, nil
 }
