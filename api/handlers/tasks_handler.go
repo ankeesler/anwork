@@ -36,5 +36,10 @@ func (h *tasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.log.Printf("Returning tasks %s", tasksJson)
-	w.Write(tasksJson)
+	_, err = w.Write(tasksJson)
+	if err != nil {
+		h.log.Printf("Cannot write JSON body: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
