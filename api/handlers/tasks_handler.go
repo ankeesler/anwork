@@ -18,7 +18,12 @@ func NewTasksHandler(manager task.Manager, log *log.Logger) http.Handler {
 }
 
 func (h *tasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.log.Printf("Handling /api/v1/tasks...")
+	h.log.Printf("Handling %s /api/v1/tasks...", r.Method)
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 
 	tasks := h.manager.Tasks()
 	w.WriteHeader(http.StatusOK)
@@ -30,5 +35,6 @@ func (h *tasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.log.Printf("Returning tasks %s", tasksJson)
 	w.Write(tasksJson)
 }

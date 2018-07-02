@@ -2,11 +2,11 @@ package handlers_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httptest"
 
 	"github.com/ankeesler/anwork/api/handlers"
 	"github.com/ankeesler/anwork/task"
@@ -37,8 +37,8 @@ var _ = Describe("TasksHandler", func() {
 	})
 
 	It("logs that handling is happening", func() {
-		serve(handler)
-		Eventually(logWriter).Should(gbytes.Say("Handling /api/v1/tasks..."))
+		handleGet(handler, "/api/v1/tasks")
+		Eventually(logWriter).Should(gbytes.Say("Handling GET /api/v1/tasks..."))
 	})
 
 	Describe("GET", func() {
@@ -53,7 +53,7 @@ var _ = Describe("TasksHandler", func() {
 		})
 
 		It("responds with the tasks from the manager", func() {
-			rsp := serve(handler)
+			rsp := handleGet(handler, "/api/v1/tasks")
 
 			Expect(manager.TasksCallCount()).To(Equal(1))
 
@@ -66,13 +66,40 @@ var _ = Describe("TasksHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(actualTasksJson).To(Equal(expectedTasksJson))
 		})
+
+		It("logs the tasks that it is returning", func() {
+			handleGet(handler, "/api/v1/tasks")
+
+			expectedTasksJson, err := json.Marshal(tasks)
+			Expect(err).NotTo(HaveOccurred())
+
+			logContents := string(logWriter.Contents())
+			Expect(logContents).To(ContainSubstring(fmt.Sprintf("Returning tasks %s", expectedTasksJson)))
+		})
+	})
+
+	Describe("POST", func() {
+		It("responds with method not allowed", func() {
+			rsp := handlePost(handler, "/api/v1/tasks", nil)
+			Expect(manager.TasksCallCount()).To(Equal(0))
+			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+		})
+	})
+
+	Describe("PUT", func() {
+		It("responds with method not allowed", func() {
+			rsp := handlePut(handler, "/api/v1/tasks", nil)
+			Expect(manager.TasksCallCount()).To(Equal(0))
+			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+		})
+	})
+
+	Describe("DELETE", func() {
+		It("responds with method not allowed", func() {
+			rsp := handleDelete(handler, "/api/v1/tasks")
+			Expect(manager.TasksCallCount()).To(Equal(0))
+			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+		})
 	})
 
 })
-
-func serve(handler http.Handler) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/tasks", nil)
-	rsp := httptest.NewRecorder()
-	handler.ServeHTTP(rsp, req)
-	return rsp
-}
