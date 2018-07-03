@@ -1,3 +1,6 @@
+// This package contains the HTTP handlers used by the anwork API.
+//
+// See api package for API definition.
 package handlers
 
 import (
