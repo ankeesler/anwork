@@ -34,24 +34,31 @@ func (h *eventIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Printf("Getting eventID %d", eventID)
 
-	t := h.manager.FindByID(eventID)
-	if t == nil {
+	var e *task.Event
+	for _, event := range h.manager.Events() {
+		if event.Date == int64(eventID) {
+			e = event
+			break
+		}
+	}
+
+	if e == nil {
 		h.log.Printf("No event with ID %d", eventID)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	tJson, err := json.Marshal(t)
+	eJson, err := json.Marshal(e)
 	if err != nil {
 		h.log.Printf("Cannot marshal event: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	h.log.Printf("Returning event: %s", string(tJson))
+	h.log.Printf("Returning event: %s", string(eJson))
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(tJson)
+	_, err = w.Write(eJson)
 	if err != nil {
 		h.log.Printf("Cannot write JSON body: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)

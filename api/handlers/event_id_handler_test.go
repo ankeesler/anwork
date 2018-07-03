@@ -54,22 +54,27 @@ var _ = Describe("EventIDHandler", func() {
 		})
 	})
 
-	XDescribe("GET", func() {
-		var t *task.Event
+	Describe("GET", func() {
+		var e *task.Event
 		BeforeEach(func() {
-			t = &task.Event{Title: "event-a", TaskID: 5}
-			// TODO: setup mock.
+			e = &task.Event{Title: "event-a", Date: 123}
+			events := []*task.Event{
+				e,
+				&task.Event{Title: "event-b", Date: 456},
+				&task.Event{Title: "event-c", Date: 789},
+			}
+			manager.EventsReturnsOnCall(0, events)
 		})
 
 		It("returns a JSON object representing the event", func() {
-			rsp := handleGet(handler, "/api/v1/events/5")
+			rsp := handleGet(handler, "/api/v1/events/123")
 
-			Expect(manager.FindByIDArgsForCall(0)).To(Equal(5))
+			Expect(manager.EventsCallCount()).To(Equal(1))
 
 			Expect(rsp.Code).To(Equal(http.StatusOK))
 			Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
 
-			expectedEventJson, err := json.Marshal(t)
+			expectedEventJson, err := json.Marshal(e)
 			Expect(err).NotTo(HaveOccurred())
 			actualEventJson, err := ioutil.ReadAll(rsp.Body)
 			Expect(err).NotTo(HaveOccurred())
@@ -77,9 +82,9 @@ var _ = Describe("EventIDHandler", func() {
 		})
 
 		It("logs the response", func() {
-			handleGet(handler, "/api/v1/events/5")
+			handleGet(handler, "/api/v1/events/123")
 
-			expectedEventJson, err := json.Marshal(t)
+			expectedEventJson, err := json.Marshal(e)
 			Expect(err).NotTo(HaveOccurred())
 
 			logContents := string(logWriter.Contents())
@@ -88,18 +93,22 @@ var _ = Describe("EventIDHandler", func() {
 
 		Context("when there is no event associated with the provided ID", func() {
 			BeforeEach(func() {
-				manager.FindByIDReturnsOnCall(0, nil)
+				events := []*task.Event{
+					&task.Event{Title: "event-b", Date: 456},
+					&task.Event{Title: "event-c", Date: 789},
+				}
+				manager.EventsReturnsOnCall(0, events)
 			})
 
 			It("returns a not found", func() {
-				rsp := handleGet(handler, "/api/v1/events/10")
+				rsp := handleGet(handler, "/api/v1/events/123")
 
 				Expect(rsp.Code).To(Equal(http.StatusNotFound))
 			})
 
 			It("logs that it was not able to find the event", func() {
-				handleGet(handler, "/api/v1/events/10")
-				Eventually(logWriter).Should(gbytes.Say("No event with ID 10"))
+				handleGet(handler, "/api/v1/events/123")
+				Eventually(logWriter).Should(gbytes.Say("No event with ID 123"))
 			})
 		})
 	})
