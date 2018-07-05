@@ -2,12 +2,14 @@ package handlers_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 
+	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/handlers"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
@@ -121,11 +123,52 @@ var _ = Describe("TaskIDHandler", func() {
 	})
 
 	Describe("DELETE", func() {
-		It("responds with method not allowed", func() {
+		BeforeEach(func() {
+			manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+			manager.DeleteReturnsOnCall(0, nil)
+		})
+
+		PIt("responds with no content", func() {
 			rsp := handleDelete(handler, "/api/v1/tasks/5")
-			Expect(manager.TasksCallCount()).To(Equal(0))
-			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+
+			Expect(manager.FindByIDCallCount()).To(Equal(1))
+			Expect(manager.FindByIDArgsForCall(0)).To(Equal(5))
+			Expect(manager.DeleteCallCount()).To(Equal(1))
+			Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+
+			Expect(rsp.Code).To(Equal(http.StatusNoContent))
+		})
+
+		Context("when the task does not exist", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, nil)
+			})
+
+			It("responds with not found", func() {
+				rsp := handleDelete(handler, "/api/v1/tasks/5")
+
+				Expect(rsp.Code).To(Equal(http.StatusNotFound))
+			})
+		})
+
+		Context("when the delete operation fails", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.DeleteReturnsOnCall(0, errors.New("some delete error"))
+			})
+
+			PIt("responds with a server error", func() {
+				rsp := handleDelete(handler, "/api/v1/tasks/5")
+
+				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
+				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
+
+				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "some delete error"})
+				Expect(err).NotTo(HaveOccurred())
+				errJson, err := ioutil.ReadAll(rsp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(errJson).To(Equal(expectedErrJson))
+			})
 		})
 	})
-
 })
