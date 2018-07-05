@@ -127,7 +127,7 @@ var _ = Describe("TaskIDHandler", func() {
 			manager.DeleteReturnsOnCall(0, nil)
 		})
 
-		PIt("responds with no content", func() {
+		It("responds with no content", func() {
 			rsp := handleDelete(handler, "/api/v1/tasks/5")
 
 			Expect(manager.FindByIDCallCount()).To(Equal(1))

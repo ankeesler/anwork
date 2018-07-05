@@ -27,7 +27,6 @@ func (h *taskIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleDelete(w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
 	}
 }
 
@@ -90,4 +89,6 @@ func (h *taskIDHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -14,7 +14,7 @@ func parseLastPathSegment(r *http.Request) (int, error) {
 }
 
 func respondWithError(w http.ResponseWriter, message string) error {
-	errRsp := "fix me!" //api.ErrorResponse{Message: message}
+	errRsp := ErrorResponse{Message: message}
 	errRspJson, err := json.Marshal(errRsp)
 	if err != nil {
 		return err
@@ -24,6 +24,8 @@ func respondWithError(w http.ResponseWriter, message string) error {
 	if err != nil {
 		return err
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 
 	return nil
 }
