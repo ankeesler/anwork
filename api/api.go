@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ankeesler/anwork/api/handlers"
 	"github.com/ankeesler/anwork/task"
 )
 
@@ -63,7 +62,7 @@ func (a *Api) makeServer() (*http.Server, error) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/v1/tasks", handlers.NewTasksHandler(manager, a.log))
+	mux.Handle("/api/v1/tasks", NewTasksHandler(manager, a.log))
 
 	return &http.Server{Handler: mux}, nil
 }

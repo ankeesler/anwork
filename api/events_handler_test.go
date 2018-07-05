@@ -1,4 +1,4 @@
-package handlers_test
+package api_test
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ankeesler/anwork/api/handlers"
+	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
@@ -33,7 +33,7 @@ var _ = Describe("EventsHandler", func() {
 		logWriter = gbytes.NewBuffer()
 		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-		handler = handlers.NewEventsHandler(manager, l)
+		handler = api.NewEventsHandler(manager, l)
 	})
 
 	It("logs that handling is happening", func() {

@@ -1,11 +1,11 @@
-package handlers_test
+package api_test
 
 import (
 	"io"
 	"log"
 	"net/http"
 
-	"github.com/ankeesler/anwork/api/handlers"
+	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,7 +29,7 @@ var _ = Describe("HealthHandler", func() {
 		logWriter = gbytes.NewBuffer()
 		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-		handler = handlers.NewHealthHandler(manager, l)
+		handler = api.NewHealthHandler(manager, l)
 	})
 
 	It("logs that handling is happening", func() {
