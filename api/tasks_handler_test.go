@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -78,11 +79,51 @@ var _ = Describe("TasksHandler", func() {
 		})
 	})
 
-	Describe("POST", func() {
-		It("responds with method not allowed", func() {
-			rsp := handlePost(handler, "/api/v1/tasks", nil)
-			Expect(manager.TasksCallCount()).To(Equal(0))
-			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+	XDescribe("POST", func() {
+		var createdTask task.Task
+		BeforeEach(func() {
+			createdTask = task.Task{Name: "task-a"}
+		})
+
+		It("unmarshalls the task, creates a new task with the provided name, and returns the task + location", func() {
+			payload, err := json.Marshal(createdTask)
+			Expect(err).NotTo(HaveOccurred())
+			buffer := bytes.NewBuffer(payload)
+
+			rsp := handlePost(handler, "/api/v1/tasks", buffer)
+
+			Expect(manager.CreateArgsForCall(0)).To(Equal("task-a"))
+
+			Expect(rsp.Code).To(Equal(http.StatusCreated))
+
+			var t task.Task
+			Expect(json.Unmarshal(rsp.Body.Bytes(), &createdTask)).To(Succeed())
+			Expect(t).To(Equal(createdTask))
+
+			var ok bool
+
+			var location []string
+			location, ok = rsp.HeaderMap["Location"]
+			Expect(ok).To(BeTrue(), "Location header was not set on response")
+			Expect(location).To(Equal([]string{"/api/v1/tasks/1"}))
+
+			var contentType []string
+			contentType, ok = rsp.HeaderMap["Content-Type"]
+			Expect(ok).To(BeTrue(), "Content-Type header was not set on response")
+			Expect(contentType).To(Equal([]string{"/api/v1/tasks/1"}))
+		})
+
+		It("logs that it is creating the task", func() {
+		})
+
+		Context("when the request body is invalid", func() {
+			It("returns bad request with an error message", func() {
+			})
+		})
+
+		Context("when the task failed to get created", func() {
+			It("returns internal error with the error message", func() {
+			})
 		})
 	})
 

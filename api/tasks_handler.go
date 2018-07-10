@@ -20,11 +20,17 @@ func NewTasksHandler(manager task.Manager, log *log.Logger) http.Handler {
 func (h *tasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.log.Printf("Handling %s /api/v1/tasks...", r.Method)
 
-	if r.Method != http.MethodGet {
+	switch r.Method {
+	case http.MethodGet:
+		h.handleGet(w, r)
+	case http.MethodPost:
+		h.handlePost(w, r)
+	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
 	}
+}
 
+func (h *tasksHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	tasks := h.manager.Tasks()
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
@@ -42,4 +48,7 @@ func (h *tasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *tasksHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 }
