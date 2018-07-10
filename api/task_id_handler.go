@@ -82,11 +82,12 @@ func (h *taskIDHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.manager.Delete(t.Name)
-	if err != nil {
+	if err := h.manager.Delete(t.Name); err != nil {
 		h.log.Printf("Unable to delete task %s: %s", t.Name, err.Error())
-		respondWithError(w, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+		if err := respondWithError(w, err.Error()); err != nil {
+			h.log.Printf("Unable to write response into payload: %s", err.Error())
+		}
 		return
 	}
 

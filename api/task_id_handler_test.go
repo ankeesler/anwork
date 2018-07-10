@@ -156,7 +156,7 @@ var _ = Describe("TaskIDHandler", func() {
 				manager.DeleteReturnsOnCall(0, errors.New("some delete error"))
 			})
 
-			PIt("responds with a server error", func() {
+			It("responds with a server error", func() {
 				rsp := handleDelete(handler, "/api/v1/tasks/5")
 
 				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
