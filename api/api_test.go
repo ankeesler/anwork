@@ -84,7 +84,7 @@ var _ = Describe("API", func() {
 			Eventually(logWriter).Should(gbytes.Say("listener closed"))
 		})
 
-		PIt("starts a server on the provided address", func() {
+		It("starts a server on the provided address", func() {
 			_, err := get("/")
 			Expect(err).NotTo(HaveOccurred())
 		})
