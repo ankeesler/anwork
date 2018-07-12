@@ -56,36 +56,28 @@ func (h *tasksHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	payload, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		errMsg := fmt.Sprintf("Could not read request body: %s", err.Error())
-		h.log.Printf(errMsg)
-		w.WriteHeader(http.StatusInternalServerError)
-		respondWithError(w, errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg, h.log)
 		return
 	}
 
 	var createReq CreateRequest
 	if err := json.Unmarshal(payload, &createReq); err != nil {
 		errMsg := fmt.Sprintf("Cannot unmarshal payload '%s': %s", string(payload), err.Error())
-		h.log.Printf(errMsg)
-		w.WriteHeader(http.StatusBadRequest)
-		respondWithError(w, errMsg)
+		respondWithError(w, http.StatusBadRequest, errMsg, h.log)
 		return
 	}
 	h.log.Printf("Decoded create task request: %+v", createReq)
 
 	if err := h.manager.Create(createReq.Name); err != nil {
 		errMsg := fmt.Sprintf("Cannot create task: %s", err.Error())
-		h.log.Printf(errMsg)
-		w.WriteHeader(http.StatusInternalServerError)
-		respondWithError(w, errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg, h.log)
 		return
 	}
 
 	t := h.manager.FindByName(createReq.Name)
 	if t == nil {
 		errMsg := fmt.Sprintf("Cannot find newly created task: %s", err.Error())
-		h.log.Printf(errMsg)
-		w.WriteHeader(http.StatusInternalServerError)
-		respondWithError(w, errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg, h.log)
 		return
 	}
 	h.log.Printf("Created task %s", t.Name)
@@ -93,9 +85,7 @@ func (h *tasksHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	tJson, err := json.Marshal(t)
 	if err != nil {
 		errMsg := fmt.Sprintf("Cannot marshal respond task: %s", err.Error())
-		h.log.Printf(errMsg)
-		w.WriteHeader(http.StatusInternalServerError)
-		respondWithError(w, errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg, h.log)
 		return
 	}
 	h.log.Printf("Responding with new task %s", tJson)
@@ -105,9 +95,7 @@ func (h *tasksHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(tJson); err != nil {
 		errMsg := fmt.Sprintf("Cannot write response json: %s", err.Error())
-		h.log.Printf(errMsg)
-		w.WriteHeader(http.StatusInternalServerError)
-		respondWithError(w, errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg, h.log)
 		return
 	}
 }
