@@ -18,7 +18,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = XDescribe("TaskIDHandler", func() {
+var _ = Describe("TaskIDHandler", func() {
 	var (
 		manager *taskfakes.FakeManager
 
@@ -107,6 +107,10 @@ var _ = XDescribe("TaskIDHandler", func() {
 	})
 
 	Describe("POST", func() {
+		BeforeEach(func() {
+			manager.FindByIDReturnsOnCall(0, &task.Task{})
+		})
+
 		It("responds with method not allowed", func() {
 			rsp := handlePost(handler, "/api/v1/tasks/5", nil)
 			Expect(manager.TasksCallCount()).To(Equal(0))
@@ -195,7 +199,7 @@ var _ = XDescribe("TaskIDHandler", func() {
 
 			handlePut(handler, "/api/v1/tasks/5", reqBody)
 
-			Eventually(logWriter).Should(gbytes.Say("updating task task-a"))
+			Eventually(logWriter).Should(gbytes.Say("Getting taskID 5"))
 			Eventually(logWriter).Should(gbytes.Say(fmt.Sprintf("handling request %s", string(reqBytes))))
 			Eventually(logWriter).Should(gbytes.Say("set state Running"))
 			Eventually(logWriter).Should(gbytes.Say("set priority 10"))
@@ -208,11 +212,18 @@ var _ = XDescribe("TaskIDHandler", func() {
 				Expect(err).NotTo(HaveOccurred())
 				reqBody := bytes.NewBuffer(reqBytes)
 
-				handlePut(handler, "/api/v1/tasks/5", reqBody)
+				rsp := handlePut(handler, "/api/v1/tasks/5", reqBody)
 
 				Expect(manager.SetStateCallCount()).To(Equal(0))
 
-				Eventually(logWriter).Should(gbytes.Say("updating task task-a"))
+				Expect(rsp.Code).To(Equal(http.StatusBadRequest))
+				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
+
+				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "invalid state -1"})
+				Expect(err).NotTo(HaveOccurred())
+				errJson, err := ioutil.ReadAll(rsp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(errJson).To(Equal(expectedErrJson))
 			})
 
 			It("logs the error", func() {
@@ -253,7 +264,7 @@ var _ = XDescribe("TaskIDHandler", func() {
 
 				handlePut(handler, "/api/v1/tasks/5", reqBody)
 
-				Eventually(logWriter).Should(gbytes.Say("invalid task id 5"))
+				Eventually(logWriter).Should(gbytes.Say("No task with ID 5"))
 			})
 		})
 
@@ -273,7 +284,7 @@ var _ = XDescribe("TaskIDHandler", func() {
 				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
 				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
 
-				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "failed to set state: some state error"})
+				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "Failed to set state: some state error"})
 				Expect(err).NotTo(HaveOccurred())
 				errJson, err := ioutil.ReadAll(rsp.Body)
 				Expect(err).NotTo(HaveOccurred())
@@ -288,7 +299,7 @@ var _ = XDescribe("TaskIDHandler", func() {
 
 				handlePut(handler, "/api/v1/tasks/5", reqBody)
 
-				Eventually(logWriter).Should(gbytes.Say("failed to set state: some state error"))
+				Eventually(logWriter).Should(gbytes.Say("Failed to set state: some state error"))
 			})
 		})
 
@@ -308,7 +319,7 @@ var _ = XDescribe("TaskIDHandler", func() {
 				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
 				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
 
-				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "failed to set priority: some priority error"})
+				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "Failed to set priority: some priority error"})
 				Expect(err).NotTo(HaveOccurred())
 				errJson, err := ioutil.ReadAll(rsp.Body)
 				Expect(err).NotTo(HaveOccurred())
@@ -323,7 +334,32 @@ var _ = XDescribe("TaskIDHandler", func() {
 
 				handlePut(handler, "/api/v1/tasks/5", reqBody)
 
-				Eventually(logWriter).Should(gbytes.Say("failed to set priority: some priority error"))
+				Eventually(logWriter).Should(gbytes.Say("Failed to set priority: some priority error"))
+			})
+		})
+
+		Context("when the request payload is invalid", func() {
+			It("responds with bad request", func() {
+				reqBody := bytes.NewBuffer([]byte("some bad payload"))
+
+				rsp := handlePut(handler, "/api/v1/tasks/5", reqBody)
+
+				Expect(rsp.Code).To(Equal(http.StatusBadRequest))
+				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
+
+				var errRsp api.ErrorResponse
+				errJson, err := ioutil.ReadAll(rsp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(json.Unmarshal(errJson, &errRsp)).To(Succeed())
+				Expect(errRsp.Message).To(HavePrefix("Cannot unmarshal request body: "))
+			})
+
+			It("logs the error", func() {
+				reqBody := bytes.NewBuffer([]byte("some bad payload"))
+
+				handlePut(handler, "/api/v1/tasks/5", reqBody)
+
+				Eventually(logWriter).Should(gbytes.Say("Cannot unmarshal request body"))
 			})
 		})
 	})
@@ -369,7 +405,7 @@ var _ = XDescribe("TaskIDHandler", func() {
 				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
 				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
 
-				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "some delete error"})
+				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "Unable to delete task task-a: some delete error"})
 				Expect(err).NotTo(HaveOccurred())
 				errJson, err := ioutil.ReadAll(rsp.Body)
 				Expect(err).NotTo(HaveOccurred())
