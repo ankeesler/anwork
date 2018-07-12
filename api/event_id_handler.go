@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -27,8 +28,8 @@ func (h *eventIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	eventID, err := parseLastPathSegment(r)
 	if err != nil {
-		h.log.Printf("Unable to parse last path segment: %s", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		msg := fmt.Sprintf("Unable to parse last path segment: %s", err.Error())
+		respondWithError(w, http.StatusBadRequest, msg, h.log)
 		return
 	}
 
@@ -43,15 +44,15 @@ func (h *eventIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if e == nil {
-		h.log.Printf("No event with ID %d", eventID)
-		w.WriteHeader(http.StatusNotFound)
+		msg := fmt.Sprintf("No event with ID %d", eventID)
+		respondWithError(w, http.StatusNotFound, msg, h.log)
 		return
 	}
 
 	eJson, err := json.Marshal(e)
 	if err != nil {
-		h.log.Printf("Cannot marshal event: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Cannot marshal event: %s", err.Error())
+		respondWithError(w, http.StatusInternalServerError, msg, h.log)
 		return
 	}
 
@@ -60,8 +61,8 @@ func (h *eventIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(eJson)
 	if err != nil {
-		h.log.Printf("Cannot write JSON body: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Cannot write JSON body: %s", err.Error())
+		respondWithError(w, http.StatusInternalServerError, msg, h.log)
 		return
 	}
 }

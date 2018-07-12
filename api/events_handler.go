@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -31,15 +32,16 @@ func (h *eventsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	eventsJson, err := json.Marshal(events)
 	if err != nil {
-		h.log.Printf("Failed to marshal events: %s", err.Error())
+		msg := fmt.Sprintf("Failed to marshal events: %s", err.Error())
+		respondWithError(w, http.StatusInternalServerError, msg, h.log)
 		return
 	}
 
 	h.log.Printf("Returning events %s", eventsJson)
 	_, err = w.Write(eventsJson)
 	if err != nil {
-		h.log.Printf("Cannot write JSON body: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Cannot write JSON body: %s", err.Error())
+		respondWithError(w, http.StatusInternalServerError, msg, h.log)
 		return
 	}
 }
