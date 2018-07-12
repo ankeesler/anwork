@@ -14,7 +14,9 @@ import (
 	"os"
 
 	"github.com/ankeesler/anwork/runner"
+	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/local"
+	"github.com/ankeesler/anwork/task/remote"
 )
 
 type debugWriter struct {
@@ -32,6 +34,8 @@ func main() {
 	var (
 		context, root string
 		dw            debugWriter
+
+		address string
 	)
 
 	flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
@@ -40,6 +44,8 @@ func main() {
 
 	flags.StringVar(&context, "c", "default-context", "Set the persistence context")
 	flags.StringVar(&root, "o", ".", "Set the persistence root directory")
+
+	flags.StringVar(&address, "a", "", "Connect to a remote manager")
 
 	flags.Usage = func() {
 		fmt.Println("Usage of anwork")
@@ -65,7 +71,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	factory := local.NewManagerFactory(root, context)
+	var factory task.ManagerFactory
+	if address != "" {
+		factory = remote.NewManagerFactory(fmt.Sprintf("http://%s", address))
+	} else {
+		factory = local.NewManagerFactory(root, context)
+	}
+
 	r := runner.New(factory, os.Stdout, &dw)
 	if err := r.Run(flags.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())

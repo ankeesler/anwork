@@ -20,9 +20,9 @@ func main() {
 	if err := api.Run(ctx); err != nil {
 		log.Fatalf("ERROR! api.Run() returned: %s", err.Error())
 	}
+	defer cancel()
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
 	<-c
-	cancel()
 }
