@@ -24,6 +24,14 @@ type manager struct {
 	NextTaskID int
 }
 
+func newManager() *manager {
+	return &manager{
+		MyTasks:    []*task.Task{},
+		MyEvents:   []*task.Event{},
+		NextTaskID: 0,
+	}
+}
+
 func (m *manager) Create(name string) error {
 	if m.FindByName(name) != nil {
 		return fmt.Errorf("task '%s' has already been created", name)

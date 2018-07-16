@@ -32,6 +32,8 @@ type Manager interface {
 	// When multiple tasks have the same priority, the Task's will be ordered by their (unique) ID in
 	// ascending order. This means that the older Task's will come first. This is a conscious decision.
 	// The Task's that have been around the longest are assumed to need to be completed first.
+	//
+	// This function will never return nil!
 	Tasks() []*Task
 
 	// Add a note for a task.

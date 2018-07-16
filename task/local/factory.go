@@ -30,7 +30,7 @@ func (mf *managerFactory) Create() (task.Manager, error) {
 
 	contextFile := mf.contextFile()
 	if _, err := os.Stat(contextFile); os.IsNotExist(err) {
-		return &manager{}, nil
+		return newManager(), nil
 	}
 
 	bytes, err := ioutil.ReadFile(contextFile)
@@ -38,7 +38,7 @@ func (mf *managerFactory) Create() (task.Manager, error) {
 		return nil, fmt.Errorf("could not read context file (%s): %s", contextFile, err.Error())
 	}
 
-	manager := &manager{}
+	manager := newManager()
 	err = json.Unmarshal(bytes, manager)
 	if err != nil {
 		return nil, fmt.Errorf("could not read manager from context file (%s): %s",
