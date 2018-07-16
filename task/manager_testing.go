@@ -22,7 +22,9 @@ func RunManagerTests(factory ManagerFactory) {
 
 	Context("when no tasks are created", func() {
 		It("returns no tasks", func() {
-			Expect(manager.Tasks()).To(BeEmpty())
+			ts := manager.Tasks()
+			Expect(ts).NotTo(BeNil())
+			Expect(ts).To(BeEmpty())
 		})
 		It("returns no journal entries", func() {
 			Expect(manager.Events()).To(BeEmpty())
