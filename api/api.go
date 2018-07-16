@@ -1,6 +1,8 @@
 // This package contains an implementation of the anwork HTTP API.
 //
 // TODO: document me!
+//
+// TODO: add "nav" menus at /api and /api/v1
 package api
 
 import (

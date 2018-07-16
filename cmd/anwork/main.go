@@ -71,6 +71,10 @@ func main() {
 		os.Exit(0)
 	}
 
+	if a, ok := os.LookupEnv("ANWORK_API_ADDRESS"); ok {
+		address = a
+	}
+
 	var factory task.ManagerFactory
 	if address != "" {
 		factory = remote.NewManagerFactory(fmt.Sprintf("http://%s", address))
