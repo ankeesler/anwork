@@ -88,6 +88,7 @@ func (a *Api) makeServer() (*http.Server, error) {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/", newFrontPageHandler(a.log))
 	mux.Handle("/api", NewNavHandler(a.log))
 	mux.Handle("/api/v1/health", NewHealthHandler(a.log))
 	mux.Handle("/api/v1/tasks", NewTasksHandler(manager, a.log))
@@ -96,4 +97,11 @@ func (a *Api) makeServer() (*http.Server, error) {
 	mux.Handle("/api/v1/events/", NewEventIDHandler(manager, a.log))
 
 	return &http.Server{Handler: mux}, nil
+}
+
+func handleFrontPage(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 }

@@ -34,7 +34,7 @@ var _ = Describe("HealthHandler", func() {
 		It("returns a no content success status", func() {
 			rsp := handleGet(handler, "/api/v1/health")
 
-			Expect(rsp.Code).To(Equal(http.StatusNoContent))
+			Expect(rsp.Code).To(Equal(http.StatusOK))
 		})
 
 		It("logs the response", func() {

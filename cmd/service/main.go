@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -11,7 +12,13 @@ import (
 )
 
 func main() {
-	address := ":12345"
+	var address string
+	if port, ok := os.LookupEnv("PORT"); ok {
+		address = fmt.Sprintf(":%s", port)
+	} else {
+		address = ":12345"
+	}
+
 	factory := local.NewManagerFactory("/tmp", "default-context")
 	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Lshortfile)
 	api := api.New(address, factory, log)
