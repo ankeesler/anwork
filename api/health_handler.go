@@ -3,17 +3,14 @@ package api
 import (
 	"log"
 	"net/http"
-
-	"github.com/ankeesler/anwork/task"
 )
 
 type healthHandler struct {
-	manager task.Manager
-	log     *log.Logger
+	log *log.Logger
 }
 
-func NewHealthHandler(manager task.Manager, log *log.Logger) http.Handler {
-	return &healthHandler{manager: manager, log: log}
+func NewHealthHandler(log *log.Logger) http.Handler {
+	return &healthHandler{log: log}
 }
 
 func (h *healthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

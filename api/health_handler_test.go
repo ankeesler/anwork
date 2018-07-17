@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/ankeesler/anwork/api"
-	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -14,22 +13,16 @@ import (
 
 var _ = Describe("HealthHandler", func() {
 	var (
-		manager *taskfakes.FakeManager
-
 		logWriter *gbytes.Buffer
 
 		handler http.Handler
 	)
 
 	BeforeEach(func() {
-		factory := &taskfakes.FakeManagerFactory{}
-		manager = &taskfakes.FakeManager{}
-		factory.CreateReturnsOnCall(0, manager, nil)
-
 		logWriter = gbytes.NewBuffer()
 		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-		handler = api.NewHealthHandler(manager, l)
+		handler = api.NewHealthHandler(l)
 	})
 
 	It("logs that handling is happening", func() {
@@ -55,7 +48,6 @@ var _ = Describe("HealthHandler", func() {
 	Describe("POST", func() {
 		It("responds with method not allowed", func() {
 			rsp := handlePost(handler, "/api/v1/health", nil)
-			Expect(manager.EventsCallCount()).To(Equal(0))
 			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
 		})
 	})
@@ -63,7 +55,6 @@ var _ = Describe("HealthHandler", func() {
 	Describe("PUT", func() {
 		It("responds with method not allowed", func() {
 			rsp := handlePut(handler, "/api/v1/health", nil)
-			Expect(manager.EventsCallCount()).To(Equal(0))
 			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
 		})
 	})
@@ -71,7 +62,6 @@ var _ = Describe("HealthHandler", func() {
 	Describe("DELETE", func() {
 		It("responds with method not allowed", func() {
 			rsp := handleDelete(handler, "/api/v1/health")
-			Expect(manager.EventsCallCount()).To(Equal(0))
 			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
 		})
 	})

@@ -1,6 +1,9 @@
 // This package contains an implementation of the anwork HTTP API.
 //
 // Here is the ANWORK API. All of the payloads are JSON formatted.
+//   Show a list of links for this API:
+//   GET /api -> return a map[string]map[string]string with links to the API endpoints
+//
 //   Get all of the current tasks:
 //   GET  /api/v1/tasks -> returns an array of task.Task's
 //
@@ -24,8 +27,6 @@
 //
 //   Get the details about an event:
 //   GET /api/v1/events/:startTime -> returns the task.Event that occurred at that time
-//
-// TODO: add "nav" menus at /api and /api/v1
 package api
 
 import (
@@ -87,7 +88,12 @@ func (a *Api) makeServer() (*http.Server, error) {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/api", NewNavHandler(a.log))
+	mux.Handle("/api/v1/health", NewHealthHandler(a.log))
 	mux.Handle("/api/v1/tasks", NewTasksHandler(manager, a.log))
+	mux.Handle("/api/v1/tasks/", NewTaskIDHandler(manager, a.log))
+	mux.Handle("/api/v1/events", NewEventsHandler(manager, a.log))
+	mux.Handle("/api/v1/events/", NewEventIDHandler(manager, a.log))
 
 	return &http.Server{Handler: mux}, nil
 }
