@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -39,10 +40,15 @@ func runWithStatus(exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) 
 	if errBuf == nil {
 		errBuf = gbytes.NewBuffer()
 	}
+
+	fmt.Fprintln(GinkgoWriter, "\n[running]:", anworkBin, strings.Join(args, " "))
 	s, err := gexec.Start(exec.Command(anworkBin, args...), outBuf, errBuf)
-	ExpectWithOffset(1, err).To(Succeed())
-	EventuallyWithOffset(1, s).Should(gexec.Exit(exitCode), "STDOUT: %s\nSTDERR: %s\n",
+	ExpectWithOffset(2, err).To(Succeed())
+
+	EventuallyWithOffset(2, s).Should(gexec.Exit(exitCode), "STDOUT: %s\nSTDERR: %s\n",
 		string(outBuf.Contents()), string(errBuf.Contents()))
+	fmt.Fprintln(GinkgoWriter, "[out]:", string(outBuf.Contents()))
+	fmt.Fprintln(GinkgoWriter, "[err]:", string(errBuf.Contents()))
 }
 
 func TestIntegration(t *testing.T) {
