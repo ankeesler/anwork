@@ -34,8 +34,6 @@ func main() {
 	var (
 		context, root string
 		dw            debugWriter
-
-		address string
 	)
 
 	flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
@@ -44,8 +42,6 @@ func main() {
 
 	flags.StringVar(&context, "c", "default-context", "Set the persistence context")
 	flags.StringVar(&root, "o", ".", "Set the persistence root directory")
-
-	flags.StringVar(&address, "a", "", "Connect to a remote manager")
 
 	flags.Usage = func() {
 		fmt.Println("Usage of anwork")
@@ -71,12 +67,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if a, ok := os.LookupEnv("ANWORK_API_ADDRESS"); ok {
-		address = a
-	}
-
 	var factory task.ManagerFactory
-	if address != "" {
+	if address, ok := useApi(); ok {
 		factory = remote.NewManagerFactory(fmt.Sprintf("http://%s", address))
 	} else {
 		factory = local.NewManagerFactory(root, context)
@@ -87,4 +79,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)
 	}
+}
+
+func useApi() (string, bool) {
+	return os.LookupEnv("ANWORK_API_ADDRESS")
 }

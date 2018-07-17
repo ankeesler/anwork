@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"testing"
@@ -17,7 +18,15 @@ var (
 	runningOnTravis bool
 
 	version = 4
+
+	runWithApi     bool
+	apiSession     *gexec.Session
+	apiOut, apiErr *gbytes.Buffer
 )
+
+func init() {
+	_, runWithApi = os.LookupEnv("ANWORK_TEST_RUN_WITH_API")
+}
 
 func run(outBuf, errBuf *gbytes.Buffer, args ...string) {
 	runWithStatus(0, outBuf, errBuf, args...)
@@ -47,8 +56,26 @@ func TestIntegration(t *testing.T) {
 		_, runningOnTravis = os.LookupEnv("TRAVIS")
 
 		Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", "y")).To(Succeed())
+
+		if runWithApi {
+			var apiBin string
+			apiBin, err = gexec.Build("github.com/ankeesler/anwork/cmd/service")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12345")).To(Succeed())
+
+			apiOut, apiErr = gbytes.NewBuffer(), gbytes.NewBuffer()
+			apiSession, err = gexec.Start(exec.Command(apiBin), apiOut, apiErr)
+			Expect(err).ToNot(HaveOccurred())
+		}
 	})
 	AfterSuite(func() {
+		if apiSession != nil {
+			apiSession.Kill()
+			fmt.Fprintln(GinkgoWriter, "\nAPI OUT:", string(apiOut.Contents()))
+			fmt.Fprintln(GinkgoWriter, "\nAPI ERR:", string(apiErr.Contents()))
+		}
+
 		gexec.CleanupBuildArtifacts()
 	})
 
