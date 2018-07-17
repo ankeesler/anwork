@@ -1,6 +1,29 @@
 // This package contains an implementation of the anwork HTTP API.
 //
-// TODO: document me!
+// Here is the ANWORK API. All of the payloads are JSON formatted.
+//   Get all of the current tasks:
+//   GET  /api/v1/tasks -> returns an array of task.Task's
+//
+//   Create a new task:
+//   POST /api/v1/tasks api.CreateRequest -> returns the created task.Task
+//
+//   Get the details about a task:
+//   GET /api/v1/tasks/:id -> returns the task.Task
+//
+//   Update a task's state or priority:
+//   PUT /api/v1/tasks/:id api.UpdateTaskRequest
+//
+//   Delete a task:
+//   DELETE /api/v1/tasks/:id
+//
+//   Get all of the events:
+//   GET /api/v1/events -> returns an array of task.Event's
+//
+//   Create a new event:
+//   POST /api/v1/events api.AddEventRequest -> returns the created task.Event
+//
+//   Get the details about an event:
+//   GET /api/v1/events/:startTime -> returns the task.Event that occurred at that time
 //
 // TODO: add "nav" menus at /api and /api/v1
 package api
