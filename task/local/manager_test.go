@@ -4,7 +4,6 @@ import (
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/local"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Manager", func() {
