@@ -64,10 +64,6 @@ func (mf *managerFactory) Save(manager task.Manager) error {
 	return nil
 }
 
-func (mf *managerFactory) Reset() error {
-	return os.RemoveAll(mf.contextFile())
-}
-
 func (mf *managerFactory) validateOutputDir() error {
 	if _, err := os.Stat(mf.outputDir); os.IsNotExist(err) {
 		return fmt.Errorf("outputDir does not exist: %s", mf.outputDir)

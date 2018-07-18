@@ -60,9 +60,22 @@ var _ = Describe("Command", func() {
 				Eventually(stdoutWriter).Should(gbytes.Say("OK, deleting all data"))
 			})
 
-			It("tells the factory to reset", func() {
+			It("tells the manager to reset", func() {
 				Expect(r.Run([]string{"reset"})).To(Succeed())
-				Expect(factory.ResetCallCount()).To(Equal(1))
+				Expect(manager.ResetCallCount()).To(Equal(1))
+			})
+
+
+			Context("when the manager fails to reset", func() {
+				BeforeEach(func() {
+					manager.ResetReturnsOnCall(0, errors.New("some reset error"))
+				})
+
+				It("returns the error", func() {
+					err := r.Run([]string{"reset"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("some reset error"))
+				})
 			})
 		})
 
@@ -86,7 +99,7 @@ var _ = Describe("Command", func() {
 
 			It("does not tell the factory to reset", func() {
 				Expect(r.Run([]string{"reset"})).To(Succeed())
-				Expect(factory.ResetCallCount()).To(Equal(0))
+				Expect(manager.ResetCallCount()).To(Equal(0))
 			})
 		})
 	})

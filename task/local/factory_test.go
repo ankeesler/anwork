@@ -17,6 +17,10 @@ var _ = Describe("ManagerFactory", func() {
 
 	task.RunFactoryTests(local.NewManagerFactory("testdata", "nont-existent-context"))
 
+	AfterEach(func() {
+		os.RemoveAll(filepath.Join("testdata", "nont-existent-context"))
+	})
+
 	Context("when an invalid outputDir is provided", func() {
 		BeforeEach(func() {
 			factory = local.NewManagerFactory("this directory does not exist", "empty-context")

@@ -146,6 +146,13 @@ func (m *manager) Events() []*task.Event {
 	return m.MyEvents
 }
 
+func (m *manager) Reset() error {
+	m.MyTasks = []*task.Task{}
+	m.MyEvents = []*task.Event{}
+	m.NextTaskID = 0
+	return nil
+}
+
 // Return the length of the Task's held by this Manager.
 func (m *manager) Len() int {
 	return len(m.MyTasks)

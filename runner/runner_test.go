@@ -132,27 +132,10 @@ var _ = Describe("AnworkRunner", func() {
 			Expect(os.Setenv("ANWORK_TEST_RESET_ANSWER", envVarBefore)).To(Succeed())
 		})
 
-		It("calls reset on the manager", func() {
-			err := r.Run([]string{"reset"})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(factory.ResetCallCount()).To(Equal(1))
-		})
-
 		It("does NOT tell the manager to save anything", func() {
 			err := r.Run([]string{"reset"})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(factory.SaveCallCount()).To(Equal(0))
-		})
-
-		Context("when the factory fails to reset", func() {
-			BeforeEach(func() {
-				factory.ResetReturnsOnCall(0, errors.New("some error"))
-			})
-			It("returns the error", func() {
-				err := r.Run([]string{"reset"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Could not reset factory: some error"))
-			})
 		})
 	})
 

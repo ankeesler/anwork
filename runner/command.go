@@ -17,7 +17,7 @@ import (
 // This is the version of this anwork application command set.
 const Version = 4
 
-// This error is used to indicate that the manager factory should be reset.
+// This error is used to indicate that a reset was called.
 type resetError struct {
 }
 
@@ -195,8 +195,12 @@ func resetAction(cmd *command, args []string, o io.Writer, m task.Manager) error
 	}
 
 	if answer == "y" {
-		fmt.Fprintln(o, "OK, deleting all data")
-		return &resetError{}
+		if err := m.Reset(); err != nil {
+			return err
+		} else {
+			fmt.Fprintln(o, "OK, deleting all data")
+			return &resetError{}
+		}
 	} else {
 		fmt.Fprintln(o, "NOT deleting all data")
 		return nil
