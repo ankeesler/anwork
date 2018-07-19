@@ -55,7 +55,7 @@ var _ = Describe("Command", func() {
 			})
 
 			It("asks the user to confirm and tells them their data is being deleted", func() {
-				r.Run([]string{"reset"})
+				Expect(r.Run([]string{"reset"})).To(Succeed())
 				Eventually(stdoutWriter).Should(gbytes.Say("Are you sure you want to delete all data \\[y/n\\]: "))
 				Eventually(stdoutWriter).Should(gbytes.Say("OK, deleting all data"))
 			})
@@ -64,7 +64,6 @@ var _ = Describe("Command", func() {
 				Expect(r.Run([]string{"reset"})).To(Succeed())
 				Expect(manager.ResetCallCount()).To(Equal(1))
 			})
-
 
 			Context("when the manager fails to reset", func() {
 				BeforeEach(func() {

@@ -258,11 +258,6 @@ func RunFactoryTests(factory ManagerFactory) {
 		Expect(factory.Save(manager)).To(Succeed())
 	})
 
-	AfterEach(func() {
-		Expect(manager.Reset()).To(Succeed())
-		Expect(factory.Save(manager)).To(Succeed())
-	})
-
 	It("can successfully cycle a manager", func() {
 		manager, err := factory.Create()
 		Expect(err).NotTo(HaveOccurred())

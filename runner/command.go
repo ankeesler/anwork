@@ -17,14 +17,6 @@ import (
 // This is the version of this anwork application command set.
 const Version = 4
 
-// This error is used to indicate that a reset was called.
-type resetError struct {
-}
-
-func (a resetError) Error() string {
-	return ""
-}
-
 type unknownTaskError struct {
 	name string
 }
@@ -195,12 +187,8 @@ func resetAction(cmd *command, args []string, o io.Writer, m task.Manager) error
 	}
 
 	if answer == "y" {
-		if err := m.Reset(); err != nil {
-			return err
-		} else {
-			fmt.Fprintln(o, "OK, deleting all data")
-			return &resetError{}
-		}
+		fmt.Fprintln(o, "OK, deleting all data")
+		return m.Reset()
 	} else {
 		fmt.Fprintln(o, "NOT deleting all data")
 		return nil

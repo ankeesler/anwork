@@ -282,7 +282,7 @@ var _ = Describe("anwork", func() {
 				Expect(os.Unsetenv("ANWORK_TEST_RESET_ANSWER")).To(Succeed())
 
 				var err error
-				cmd := exec.Command(anworkBin, "reset")
+				cmd := exec.Command(anworkBin, "-o", outputDir, "reset")
 				stdin, err = cmd.StdinPipe()
 				Expect(err).ToNot(HaveOccurred())
 
