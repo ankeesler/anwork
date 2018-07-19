@@ -8,6 +8,7 @@
 - ANWORK "archive" command deletes finished tasks.
 
 ## Changed Functionality
+- You can't set tasks to "Waiting" on the API...
 
 ## Deprecated Functionality
 
