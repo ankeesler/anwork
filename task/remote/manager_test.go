@@ -544,7 +544,23 @@ var _ = Describe("Manager", func() {
 				err := manager.Reset()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
-				Expect(err.Error()).To(ContainSubstring("  failed to delete task"))
+				Expect(err.Error()).To(ContainSubstring("  delete task 1: failed to delete task"))
+			})
+		})
+
+		Context("when the request returns an unexpected response with no payload", func() {
+			BeforeEach(func() {
+				server.SetHandler(5, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/api/v1/events/1"),
+					ghttp.RespondWith(http.StatusMethodNotAllowed, nil),
+				))
+			})
+
+			It("prints a legitimate failure message", func() {
+				err := manager.Reset()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
+				Expect(err.Error()).To(ContainSubstring("  delete event 1: unexpected response: 405 Method Not Allowed"))
 			})
 		})
 

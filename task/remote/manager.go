@@ -5,6 +5,7 @@ package remote
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"fmt"
 	"net/http"
 	"strings"
@@ -204,21 +205,25 @@ func (m *manager) Reset() error {
 		return err
 	}
 
-	errs := []string{}
+	errs := make(map[string]string)
 	for _, t := range tasks {
 		if err := m.deleteTask(t.ID); err != nil {
-			errs = append(errs, err.Error())
+			errs[fmt.Sprintf("delete task %d", t.ID)] = err.Error()
 		}
 	}
 
 	for _, e := range events {
 		if err := m.deleteEvent(e); err != nil {
-			errs = append(errs, err.Error())
+			errs[fmt.Sprintf("delete event %d", e.TaskID)] = err.Error()
 		}
 	}
 
 	if len(errs) > 0 {
-		errsMsg := strings.Join(errs, "\n  ")
+		errMsgs := []string{}
+		for k, v := range errs {
+			errMsgs = append(errMsgs, fmt.Sprintf("%s: %s", k, v))
+		}
+		errsMsg := strings.Join(errMsgs, "\n  ")
 		return fmt.Errorf("Encountered errors during reset:\n  %s", errsMsg)
 	} else {
 		return nil
@@ -340,8 +345,12 @@ func (m *manager) deleteEvent(event *task.Event) error {
 
 func readErrorResponse(rsp *http.Response) (*api.ErrorResponse, error) {
 	var otaErr api.ErrorResponse
-	decoder := json.NewDecoder(rsp.Body)
-	if err := decoder.Decode(&otaErr); err != nil {
+	payload, err := ioutil.ReadAll(rsp.Body)
+	if err != nil || len(payload) == 0 {
+		return nil, fmt.Errorf("unexpected response: %s", rsp.Status)
+	}
+
+	if err := json.Unmarshal(payload, &otaErr); err != nil {
 		return nil, err
 	}
 	return &otaErr, nil
