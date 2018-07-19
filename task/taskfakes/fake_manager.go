@@ -106,6 +106,15 @@ type FakeManager struct {
 	eventsReturnsOnCall map[int]struct {
 		result1 []*task.Event
 	}
+	ResetStub        func() error
+	resetMutex       sync.RWMutex
+	resetArgsForCall []struct{}
+	resetReturns     struct {
+		result1 error
+	}
+	resetReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -529,6 +538,46 @@ func (fake *FakeManager) EventsReturnsOnCall(i int, result1 []*task.Event) {
 	}{result1}
 }
 
+func (fake *FakeManager) Reset() error {
+	fake.resetMutex.Lock()
+	ret, specificReturn := fake.resetReturnsOnCall[len(fake.resetArgsForCall)]
+	fake.resetArgsForCall = append(fake.resetArgsForCall, struct{}{})
+	fake.recordInvocation("Reset", []interface{}{})
+	fake.resetMutex.Unlock()
+	if fake.ResetStub != nil {
+		return fake.ResetStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.resetReturns.result1
+}
+
+func (fake *FakeManager) ResetCallCount() int {
+	fake.resetMutex.RLock()
+	defer fake.resetMutex.RUnlock()
+	return len(fake.resetArgsForCall)
+}
+
+func (fake *FakeManager) ResetReturns(result1 error) {
+	fake.ResetStub = nil
+	fake.resetReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) ResetReturnsOnCall(i int, result1 error) {
+	fake.ResetStub = nil
+	if fake.resetReturnsOnCall == nil {
+		fake.resetReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.resetReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -550,6 +599,8 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.setStateMutex.RUnlock()
 	fake.eventsMutex.RLock()
 	defer fake.eventsMutex.RUnlock()
+	fake.resetMutex.RLock()
+	defer fake.resetMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

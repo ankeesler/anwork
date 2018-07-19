@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ankeesler/anwork/api"
@@ -71,28 +72,7 @@ func (m *manager) Delete(name string) error {
 		return fmt.Errorf("unknown task with name %s", name)
 	}
 
-	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, toDelete.ID)
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode != http.StatusNoContent {
-		otaErr, err := readErrorResponse(rsp)
-		if err != nil {
-			return err
-		} else {
-			return otaErr
-		}
-	}
-
-	return nil
+	return m.deleteTask(toDelete.ID)
 }
 
 func (m *manager) Tasks() []*task.Task {
@@ -213,6 +193,38 @@ func (m *manager) Events() []*task.Event {
 	return events
 }
 
+func (m *manager) Reset() error {
+	tasks, err := m.getTasks()
+	if err != nil {
+		return err
+	}
+
+	events := m.Events()
+	if err != nil {
+		return err
+	}
+
+	errs := []string{}
+	for _, t := range tasks {
+		if err := m.deleteTask(t.ID); err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+
+	for _, e := range events {
+		if err := m.deleteEvent(e); err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+
+	if len(errs) > 0 {
+		errsMsg := strings.Join(errs, "\n  ")
+		return fmt.Errorf("Encountered errors during reset:\n  %s", errsMsg)
+	} else {
+		return nil
+	}
+}
+
 func (m *manager) getTasks() ([]*task.Task, error) {
 	url := fmt.Sprintf("%s/api/v1/tasks", m.address)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -258,6 +270,56 @@ func (m *manager) updateTask(name string, update api.UpdateTaskRequest) error {
 	}
 
 	req.Header["content-type"] = []string{"application/json"}
+	rsp, err := m.httpClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode != http.StatusNoContent {
+		otaErr, err := readErrorResponse(rsp)
+		if err != nil {
+			return err
+		} else {
+			return otaErr
+		}
+	}
+
+	return nil
+}
+
+func (m *manager) deleteTask(id int) error {
+	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, id)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	rsp, err := m.httpClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode != http.StatusNoContent {
+		otaErr, err := readErrorResponse(rsp)
+		if err != nil {
+			return err
+		} else {
+			return otaErr
+		}
+	}
+
+	return nil
+}
+
+func (m *manager) deleteEvent(event *task.Event) error {
+	url := fmt.Sprintf("%s/api/v1/events/%d", m.address, event.TaskID)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		panic(err)
+	}
+
 	rsp, err := m.httpClient.Do(req)
 	if err != nil {
 		panic(err)

@@ -72,13 +72,7 @@ func (a *Runner) Run(args []string) error {
 	a.debug("Manager is %s", manager)
 
 	if err := cmd.Action(cmd, args, a.stdoutWriter, manager); err != nil {
-		if _, ok := err.(*resetError); ok {
-			if err = a.factory.Reset(); err != nil {
-				return fmt.Errorf("Could not reset factory: %s", err.Error())
-			}
-		} else {
-			return fmt.Errorf("Command '%s' failed: %s", args[0], err.Error())
-		}
+		return fmt.Errorf("Command '%s' failed: %s", args[0], err.Error())
 	} else if err := a.factory.Save(manager); err != nil {
 		return fmt.Errorf("Could not save manager: %s", err.Error())
 	}

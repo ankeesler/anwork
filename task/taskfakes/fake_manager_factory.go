@@ -30,15 +30,6 @@ type FakeManagerFactory struct {
 	saveReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ResetStub        func() error
-	resetMutex       sync.RWMutex
-	resetArgsForCall []struct{}
-	resetReturns     struct {
-		result1 error
-	}
-	resetReturnsOnCall map[int]struct {
-		result1 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -134,46 +125,6 @@ func (fake *FakeManagerFactory) SaveReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManagerFactory) Reset() error {
-	fake.resetMutex.Lock()
-	ret, specificReturn := fake.resetReturnsOnCall[len(fake.resetArgsForCall)]
-	fake.resetArgsForCall = append(fake.resetArgsForCall, struct{}{})
-	fake.recordInvocation("Reset", []interface{}{})
-	fake.resetMutex.Unlock()
-	if fake.ResetStub != nil {
-		return fake.ResetStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.resetReturns.result1
-}
-
-func (fake *FakeManagerFactory) ResetCallCount() int {
-	fake.resetMutex.RLock()
-	defer fake.resetMutex.RUnlock()
-	return len(fake.resetArgsForCall)
-}
-
-func (fake *FakeManagerFactory) ResetReturns(result1 error) {
-	fake.ResetStub = nil
-	fake.resetReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManagerFactory) ResetReturnsOnCall(i int, result1 error) {
-	fake.ResetStub = nil
-	if fake.resetReturnsOnCall == nil {
-		fake.resetReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.resetReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeManagerFactory) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -181,8 +132,6 @@ func (fake *FakeManagerFactory) Invocations() map[string][][]interface{} {
 	defer fake.createMutex.RUnlock()
 	fake.saveMutex.RLock()
 	defer fake.saveMutex.RUnlock()
-	fake.resetMutex.RLock()
-	defer fake.resetMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

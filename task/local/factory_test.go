@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -11,11 +12,29 @@ import (
 )
 
 var _ = Describe("ManagerFactory", func() {
+	AfterEach(func() {
+		os.RemoveAll(filepath.Join("testdata", "non-existent-context"))
+	})
+
+	task.RunFactoryTests(local.NewManagerFactory("testdata", "non-existent-context"))
+})
+
+var _ = Describe("ManagerFactory custom tests", func() {
 	var (
 		factory task.ManagerFactory
+
+		outputDir string
 	)
 
-	task.RunFactoryTests(local.NewManagerFactory("testdata", "nont-existent-context"))
+	BeforeEach(func() {
+		var err error
+		outputDir, err = ioutil.TempDir("", "anwork.task.local.test")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		Expect(os.RemoveAll(outputDir)).To(Succeed())
+	})
 
 	Context("when an invalid outputDir is provided", func() {
 		BeforeEach(func() {
@@ -26,17 +45,14 @@ var _ = Describe("ManagerFactory", func() {
 			Expect(err).To(HaveOccurred())
 		})
 		It("Save() returns an error", func() {
-			manager := createEmptyManager()
+			manager := createEmptyManager(outputDir)
 			Expect(factory.Save(manager)).To(HaveOccurred())
 		})
 	})
 
 	Context("when an non-existent context is provided", func() {
 		BeforeEach(func() {
-			factory = local.NewManagerFactory("testdata", "non-existent-context")
-		})
-		AfterEach(func() {
-			os.RemoveAll(filepath.Join("testdata", "non-existent-context"))
+			factory = local.NewManagerFactory(outputDir, "non-existent-context")
 		})
 		It("successfully creates an empty manager", func() {
 			manager, err := factory.Create()
@@ -45,7 +61,7 @@ var _ = Describe("ManagerFactory", func() {
 			Expect(manager.Events()).To(BeEmpty())
 		})
 		It("successfully saves a manager", func() {
-			manager := createEmptyManager()
+			manager := createEmptyManager(outputDir)
 			Expect(factory.Save(manager)).To(Succeed())
 		})
 	})
@@ -62,7 +78,7 @@ var _ = Describe("ManagerFactory", func() {
 
 	Context("when a context is passed that has multiple path segments", func() {
 		BeforeEach(func() {
-			factory = local.NewManagerFactory("testdata", "this/has/multiple/path/segments")
+			factory = local.NewManagerFactory(outputDir, "this/has/multiple/path/segments")
 		})
 		It("errors when trying to create the manager", func() {
 			_, err := factory.Create()
@@ -71,8 +87,8 @@ var _ = Describe("ManagerFactory", func() {
 	})
 })
 
-func createEmptyManager() task.Manager {
-	factory := local.NewManagerFactory("testdata", "non-existent-context")
+func createEmptyManager(outputDir string) task.Manager {
+	factory := local.NewManagerFactory(outputDir, "non-existent-context")
 	manager, err := factory.Create()
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return manager

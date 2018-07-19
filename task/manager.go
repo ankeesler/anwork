@@ -9,8 +9,6 @@ type ManagerFactory interface {
 	Create() (Manager, error)
 	// Save a Manager back into the factory.
 	Save(Manager) error
-	// Completely forget all of the state associated with this factory.
-	Reset() error
 }
 
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
@@ -45,4 +43,7 @@ type Manager interface {
 
 	// Get the events associated with this manager.
 	Events() []*Event
+
+	// Perform a factory reset, e.g., make this manager new again.
+	Reset() error
 }

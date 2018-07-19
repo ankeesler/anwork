@@ -2,6 +2,7 @@ package integration
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -15,6 +16,7 @@ import (
 
 var (
 	anworkBin string
+	outputDir string
 
 	runningOnTravis bool
 
@@ -41,6 +43,17 @@ func runWithStatus(exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) 
 		errBuf = gbytes.NewBuffer()
 	}
 
+	needOutput := true
+	for _, a := range args {
+		if a == "-o" {
+			needOutput = false
+		}
+	}
+
+	if needOutput {
+		args = append([]string{"-o", outputDir}, args...)
+	}
+
 	fmt.Fprintln(GinkgoWriter, "\n[running]:", anworkBin, strings.Join(args, " "))
 	s, err := gexec.Start(exec.Command(anworkBin, args...), outBuf, errBuf)
 	ExpectWithOffset(2, err).To(Succeed())
@@ -57,6 +70,9 @@ func TestIntegration(t *testing.T) {
 	BeforeSuite(func() {
 		var err error
 		anworkBin, err = gexec.Build("github.com/ankeesler/anwork/cmd/anwork")
+		Expect(err).ToNot(HaveOccurred())
+
+		outputDir, err = ioutil.TempDir("", "anwork.integration.test")
 		Expect(err).ToNot(HaveOccurred())
 
 		_, runningOnTravis = os.LookupEnv("TRAVIS")
@@ -81,6 +97,8 @@ func TestIntegration(t *testing.T) {
 			fmt.Fprintln(GinkgoWriter, "\nAPI OUT:", string(apiOut.Contents()))
 			fmt.Fprintln(GinkgoWriter, "\nAPI ERR:", string(apiErr.Contents()))
 		}
+
+		Expect(os.RemoveAll(outputDir)).To(Succeed())
 
 		gexec.CleanupBuildArtifacts()
 	})

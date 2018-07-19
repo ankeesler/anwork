@@ -184,6 +184,12 @@ func RunManagerTests(factory ManagerFactory) {
 			})
 		})
 
+		It("deletes all of those tasks when Reset() is called", func() {
+			Expect(manager.Reset()).To(Succeed())
+			Expect(manager.Tasks()).To(BeEmpty())
+			Expect(manager.Events()).To(BeEmpty())
+		})
+
 		Context("when those three tasks are deleted", func() {
 			BeforeEach(func() {
 				for _, name := range names {
@@ -236,8 +242,11 @@ func RunManagerTests(factory ManagerFactory) {
 // ManagerFactory interface. A default factory should be passed into this utility
 // method.
 func RunFactoryTests(factory ManagerFactory) {
+	var manager Manager
+
 	BeforeEach(func() {
-		manager, err := factory.Create()
+		var err error
+		manager, err = factory.Create()
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(manager.Create("1")).To(Succeed())
@@ -249,20 +258,9 @@ func RunFactoryTests(factory ManagerFactory) {
 		Expect(factory.Save(manager)).To(Succeed())
 	})
 
-	AfterEach(func() {
-		Expect(factory.Reset()).To(Succeed())
-	})
-
 	It("can successfully cycle a manager", func() {
 		manager, err := factory.Create()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(manager).To(Equal(manager))
-	})
-
-	It("can successfully reset its state", func() {
-		Expect(factory.Reset()).To(Succeed())
-		manager, err := factory.Create()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(manager.Tasks()).To(BeEmpty())
 	})
 }

@@ -17,7 +17,3 @@ func (mf *managerFactory) Create() (task.Manager, error) {
 func (mf *managerFactory) Save(manager task.Manager) error {
 	return nil
 }
-
-func (mf *managerFactory) Reset() error {
-	return nil
-}

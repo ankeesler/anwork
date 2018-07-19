@@ -1,3 +1,4 @@
+// TODO: run the generic manager tests against the API!
 package remote_test
 
 import (
@@ -444,9 +445,9 @@ var _ = Describe("Manager", func() {
 
 		BeforeEach(func() {
 			events = []*task.Event{
-				&task.Event{Title: "task-a", TaskID: 1},
-				&task.Event{Title: "task-b", TaskID: 2},
-				&task.Event{Title: "task-c", TaskID: 3},
+				&task.Event{Title: "event-a", TaskID: 1},
+				&task.Event{Title: "event-b", TaskID: 2},
+				&task.Event{Title: "event-c", TaskID: 3},
 			}
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("GET", "/api/v1/events"),
@@ -469,6 +470,93 @@ var _ = Describe("Manager", func() {
 
 			It("...panics, I guess?", func() {
 				Expect(func() { manager.Events() }).To(Panic())
+			})
+		})
+	})
+
+	Describe("Reset", func() {
+		var tasks []*task.Task
+		var events []*task.Event
+		BeforeEach(func() {
+			tasks = []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			events = []*task.Event{
+				&task.Event{Title: "event-a", TaskID: 1},
+				&task.Event{Title: "event-b", TaskID: 2},
+				&task.Event{Title: "event-c", TaskID: 3},
+			}
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/events"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(http.StatusOK, events),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/2"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/3"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/events/1"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/events/2"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/events/3"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+		})
+
+		It("DELETE's all of the tasks and events", func() {
+			Expect(manager.Reset()).To(Succeed())
+			Expect(server.ReceivedRequests()).To(HaveLen(8))
+		})
+
+		Context("when the request returns a failure", func() {
+			BeforeEach(func() {
+				server.SetHandler(2, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
+					ghttp.RespondWithJSONEncoded(
+						http.StatusBadRequest,
+						api.ErrorResponse{Message: "failed to delete task"},
+					),
+				))
+			})
+
+			It("prints the failure message", func() {
+				err := manager.Reset()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
+				Expect(err.Error()).To(ContainSubstring("  failed to delete task"))
+			})
+		})
+
+		Context("when the request fails", func() {
+			BeforeEach(func() {
+				server.Close()
+			})
+
+			It("returns an error", func() {
+				err := manager.Reset()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("connection refused"))
 			})
 		})
 	})
