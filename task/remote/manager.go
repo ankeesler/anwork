@@ -5,8 +5,8 @@ package remote
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
