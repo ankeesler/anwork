@@ -20,3 +20,6 @@ log "Pushed anwork_service..."
 
 rm -rf $DIR
 log "Removed temp directory..."
+
+ANWORK_API_ADDRESS=$(cf app anwork_service | awk '/routes/ {print $2}') anwork show
+log "Passed canary test..."
