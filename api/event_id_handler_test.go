@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -130,10 +131,53 @@ var _ = Describe("EventIDHandler", func() {
 	})
 
 	Describe("DELETE", func() {
-		It("responds with method not allowed", func() {
+		BeforeEach(func() {
+			manager.EventsReturnsOnCall(0, []*task.Event{
+				&task.Event{Date: 1},
+				&task.Event{Date: 3},
+				&task.Event{Date: 5},
+			})
+		})
+
+		It("deletes the event via the manager", func() {
 			rsp := handleDelete(handler, "/api/v1/events/5")
-			Expect(manager.EventsCallCount()).To(Equal(0))
-			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+
+			Expect(manager.DeleteEventCallCount()).To(Equal(1))
+			Expect(manager.DeleteEventArgsForCall(0)).To(Equal(int64(5)))
+
+			Expect(rsp.Code).To(Equal(http.StatusNoContent))
+		})
+
+		It("logs a message saying it is deleting an event", func() {
+			handleDelete(handler, "/api/v1/events/5")
+
+			Eventually(logWriter).Should(gbytes.Say("Deleting event with start time 5"))
+		})
+
+		Context("when the manager fails to delete the event", func() {
+			BeforeEach(func() {
+				manager.DeleteEventReturnsOnCall(0, errors.New("failed to delete event"))
+			})
+
+			It("returns the error via an internal server error status", func() {
+				rsp := handleDelete(handler, "/api/v1/events/5")
+
+				Expect(manager.DeleteEventCallCount()).To(Equal(1))
+				Expect(manager.DeleteEventArgsForCall(0)).To(Equal(int64(5)))
+
+				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
+
+				var errRsp api.ErrorResponse
+				decoder := json.NewDecoder(rsp.Body)
+				Expect(decoder.Decode(&errRsp)).To(Succeed())
+				Expect(errRsp).To(Equal(api.ErrorResponse{Message: "failed to delete event"}))
+			})
+
+			It("logs the error", func() {
+				handleDelete(handler, "/api/v1/events/5")
+
+				Eventually(logWriter).Should(gbytes.Say("failed to delete event"))
+			})
 		})
 	})
 

@@ -19,7 +19,7 @@ type APIClient interface {
 	UpdatePriority(int, int) error
 	UpdateState(int, task.State) error
 	GetEvents() ([]*task.Event, error)
-	//DeleteEvent(int) error
+	DeleteEvent(int64) error
 }
 
 type manager struct {
@@ -101,6 +101,10 @@ func (m *manager) SetState(name string, state task.State) error {
 
 func (m *manager) Note(name, note string) error {
 	return errors.New("Implement me!")
+}
+
+func (m *manager) DeleteEvent(startTime int64) error {
+	return m.client.DeleteEvent(startTime)
 }
 
 func (m *manager) Events() []*task.Event {

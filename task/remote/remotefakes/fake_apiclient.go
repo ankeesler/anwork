@@ -90,6 +90,17 @@ type FakeAPIClient struct {
 		result1 []*task.Event
 		result2 error
 	}
+	DeleteEventStub        func(int64) error
+	deleteEventMutex       sync.RWMutex
+	deleteEventArgsForCall []struct {
+		arg1 int64
+	}
+	deleteEventReturns struct {
+		result1 error
+	}
+	deleteEventReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -425,6 +436,54 @@ func (fake *FakeAPIClient) GetEventsReturnsOnCall(i int, result1 []*task.Event, 
 	}{result1, result2}
 }
 
+func (fake *FakeAPIClient) DeleteEvent(arg1 int64) error {
+	fake.deleteEventMutex.Lock()
+	ret, specificReturn := fake.deleteEventReturnsOnCall[len(fake.deleteEventArgsForCall)]
+	fake.deleteEventArgsForCall = append(fake.deleteEventArgsForCall, struct {
+		arg1 int64
+	}{arg1})
+	fake.recordInvocation("DeleteEvent", []interface{}{arg1})
+	fake.deleteEventMutex.Unlock()
+	if fake.DeleteEventStub != nil {
+		return fake.DeleteEventStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.deleteEventReturns.result1
+}
+
+func (fake *FakeAPIClient) DeleteEventCallCount() int {
+	fake.deleteEventMutex.RLock()
+	defer fake.deleteEventMutex.RUnlock()
+	return len(fake.deleteEventArgsForCall)
+}
+
+func (fake *FakeAPIClient) DeleteEventArgsForCall(i int) int64 {
+	fake.deleteEventMutex.RLock()
+	defer fake.deleteEventMutex.RUnlock()
+	return fake.deleteEventArgsForCall[i].arg1
+}
+
+func (fake *FakeAPIClient) DeleteEventReturns(result1 error) {
+	fake.DeleteEventStub = nil
+	fake.deleteEventReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAPIClient) DeleteEventReturnsOnCall(i int, result1 error) {
+	fake.DeleteEventStub = nil
+	if fake.deleteEventReturnsOnCall == nil {
+		fake.deleteEventReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteEventReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeAPIClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -442,6 +501,8 @@ func (fake *FakeAPIClient) Invocations() map[string][][]interface{} {
 	defer fake.updateStateMutex.RUnlock()
 	fake.getEventsMutex.RLock()
 	defer fake.getEventsMutex.RUnlock()
+	fake.deleteEventMutex.RLock()
+	defer fake.deleteEventMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

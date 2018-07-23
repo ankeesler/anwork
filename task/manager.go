@@ -43,6 +43,8 @@ type Manager interface {
 
 	// Get the events associated with this manager.
 	Events() []*Event
+	// Delete an event, identified by its start time.
+	DeleteEvent(startTime int64) error
 
 	// Perform a factory reset, e.g., make this manager new again.
 	Reset() error

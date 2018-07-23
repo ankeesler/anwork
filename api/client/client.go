@@ -174,7 +174,7 @@ func (c *Client) UpdateState(id int, state task.State) error {
 }
 
 // Delete an event.
-func (c *Client) DeleteEvent(startTime int) error {
+func (c *Client) DeleteEvent(startTime int64) error {
 	url := fmt.Sprintf("%s/api/v1/events/%d", c.address, startTime)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {

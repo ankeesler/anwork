@@ -44,6 +44,9 @@ func RunManagerTests(factory ManagerFactory) {
 		It("fails to add a set the priority of a task", func() {
 			Expect(manager.SetPriority("1", 5)).To(HaveOccurred())
 		})
+		It("fails to delete any event", func() {
+			Expect(manager.DeleteEvent(12345)).NotTo(Succeed())
+		})
 	})
 
 	Context("when three tasks are created", func() {
@@ -95,6 +98,15 @@ func RunManagerTests(factory ManagerFactory) {
 				Expect(events[i].Type).To(Equal(EventTypeCreate))
 				Expect(events[i].TaskID).To(Equal(t.ID))
 			}
+		})
+		It("can delete these events in the journal", func() {
+			events := manager.Events()
+			copiedEvents := make([]*Event, len(events))
+			copy(copiedEvents, events)
+			for _, event := range copiedEvents {
+				Expect(manager.DeleteEvent(event.Date)).To(Succeed())
+			}
+			Expect(manager.Events()).To(HaveLen(0))
 		})
 		It("uses different IDs for every task", func() {
 			ids := make(map[int]bool)

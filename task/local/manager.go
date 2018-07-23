@@ -146,6 +146,24 @@ func (m *manager) Events() []*task.Event {
 	return m.MyEvents
 }
 
+func (m *manager) DeleteEvent(startTime int64) error {
+	foundItIndex := -1
+	for i, event := range m.MyEvents {
+		if event.Date == startTime {
+			foundItIndex = i
+			break
+		}
+	}
+
+	if foundItIndex == -1 {
+		return fmt.Errorf("No known event with start time %d", startTime)
+	}
+
+	m.MyEvents = append(m.MyEvents[:foundItIndex], m.MyEvents[foundItIndex+1:]...)
+
+	return nil
+}
+
 func (m *manager) Reset() error {
 	m.MyTasks = []*task.Task{}
 	m.MyEvents = []*task.Event{}

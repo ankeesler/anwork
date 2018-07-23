@@ -384,6 +384,24 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
+	Describe("DeleteEvent", func() {
+		It("deletes an event via a call to the client", func() {
+			Expect(manager.DeleteEvent(12345)).To(Succeed())
+
+			Expect(client.DeleteEventCallCount()).To(Equal(1))
+			Expect(client.DeleteEventArgsForCall(0)).To(Equal(int64(12345)))
+		})
+
+		Context("when the client fails", func() {
+			BeforeEach(func() {
+				client.DeleteEventReturnsOnCall(0, errors.New("failed to delete event"))
+			})
+			It("returns the error", func() {
+				Expect(manager.DeleteEvent(12345)).To(MatchError("failed to delete event"))
+			})
+		})
+	})
+
 	//Describe("Reset", func() {
 	//	var tasks []*task.Task
 	//	var events []*task.Event
