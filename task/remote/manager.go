@@ -3,90 +3,63 @@
 package remote
 
 import (
-	"bytes"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
-	"time"
 
-	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task"
 )
 
-type manager struct {
-	address    string
-	httpClient http.Client
+//go:generate counterfeiter . APIClient
+type APIClient interface {
+	CreateTask(string) error
+	DeleteTask(int) error
+	GetTasks() ([]*task.Task, error)
+	GetTask(int) (*task.Task, error)
+	UpdatePriority(int, int) error
+	UpdateState(int, task.State) error
+	GetEvents() ([]*task.Event, error)
+	//DeleteEvent(int) error
 }
 
-func newManager(address string) *manager {
-	return &manager{address: address}
+type manager struct {
+	client APIClient
+}
+
+func newManager(client APIClient) *manager {
+	return &manager{client: client}
+}
+
+type unknownTaskError struct {
+	name string
+}
+
+func (ute *unknownTaskError) Error() string {
+	return fmt.Sprintf("Unknown task with name %s", ute.name)
 }
 
 func (m *manager) Create(name string) error {
-	url := fmt.Sprintf("%s/api/v1/tasks", m.address)
-	payload, err := json.Marshal(api.CreateRequest{Name: name})
-	if err != nil {
-		panic(err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
-	if err != nil {
-		panic(err)
-	}
-
-	req.Header["content-type"] = []string{"application/json"}
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode != http.StatusCreated {
-		otaErr, err := readErrorResponse(rsp)
-		if err != nil {
-			return err
-		} else {
-			return otaErr
-		}
-	}
-
-	return nil
+	return m.client.CreateTask(name)
 }
 
 func (m *manager) Delete(name string) error {
-	tasks, err := m.getTasks()
-	if err != nil {
-		return err
+	task := m.FindByName(name)
+	if task == nil {
+		return &unknownTaskError{name: name}
 	}
-
-	var toDelete *task.Task
-	for _, task := range tasks {
-		if task.Name == name {
-			toDelete = task
-			break
-		}
-	}
-
-	if toDelete == nil {
-		return fmt.Errorf("unknown task with name %s", name)
-	}
-
-	return m.deleteTask(toDelete.ID)
+	return m.client.DeleteTask(task.ID)
 }
 
 func (m *manager) Tasks() []*task.Task {
-	tasks, err := m.getTasks()
+	tasks, err := m.client.GetTasks()
 	if err != nil {
 		panic(err)
 	}
-
 	return tasks
 }
 
 func (m *manager) FindByName(name string) *task.Task {
-	tasks, err := m.getTasks()
+	tasks, err := m.client.GetTasks()
 	if err != nil {
 		panic(err)
 	}
@@ -103,120 +76,64 @@ func (m *manager) FindByName(name string) *task.Task {
 }
 
 func (m *manager) FindByID(id int) *task.Task {
-	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, id)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	task, err := m.client.GetTask(id)
 	if err != nil {
 		panic(err)
 	}
-
-	req.Header["Accept"] = []string{"application/json"}
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	var task *task.Task
-	if rsp.StatusCode == http.StatusOK {
-		decoder := json.NewDecoder(rsp.Body)
-		if err := decoder.Decode(&task); err != nil {
-			panic(err)
-		}
-	}
-
 	return task
 }
 
 func (m *manager) SetPriority(name string, prio int) error {
-	return m.updateTask(name, api.UpdateTaskRequest{Priority: prio})
+	task := m.FindByName(name)
+	if task == nil {
+		return &unknownTaskError{name: name}
+	}
+	return m.client.UpdatePriority(task.ID, prio)
 }
 
 func (m *manager) SetState(name string, state task.State) error {
-	return m.updateTask(name, api.UpdateTaskRequest{State: state})
+	task := m.FindByName(name)
+	if task == nil {
+		return &unknownTaskError{name: name}
+	}
+	return m.client.UpdateState(task.ID, state)
 }
 
 func (m *manager) Note(name, note string) error {
-	t := m.FindByName(name)
-	if t == nil {
-		return fmt.Errorf("unknown task %s", name)
-	}
-
-	url := fmt.Sprintf("%s/api/v1/events", m.address)
-	payload, err := json.Marshal(api.AddEventRequest{
-		Title:  fmt.Sprintf("Note added to task %s: %s", name, note),
-		Date:   time.Now().Unix(),
-		Type:   task.EventTypeNote,
-		TaskID: t.ID,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
-	if err != nil {
-		panic(err)
-	}
-
-	req.Header["Content-Type"] = []string{"application/json"}
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	return nil
+	return errors.New("Implement me!")
 }
 
 func (m *manager) Events() []*task.Event {
-	url := fmt.Sprintf("%s/api/v1/events", m.address)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	events, err := m.client.GetEvents()
 	if err != nil {
 		panic(err)
 	}
-
-	req.Header["Accept"] = []string{"application/json"}
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	var events []*task.Event
-	if rsp.StatusCode == http.StatusOK {
-		decoder := json.NewDecoder(rsp.Body)
-		if err := decoder.Decode(&events); err != nil {
-			panic(err)
-		}
-	} else {
-		panic(fmt.Sprintf("received not OK status code: %s", rsp.Status))
-	}
-
 	return events
 }
 
 func (m *manager) Reset() error {
-	tasks, err := m.getTasks()
+	tasks, err := m.client.GetTasks()
 	if err != nil {
 		return err
 	}
 
-	events := m.Events()
+	_, err = m.client.GetEvents()
 	if err != nil {
 		return err
 	}
 
 	errs := make(map[string]string)
 	for _, t := range tasks {
-		if err := m.deleteTask(t.ID); err != nil {
+		if err := m.client.DeleteTask(t.ID); err != nil {
 			errs[fmt.Sprintf("delete task %d", t.ID)] = err.Error()
 		}
 	}
 
-	for _, e := range events {
-		if err := m.deleteEvent(e); err != nil {
-			errs[fmt.Sprintf("delete event %d", e.TaskID)] = err.Error()
-		}
-	}
+	//for _, e := range events {
+	//	if err := m.client.DeleteEvent(e); err != nil {
+	//		errs[fmt.Sprintf("delete event %d", e.TaskID)] = err.Error()
+	//	}
+	//}
 
 	if len(errs) > 0 {
 		errMsgs := []string{}
@@ -228,130 +145,4 @@ func (m *manager) Reset() error {
 	} else {
 		return nil
 	}
-}
-
-func (m *manager) getTasks() ([]*task.Task, error) {
-	url := fmt.Sprintf("%s/api/v1/tasks", m.address)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header["Accept"] = []string{"application/json"}
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer rsp.Body.Close()
-
-	var tasks []*task.Task
-	if rsp.StatusCode == http.StatusOK {
-		decoder := json.NewDecoder(rsp.Body)
-		if err := decoder.Decode(&tasks); err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("GET /api/v1/tasks returned unknown status: %s", rsp.Status)
-	}
-
-	return tasks, nil
-}
-
-func (m *manager) updateTask(name string, update api.UpdateTaskRequest) error {
-	task := m.FindByName(name)
-	if task == nil {
-		return fmt.Errorf("unknown task %s", name)
-	}
-
-	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, task.ID)
-	payload, err := json.Marshal(update)
-	if err != nil {
-		panic(err)
-	}
-
-	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-	if err != nil {
-		panic(err)
-	}
-
-	req.Header["content-type"] = []string{"application/json"}
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode != http.StatusNoContent {
-		otaErr, err := readErrorResponse(rsp)
-		if err != nil {
-			return err
-		} else {
-			return otaErr
-		}
-	}
-
-	return nil
-}
-
-func (m *manager) deleteTask(id int) error {
-	url := fmt.Sprintf("%s/api/v1/tasks/%d", m.address, id)
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode != http.StatusNoContent {
-		otaErr, err := readErrorResponse(rsp)
-		if err != nil {
-			return err
-		} else {
-			return otaErr
-		}
-	}
-
-	return nil
-}
-
-func (m *manager) deleteEvent(event *task.Event) error {
-	url := fmt.Sprintf("%s/api/v1/events/%d", m.address, event.TaskID)
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	rsp, err := m.httpClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode != http.StatusNoContent {
-		otaErr, err := readErrorResponse(rsp)
-		if err != nil {
-			return err
-		} else {
-			return otaErr
-		}
-	}
-
-	return nil
-}
-
-func readErrorResponse(rsp *http.Response) (*api.ErrorResponse, error) {
-	var otaErr api.ErrorResponse
-	payload, err := ioutil.ReadAll(rsp.Body)
-	if err != nil || len(payload) == 0 {
-		return nil, fmt.Errorf("unexpected response: %s", rsp.Status)
-	}
-
-	if err := json.Unmarshal(payload, &otaErr); err != nil {
-		return nil, err
-	}
-	return &otaErr, nil
 }

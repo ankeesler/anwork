@@ -405,6 +405,51 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
+	Describe("DeleteEvent", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("DELETE", "/api/v1/events/12345"),
+				ghttp.RespondWithJSONEncoded(http.StatusNoContent, nil),
+			))
+		})
+
+		It("deletes the event with the start time provided", func() {
+			Expect(client.DeleteEvent(12345)).To(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the response has a weird status", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/api/v1/events/12345"),
+					ghttp.RespondWithJSONEncoded(http.StatusInternalServerError, api.ErrorResponse{Message: "failed to delete event"}),
+				))
+			})
+
+			It("returns the error in the payload", func() {
+				Expect(client.DeleteEvent(12345)).To(MatchError("failed to delete event"))
+			})
+
+		})
+
+		Context("when the response has a weird payload", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/api/v1/events/12345"),
+					ghttp.RespondWith(http.StatusInternalServerError, nil),
+				))
+			})
+
+			It("returns an error", func() {
+				err := client.DeleteEvent(12345)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Unexpected response payload: "))
+			})
+
+		})
+	})
+
 	Describe("GetEvents", func() {
 		var events []*task.Event
 

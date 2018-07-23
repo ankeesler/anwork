@@ -27,6 +27,9 @@
 //
 //   Get the details about an event:
 //   GET /api/v1/events/:startTime -> returns the task.Event that occurred at that time
+//
+//   Delete an event:
+//   DELETE /api/v1/events/:startTime
 package api
 
 import (

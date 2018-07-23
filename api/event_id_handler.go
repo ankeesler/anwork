@@ -21,11 +21,15 @@ func NewEventIDHandler(manager task.Manager, log *log.Logger) http.Handler {
 func (h *eventIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.log.Printf("Handling %s /api/v1/events/:id...", r.Method)
 
-	if r.Method != http.MethodGet {
+	switch r.Method {
+	case http.MethodGet:
+		h.handleGet(w, r)
+	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
 	}
+}
 
+func (h *eventIDHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	eventID, err := parseLastPathSegment(r)
 	if err != nil {
 		msg := fmt.Sprintf("Unable to parse last path segment: %s", err.Error())

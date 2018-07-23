@@ -173,6 +173,32 @@ func (c *Client) UpdateState(id int, state task.State) error {
 	return c.updateTask(id, api.UpdateTaskRequest{State: state})
 }
 
+// Delete an event.
+func (c *Client) DeleteEvent(startTime int) error {
+	url := fmt.Sprintf("%s/api/v1/events/%d", c.address, startTime)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		return err
+	}
+
+	rsp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode != http.StatusNoContent {
+		otaErr, err := readErrorResponse(rsp)
+		if err != nil {
+			return err
+		} else {
+			return otaErr
+		}
+	}
+
+	return nil
+}
+
 // Get all of the events.
 func (c *Client) GetEvents() ([]*task.Event, error) {
 	url := fmt.Sprintf("%s/api/v1/events", c.address)

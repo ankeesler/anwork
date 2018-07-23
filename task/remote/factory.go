@@ -3,15 +3,15 @@ package remote
 import "github.com/ankeesler/anwork/task"
 
 type managerFactory struct {
-	address string
+	client APIClient
 }
 
-func NewManagerFactory(address string) task.ManagerFactory {
-	return &managerFactory{address: address}
+func NewManagerFactory(client APIClient) task.ManagerFactory {
+	return &managerFactory{client: client}
 }
 
 func (mf *managerFactory) Create() (task.Manager, error) {
-	return newManager(mf.address), nil
+	return newManager(mf.client), nil
 }
 
 func (mf *managerFactory) Save(manager task.Manager) error {
