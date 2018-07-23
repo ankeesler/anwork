@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ankeesler/anwork/api/client"
 	"github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/local"
@@ -69,7 +70,8 @@ func main() {
 
 	var factory task.ManagerFactory
 	if address, ok := useApi(); ok {
-		factory = remote.NewManagerFactory(fmt.Sprintf("http://%s", address))
+		client := client.New(fmt.Sprintf("http://%s", address))
+		factory = remote.NewManagerFactory(client)
 	} else {
 		factory = local.NewManagerFactory(root, context)
 	}
