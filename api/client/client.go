@@ -173,32 +173,31 @@ func (c *Client) UpdateState(id int, state task.State) error {
 	return c.updateTask(id, api.UpdateTaskRequest{State: state})
 }
 
-// TODO: return an error.
-func (c *Client) GetEvents() []*task.Event {
+// Get all of the events.
+func (c *Client) GetEvents() ([]*task.Event, error) {
 	url := fmt.Sprintf("%s/api/v1/events", c.address)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	req.Header["Accept"] = []string{"application/json"}
 	rsp, err := c.httpClient.Do(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer rsp.Body.Close()
 
 	var events []*task.Event
 	if rsp.StatusCode == http.StatusOK {
-		decoder := json.NewDecoder(rsp.Body)
-		if err := decoder.Decode(&events); err != nil {
-			panic(err)
+		if err := unmarshal(rsp.Body, &events); err != nil {
+			return nil, err
 		}
 	} else {
-		panic(fmt.Sprintf("received not OK status code: %s", rsp.Status))
+		return nil, &badResponseError{status: rsp.Status}
 	}
 
-	return events
+	return events, nil
 }
 
 func (c *Client) updateTask(id int, update api.UpdateTaskRequest) error {

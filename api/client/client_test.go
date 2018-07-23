@@ -421,11 +421,40 @@ var _ = Describe("Manager", func() {
 			))
 		})
 
-		It("updates the task via a GET to the /api/v1/events endpoint", func() {
-			actualEvents := client.GetEvents()
+		It("gets all events via a GET to the /api/v1/events endpoint", func() {
+			actualEvents, err := client.GetEvents()
+			Expect(err).NotTo(HaveOccurred())
 			Expect(actualEvents).To(Equal(events))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the response payload is bogus", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/events"),
+					ghttp.RespondWith(http.StatusOK, nil),
+				))
+			})
+
+			It("returns an error", func() {
+				_, err := client.GetEvents()
+				Expect(err).To(MatchError("Unexpected response payload: "))
+			})
+		})
+
+		Context("when the response status is wrong", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/events"),
+					ghttp.RespondWith(http.StatusInternalServerError, nil),
+				))
+			})
+
+			It("returns an error", func() {
+				_, err := client.GetEvents()
+				Expect(err).To(MatchError("Unexpected response status: 500 Internal Server Error"))
+			})
 		})
 
 		Context("when the request fails", func() {
@@ -433,8 +462,9 @@ var _ = Describe("Manager", func() {
 				server.Close()
 			})
 
-			It("...panics, I guess?", func() {
-				Expect(func() { client.GetEvents() }).To(Panic())
+			It("returns an error", func() {
+				_, err := client.GetEvents()
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
