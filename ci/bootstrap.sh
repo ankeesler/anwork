@@ -3,8 +3,8 @@
 set -ex
 
 bootstrap_linux() {
-  apt-get update
-  apt-get install git golang -y
+  sudo apt-get update
+  sudo apt-get install git golang -y
 }
 
 bootstrap_common() {

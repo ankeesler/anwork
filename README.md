@@ -9,7 +9,7 @@ Latest release: [v4](https://github.com/ankeesler/anwork/releases/tag/v4)
 
 ## Running
 
-To get up and running with ANWORK, run the bootstrap script!
+To get up and running with ANWORK, run the bootstrap script! Note for Linux: the script calls out to `sudo`.
 
 1. Set your GOPATH environmental variable accordingly.
 ```
