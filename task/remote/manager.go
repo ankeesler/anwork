@@ -121,7 +121,7 @@ func (m *manager) Reset() error {
 		return err
 	}
 
-	_, err = m.client.GetEvents()
+	events, err := m.client.GetEvents()
 	if err != nil {
 		return err
 	}
@@ -133,11 +133,11 @@ func (m *manager) Reset() error {
 		}
 	}
 
-	//for _, e := range events {
-	//	if err := m.client.DeleteEvent(e); err != nil {
-	//		errs[fmt.Sprintf("delete event %d", e.TaskID)] = err.Error()
-	//	}
-	//}
+	for _, e := range events {
+		if err := m.client.DeleteEvent(e.Date); err != nil {
+			errs[fmt.Sprintf("delete event %d", e.Date)] = err.Error()
+		}
+	}
 
 	if len(errs) > 0 {
 		errMsgs := []string{}

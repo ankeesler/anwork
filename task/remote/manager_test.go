@@ -402,106 +402,74 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	//Describe("Reset", func() {
-	//	var tasks []*task.Task
-	//	var events []*task.Event
-	//	BeforeEach(func() {
-	//		tasks = []*task.Task{
-	//			&task.Task{Name: "task-a", ID: 1},
-	//			&task.Task{Name: "task-b", ID: 2},
-	//			&task.Task{Name: "task-c", ID: 3},
-	//		}
-	//		events = []*task.Event{
-	//			&task.Event{Title: "event-a", TaskID: 1},
-	//			&task.Event{Title: "event-b", TaskID: 2},
-	//			&task.Event{Title: "event-c", TaskID: 3},
-	//		}
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("GET", "/api/v1/tasks"),
-	//			ghttp.VerifyHeaderKV("Accept", "application/json"),
-	//			ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("GET", "/api/v1/events"),
-	//			ghttp.VerifyHeaderKV("Accept", "application/json"),
-	//			ghttp.RespondWithJSONEncoded(http.StatusOK, events),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("DELETE", "/api/v1/tasks/2"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("DELETE", "/api/v1/tasks/3"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("DELETE", "/api/v1/events/1"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("DELETE", "/api/v1/events/2"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("DELETE", "/api/v1/events/3"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//	})
+	Describe("Reset", func() {
+		var tasks []*task.Task
+		var events []*task.Event
+		BeforeEach(func() {
+			tasks = []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			client.GetTasksReturnsOnCall(0, tasks, nil)
+			events = []*task.Event{
+				&task.Event{Title: "event-a", Date: int64(1)},
+				&task.Event{Title: "event-b", Date: int64(2)},
+				&task.Event{Title: "event-c", Date: int64(3)},
+			}
+			client.GetEventsReturnsOnCall(0, events, nil)
+		})
 
-	//	It("DELETE's all of the tasks and events", func() {
-	//		Expect(manager.Reset()).To(Succeed())
-	//		Expect(server.ReceivedRequests()).To(HaveLen(8))
-	//	})
+		It("DELETE's all of the tasks and events", func() {
+			Expect(manager.Reset()).To(Succeed())
 
-	//	Context("when the request returns a failure", func() {
-	//		BeforeEach(func() {
-	//			server.SetHandler(2, ghttp.CombineHandlers(
-	//				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
-	//				ghttp.RespondWithJSONEncoded(
-	//					http.StatusBadRequest,
-	//					api.ErrorResponse{Message: "failed to delete task"},
-	//				),
-	//			))
-	//		})
+			Expect(client.GetTasksCallCount()).To(Equal(1))
+			Expect(client.GetEventsCallCount()).To(Equal(1))
 
-	//		It("prints the failure message", func() {
-	//			err := manager.Reset()
-	//			Expect(err).To(HaveOccurred())
-	//			Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
-	//			Expect(err.Error()).To(ContainSubstring("  delete task 1: failed to delete task"))
-	//		})
-	//	})
+			Expect(client.DeleteTaskCallCount()).To(Equal(3))
+			Expect(client.DeleteTaskArgsForCall(0)).To(Equal(1))
+			Expect(client.DeleteTaskArgsForCall(1)).To(Equal(2))
+			Expect(client.DeleteTaskArgsForCall(2)).To(Equal(3))
 
-	//	Context("when the request returns an unexpected response with no payload", func() {
-	//		BeforeEach(func() {
-	//			server.SetHandler(5, ghttp.CombineHandlers(
-	//				ghttp.VerifyRequest("DELETE", "/api/v1/events/1"),
-	//				ghttp.RespondWith(http.StatusMethodNotAllowed, nil),
-	//			))
-	//		})
+			Expect(client.DeleteEventCallCount()).To(Equal(3))
+			Expect(client.DeleteEventArgsForCall(0)).To(Equal(int64(1)))
+			Expect(client.DeleteEventArgsForCall(1)).To(Equal(int64(2)))
+			Expect(client.DeleteEventArgsForCall(2)).To(Equal(int64(3)))
+		})
 
-	//		It("prints a legitimate failure message", func() {
-	//			err := manager.Reset()
-	//			Expect(err).To(HaveOccurred())
-	//			Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
-	//			Expect(err.Error()).To(ContainSubstring("  delete event 1: unexpected response: 405 Method Not Allowed"))
-	//		})
-	//	})
+		Context("when we fail to get the tasks", func() {
+			BeforeEach(func() {
+				client.GetTasksReturnsOnCall(0, nil, errors.New("failed to get tasks"))
+			})
 
-	//	Context("when the request fails", func() {
-	//		BeforeEach(func() {
-	//			server.Close()
-	//		})
+			It("returns the failure message", func() {
+				Expect(manager.Reset()).To(MatchError("failed to get tasks"))
+			})
+		})
 
-	//		It("returns an error", func() {
-	//			err := manager.Reset()
-	//			Expect(err).To(HaveOccurred())
-	//			Expect(err.Error()).To(ContainSubstring("connection refused"))
-	//		})
-	//	})
-	//})
+		Context("when we fail to get the events", func() {
+			BeforeEach(func() {
+				client.GetEventsReturnsOnCall(0, nil, errors.New("failed to get events"))
+			})
+
+			It("returns the failure message", func() {
+				Expect(manager.Reset()).To(MatchError("failed to get events"))
+			})
+		})
+
+		Context("when some of the deletes return failure", func() {
+			BeforeEach(func() {
+				client.DeleteTaskReturnsOnCall(0, errors.New("failed to delete task"))
+				client.DeleteEventReturnsOnCall(2, errors.New("failed to delete event"))
+			})
+
+			It("returns a formatted error message", func() {
+				err := manager.Reset()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
+				Expect(err.Error()).To(ContainSubstring("  delete task 1: failed to delete task\n"))
+				Expect(err.Error()).To(ContainSubstring("  delete event 3: failed to delete event"))
+			})
+		})
+	})
 })
