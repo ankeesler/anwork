@@ -8,7 +8,8 @@ bootstrap_linux() {
 }
 
 bootstrap_common() {
-  go get -t github.com/ankeesler/anwork/...
+  go get -t -d github.com/ankeesler/anwork/...
+  go install github.com/ankeesler/anwork/cmd/anwork
   go install github.com/onsi/ginkgo/ginkgo
 }
 

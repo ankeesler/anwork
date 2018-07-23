@@ -15,11 +15,11 @@ To get up and running with ANWORK, run the bootstrap script!
 ```
 $ export GOPATH=...
 ```
-1. Run the bootstrap.sh script at the root of this repo. If you have `curl` installed already, you can do this.
+2. Run the bootstrap.sh script at the root of this repo. If you have `curl` installed already, you can do this.
 ```
 $ curl https://raw.githubusercontent.com/ankeesler/anwork/master/bootstrap.sh | bash
 ```
-1. Run `anwork`.
+3. Run `anwork`.
 ```
 $ $GOPATH/bin/anwork
 $ ...
@@ -31,7 +31,7 @@ See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 To develop on the anwork project, run the bootstrap.sh script as above, and then you should be good to go!
 
-To run all of the tests, try the following.
+To run all of the tests, try the following (assuming you are in the root of the repo and `ginkgo` is on your $PATH).
 ```
 $ ginkgo -r .
 ```
