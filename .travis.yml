@@ -9,8 +9,7 @@ os:
   - osx
 
 install:
-  - go get -t -v ./...
-  - go install -v github.com/onsi/ginkgo/ginkgo
+  - ./ci/bootstrap.sh
 
 script:
   - go vet ./...

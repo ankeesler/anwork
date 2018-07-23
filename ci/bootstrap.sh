@@ -18,6 +18,9 @@ case `uname` in
     bootstrap_linux
     bootstrap_common
     ;;
+  Darwin)
+    bootstrap_common
+    ;;
   *)
     echo 'Your OS is not supported!'
     exit 1
