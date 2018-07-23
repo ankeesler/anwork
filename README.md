@@ -9,17 +9,17 @@ Latest release: [v4](https://github.com/ankeesler/anwork/releases/tag/v4)
 
 ## Running
 
-To get up and running with ANWORK, try the following.
+To get up and running with ANWORK, run the bootstrap script!
 
-0. Download Go! You can do so with Homebrew:
+1. Set your GOPATH environmental variable accordingly.
 ```
-$ brew install go
+$ export GOPATH=...
 ```
-1. `go get` this repo.
+1. Run the bootstrap.sh script at the root of this repo. If you have `curl` installed already, you can do this.
 ```
-$ go get github.com/ankeesler/anwork/cmd/anwork
+$ curl https://raw.githubusercontent.com/ankeesler/anwork/master/bootstrap.sh | bash
 ```
-2. Run `anwork`.
+1. Run `anwork`.
 ```
 $ $GOPATH/bin/anwork
 $ ...
@@ -29,18 +29,16 @@ See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 ## Developing
 
-To develop on the anwork project, there is only one dependency that needs to be installed.
+To develop on the anwork project, run the bootstrap.sh script as above, and then you should be good to go!
 
-0. Download Go! You can do so with Homebrew:
+To run all of the tests, try the following.
 ```
-$ brew install go
+$ ginkgo -r .
 ```
 
-To run the unit tests, try the following.
+To run the tests in a particular package, try the following.
 ```
-$ go get -t ./...                          # download dependencies for testing
-$ go install github.com/onsi/ginkgo/ginkgo # install ginkgo testing binary
-$ ginkgo -r .                              # run the tests with the ginkgo testing binary
+$ ginkgo path/to/package
 ```
 
 ### Style
