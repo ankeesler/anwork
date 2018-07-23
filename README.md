@@ -15,9 +15,9 @@ To get up and running with ANWORK, run the bootstrap script!
 ```
 $ export GOPATH=...
 ```
-2. Run the bootstrap.sh script at the root of this repo. If you have `curl` installed already, you can do this.
+2. Run the bootstrap.sh script in the ci/ directory of this repo. If you have `curl` installed already, you can do this.
 ```
-$ curl https://raw.githubusercontent.com/ankeesler/anwork/master/bootstrap.sh | bash
+$ curl https://raw.githubusercontent.com/ankeesler/anwork/master/ci/bootstrap.sh | bash
 ```
 3. Run `anwork`.
 ```
