@@ -1,7 +1,9 @@
 package api_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -79,10 +81,125 @@ var _ = Describe("EventsHandler", func() {
 	})
 
 	Describe("POST", func() {
-		It("responds with method not allowed", func() {
-			rsp := handlePost(handler, "/api/v1/events", nil)
-			Expect(manager.EventsCallCount()).To(Equal(0))
-			Expect(rsp.Code).To(Equal(http.StatusMethodNotAllowed))
+		BeforeEach(func() {
+			manager.FindByIDReturnsOnCall(0, &task.Task{
+				Name: "task-a",
+				ID:   1,
+			})
+		})
+
+		It("creates an event if the event is a note", func() {
+			payload, err := json.Marshal(api.AddEventRequest{
+				Title:  "event-a",
+				Date:   12345,
+				Type:   task.EventTypeNote,
+				TaskID: 1,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			payloadBuffer := bytes.NewBuffer(payload)
+
+			rsp := handlePost(handler, "/api/v1/events", payloadBuffer)
+
+			Expect(manager.FindByIDCallCount()).To(Equal(1))
+			Expect(manager.NoteCallCount()).To(Equal(1))
+			name, note := manager.NoteArgsForCall(0)
+			Expect(name).To(Equal("task-a"))
+			Expect(note).To(Equal("event-a"))
+
+			Expect(rsp.Code).To(Equal(http.StatusNoContent))
+		})
+
+		It("returns bad request if the event is not a note", func() {
+			payload, err := json.Marshal(api.AddEventRequest{
+				Title:  "event-a",
+				Date:   12345,
+				Type:   task.EventTypeCreate,
+				TaskID: 1,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			payloadBuffer := bytes.NewBuffer(payload)
+
+			rsp := handlePost(handler, "/api/v1/events", payloadBuffer)
+
+			Expect(manager.FindByIDCallCount()).To(Equal(0))
+			Expect(manager.NoteCallCount()).To(Equal(0))
+
+			Expect(rsp.Code).To(Equal(http.StatusBadRequest))
+
+			var errRsp api.ErrorResponse
+			decoder := json.NewDecoder(rsp.Body)
+			Expect(decoder.Decode(&errRsp)).To(Succeed())
+			Expect(errRsp.Message).To(Equal("Invalid event type 0, the only supported event type is 3"))
+		})
+
+		Context("when the payload is bogus", func() {
+			It("returns bad request", func() {
+				payloadBuffer := bytes.NewBuffer([]byte("tuna"))
+
+				rsp := handlePost(handler, "/api/v1/events", payloadBuffer)
+
+				Expect(rsp.Code).To(Equal(http.StatusBadRequest))
+
+				var errRsp api.ErrorResponse
+				decoder := json.NewDecoder(rsp.Body)
+				Expect(decoder.Decode(&errRsp)).To(Succeed())
+				Expect(errRsp.Message).To(Equal("Invalid request payload: tuna"))
+			})
+		})
+
+		Context("when there is no task with the ID in the event", func() {
+			BeforeEach(func() {
+				manager.FindByIDReturnsOnCall(0, nil)
+			})
+
+			It("returns bad request", func() {
+				payload, err := json.Marshal(api.AddEventRequest{
+					Title:  "event-a",
+					Date:   12345,
+					Type:   task.EventTypeNote,
+					TaskID: 1,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				payloadBuffer := bytes.NewBuffer(payload)
+
+				rsp := handlePost(handler, "/api/v1/events", payloadBuffer)
+
+				Expect(manager.FindByIDCallCount()).To(Equal(1))
+				Expect(manager.NoteCallCount()).To(Equal(0))
+
+				Expect(rsp.Code).To(Equal(http.StatusBadRequest))
+
+				var errRsp api.ErrorResponse
+				decoder := json.NewDecoder(rsp.Body)
+				Expect(decoder.Decode(&errRsp)).To(Succeed())
+				Expect(errRsp.Message).To(Equal("Unknown task for ID 1"))
+			})
+		})
+
+		Context("when the manager fails to write the note", func() {
+			BeforeEach(func() {
+				manager.NoteReturnsOnCall(0, errors.New("some note error"))
+			})
+
+			It("returns internal server error", func() {
+				payload, err := json.Marshal(api.AddEventRequest{
+					Title:  "event-a",
+					Date:   12345,
+					Type:   task.EventTypeNote,
+					TaskID: 1,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				payloadBuffer := bytes.NewBuffer(payload)
+
+				rsp := handlePost(handler, "/api/v1/events", payloadBuffer)
+
+				Expect(rsp.Code).To(Equal(http.StatusBadRequest))
+
+				var errRsp api.ErrorResponse
+				decoder := json.NewDecoder(rsp.Body)
+				Expect(decoder.Decode(&errRsp)).To(Succeed())
+				Expect(errRsp.Message).To(Equal("Failed to add note: some note error"))
+			})
 		})
 	})
 

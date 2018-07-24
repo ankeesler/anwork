@@ -50,12 +50,12 @@ func (c *Client) CreateTask(name string) error {
 	url := fmt.Sprintf("%s/api/v1/tasks", c.address)
 	payload, err := json.Marshal(api.CreateRequest{Name: name})
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	req.Header["content-type"] = []string{"application/json"}
@@ -171,6 +171,43 @@ func (c *Client) UpdatePriority(id int, prio int) error {
 // Update a task.Task's task.State.
 func (c *Client) UpdateState(id int, state task.State) error {
 	return c.updateTask(id, api.UpdateTaskRequest{State: state})
+}
+
+// Create an event.
+func (c *Client) CreateEvent(title string, teyep task.EventType, startTime int64, taskID int) error {
+	url := fmt.Sprintf("%s/api/v1/events", c.address)
+	payload, err := json.Marshal(api.AddEventRequest{
+		Title:  title,
+		Type:   teyep,
+		Date:   startTime,
+		TaskID: taskID,
+	})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+
+	req.Header["Content-Type"] = []string{"application/json"}
+	rsp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode != http.StatusNoContent {
+		otaErr, err := readErrorResponse(rsp)
+		if err != nil {
+			return err
+		} else {
+			return otaErr
+		}
+	}
+
+	return nil
 }
 
 // Delete an event.

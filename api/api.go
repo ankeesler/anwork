@@ -1,6 +1,7 @@
 // This package contains an implementation of the anwork HTTP API.
 //
-// Here is the ANWORK API. All of the payloads are JSON formatted.
+// Here is the ANWORK API. All of the payloads are JSON formatted. All error responses
+// shall contain a payload of api.ErrorResponse.
 //   Show a list of links for this API:
 //   GET /api -> return a map[string]map[string]string with links to the API endpoints
 //
@@ -23,7 +24,7 @@
 //   GET /api/v1/events -> returns an array of task.Event's
 //
 //   Create a new event:
-//   POST /api/v1/events api.AddEventRequest -> returns the created task.Event
+//   POST /api/v1/events api.AddEventRequest
 //
 //   Get the details about an event:
 //   GET /api/v1/events/:startTime -> returns the task.Event that occurred at that time

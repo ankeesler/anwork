@@ -405,6 +405,75 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
+	Describe("CreateEvent", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("POST", "/api/v1/events"),
+				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+				ghttp.VerifyJSONRepresenting(api.AddEventRequest{
+					Title:  "event-a",
+					Type:   task.EventTypeNote,
+					Date:   12345,
+					TaskID: 5,
+				}),
+				ghttp.RespondWithJSONEncoded(http.StatusNoContent, nil),
+			))
+		})
+
+		It("creates the event with the start time provided", func() {
+			Expect(client.CreateEvent("event-a", task.EventTypeNote, 12345, 5)).To(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the response has a weird status", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/api/v1/events"),
+					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.VerifyJSONRepresenting(api.AddEventRequest{
+						Title:  "event-a",
+						Type:   task.EventTypeNote,
+						Date:   12345,
+						TaskID: 5,
+					}),
+					ghttp.RespondWithJSONEncoded(http.StatusInternalServerError, api.ErrorResponse{
+						Message: "failed to create event",
+					}),
+				))
+			})
+
+			It("returns the error in the payload", func() {
+				err := client.CreateEvent("event-a", task.EventTypeNote, 12345, 5)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("failed to create event"))
+			})
+
+		})
+
+		Context("when the response has a weird payload", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/api/v1/events"),
+					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.VerifyJSONRepresenting(api.AddEventRequest{
+						Title:  "event-a",
+						Type:   task.EventTypeNote,
+						Date:   12345,
+						TaskID: 5,
+					}),
+					ghttp.RespondWith(http.StatusInternalServerError, nil),
+				))
+			})
+
+			It("returns an error", func() {
+				err := client.CreateEvent("event-a", task.EventTypeNote, 12345, 5)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Unexpected response payload: "))
+			})
+		})
+	})
+
 	Describe("DeleteEvent", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(

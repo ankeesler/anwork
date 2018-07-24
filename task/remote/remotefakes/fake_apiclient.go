@@ -79,6 +79,20 @@ type FakeAPIClient struct {
 	updateStateReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CreateEventStub        func(string, task.EventType, int64, int) error
+	createEventMutex       sync.RWMutex
+	createEventArgsForCall []struct {
+		arg1 string
+		arg2 task.EventType
+		arg3 int64
+		arg4 int
+	}
+	createEventReturns struct {
+		result1 error
+	}
+	createEventReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetEventsStub        func() ([]*task.Event, error)
 	getEventsMutex       sync.RWMutex
 	getEventsArgsForCall []struct{}
@@ -393,6 +407,57 @@ func (fake *FakeAPIClient) UpdateStateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeAPIClient) CreateEvent(arg1 string, arg2 task.EventType, arg3 int64, arg4 int) error {
+	fake.createEventMutex.Lock()
+	ret, specificReturn := fake.createEventReturnsOnCall[len(fake.createEventArgsForCall)]
+	fake.createEventArgsForCall = append(fake.createEventArgsForCall, struct {
+		arg1 string
+		arg2 task.EventType
+		arg3 int64
+		arg4 int
+	}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("CreateEvent", []interface{}{arg1, arg2, arg3, arg4})
+	fake.createEventMutex.Unlock()
+	if fake.CreateEventStub != nil {
+		return fake.CreateEventStub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.createEventReturns.result1
+}
+
+func (fake *FakeAPIClient) CreateEventCallCount() int {
+	fake.createEventMutex.RLock()
+	defer fake.createEventMutex.RUnlock()
+	return len(fake.createEventArgsForCall)
+}
+
+func (fake *FakeAPIClient) CreateEventArgsForCall(i int) (string, task.EventType, int64, int) {
+	fake.createEventMutex.RLock()
+	defer fake.createEventMutex.RUnlock()
+	return fake.createEventArgsForCall[i].arg1, fake.createEventArgsForCall[i].arg2, fake.createEventArgsForCall[i].arg3, fake.createEventArgsForCall[i].arg4
+}
+
+func (fake *FakeAPIClient) CreateEventReturns(result1 error) {
+	fake.CreateEventStub = nil
+	fake.createEventReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAPIClient) CreateEventReturnsOnCall(i int, result1 error) {
+	fake.CreateEventStub = nil
+	if fake.createEventReturnsOnCall == nil {
+		fake.createEventReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createEventReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeAPIClient) GetEvents() ([]*task.Event, error) {
 	fake.getEventsMutex.Lock()
 	ret, specificReturn := fake.getEventsReturnsOnCall[len(fake.getEventsArgsForCall)]
@@ -499,6 +564,8 @@ func (fake *FakeAPIClient) Invocations() map[string][][]interface{} {
 	defer fake.updatePriorityMutex.RUnlock()
 	fake.updateStateMutex.RLock()
 	defer fake.updateStateMutex.RUnlock()
+	fake.createEventMutex.RLock()
+	defer fake.createEventMutex.RUnlock()
 	fake.getEventsMutex.RLock()
 	defer fake.getEventsMutex.RUnlock()
 	fake.deleteEventMutex.RLock()

@@ -3,9 +3,9 @@
 package remote
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ankeesler/anwork/task"
 )
@@ -18,6 +18,7 @@ type APIClient interface {
 	GetTask(int) (*task.Task, error)
 	UpdatePriority(int, int) error
 	UpdateState(int, task.State) error
+	CreateEvent(string, task.EventType, int64, int) error
 	GetEvents() ([]*task.Event, error)
 	DeleteEvent(int64) error
 }
@@ -100,7 +101,12 @@ func (m *manager) SetState(name string, state task.State) error {
 }
 
 func (m *manager) Note(name, note string) error {
-	return errors.New("Implement me!")
+	t := m.FindByName(name)
+	if t == nil {
+		return &unknownTaskError{name: name}
+	}
+
+	return m.client.CreateEvent(note, task.EventTypeNote, time.Now().Unix(), t.ID)
 }
 
 func (m *manager) DeleteEvent(startTime int64) error {

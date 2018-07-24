@@ -3,6 +3,7 @@ package remote_test
 
 import (
 	"errors"
+	"time"
 
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/remote"
@@ -287,72 +288,54 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	//Describe("Note", func() {
-	//	BeforeEach(func() {
-	//		tasks := []*task.Task{
-	//			&task.Task{Name: "task-a", ID: 1},
-	//			&task.Task{Name: "task-b", ID: 2},
-	//			&task.Task{Name: "task-c", ID: 3},
-	//		}
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("GET", "/api/v1/tasks"),
-	//			ghttp.VerifyHeaderKV("Accept", "application/json"),
-	//			ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
-	//		))
-	//		server.AppendHandlers(ghttp.CombineHandlers(
-	//			ghttp.VerifyRequest("POST", "/api/v1/events"),
-	//			ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-	//			ghttp.RespondWith(http.StatusNoContent, nil),
-	//		))
-	//	})
+	Describe("Note", func() {
+		BeforeEach(func() {
+			tasks := []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			client.GetTasksReturnsOnCall(0, tasks, nil)
+		})
 
-	//	It("adds a note via a POST to /api/v1/events", func() {
-	//		Expect(manager.Note("task-a", "here is a note")).To(Succeed())
+		It("adds a note via a call to its client", func() {
+			Expect(manager.Note("task-a", "here is a note")).To(Succeed())
 
-	//		Expect(server.ReceivedRequests()).To(HaveLen(2))
+			Expect(client.GetTasksCallCount()).To(Equal(1))
+			Expect(client.CreateEventCallCount()).To(Equal(1))
+			title, teyep, startTime, id := client.CreateEventArgsForCall(0)
+			Expect(title).To(Equal("here is a note"))
+			Expect(teyep).To(Equal(task.EventTypeNote))
+			Expect(time.Unix(startTime, 0)).To(BeTemporally("~", time.Now(), time.Second))
+			Expect(id).To(Equal(1))
+		})
 
-	//		// TODO: how do we test that the body has the right stuff???
-	//		// Is this a sign that we should be using an interface for time.Now()...
-	//		//var payload api.AddEventRequest
-	//		//body := server.ReceivedRequests()[1].Body
-	//		//decoder := json.NewDecoder(body)
-	//		//Expect(decoder.Decode(&payload)).To(Succeed())
-	//		//Expect(payload.Title).To(Equal("Note added to task task-a: here is a note"))
-	//		//Expect(payload.Date).To(BeNumerically("<=", time.Now().Unix()))
-	//		//Expect(payload.Type).To(Equal(task.EventTypeNote))
-	//		//Expect(payload.TaskID).To(Equal(1))
-	//	})
+		Context("when the task does not exist", func() {
+			BeforeEach(func() {
+				tasks := []*task.Task{
+					&task.Task{Name: "task-b", ID: 2},
+					&task.Task{Name: "task-c", ID: 3},
+				}
+				client.GetTasksReturnsOnCall(0, tasks, nil)
+			})
 
-	//	Context("when the task does not exist", func() {
-	//		BeforeEach(func() {
-	//			tasks := []*task.Task{
-	//				&task.Task{Name: "task-b", ID: 2},
-	//				&task.Task{Name: "task-c", ID: 3},
-	//			}
-	//			server.SetHandler(0, ghttp.CombineHandlers(
-	//				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
-	//				ghttp.VerifyHeaderKV("Accept", "application/json"),
-	//				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
-	//			))
-	//		})
+			It("returns a helpful error", func() {
+				err := manager.Note("task-a", "here is a note")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Unknown task with name task-a"))
+			})
+		})
 
-	//		It("returns a helpful error", func() {
-	//			err := manager.Note("task-a", "here is a note")
-	//			Expect(err).To(HaveOccurred())
-	//			Expect(err.Error()).To(ContainSubstring("unknown task task-a"))
-	//		})
-	//	})
+		Context("when the request fails", func() {
+			BeforeEach(func() {
+				client.GetTasksReturnsOnCall(0, nil, errors.New("failed to get tasks"))
+			})
 
-	//	Context("when the request fails", func() {
-	//		BeforeEach(func() {
-	//			server.Close()
-	//		})
-
-	//		It("...panics, I guess?", func() {
-	//			Expect(func() { manager.Events() }).To(Panic())
-	//		})
-	//	})
-	//})
+			It("panics...yeesh", func() {
+				Expect(func() { manager.Note("task-a", "here is a note") }).To(Panic())
+			})
+		})
+	})
 
 	Describe("Events", func() {
 		var events []*task.Event
@@ -467,7 +450,7 @@ var _ = Describe("Manager", func() {
 				err := manager.Reset()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Encountered errors during reset:\n"))
-				Expect(err.Error()).To(ContainSubstring("  delete task 1: failed to delete task\n"))
+				Expect(err.Error()).To(ContainSubstring("  delete task 1: failed to delete task"))
 				Expect(err.Error()).To(ContainSubstring("  delete event 3: failed to delete event"))
 			})
 		})

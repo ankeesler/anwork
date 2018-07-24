@@ -5,6 +5,7 @@
 - ANWORK version includes the git hash at which it was built.
 - ANWORK release process is automated.
 - ANWORK "archive" command deletes finished tasks.
+- By default, anwork places contexts in $HOME/.anwork/.
 
 ## Changed Functionality
 - You can't set tasks to "Waiting" on the API...
