@@ -196,10 +196,20 @@ func RunManagerTests(factory ManagerFactory) {
 			})
 		})
 
-		It("deletes all of those tasks when Reset() is called", func() {
-			Expect(manager.Reset()).To(Succeed())
-			Expect(manager.Tasks()).To(BeEmpty())
-			Expect(manager.Events()).To(BeEmpty())
+		Context("when reset is called", func() {
+			It("deletes all of those tasks when Reset() is called", func() {
+				Expect(manager.Reset()).To(Succeed())
+				Expect(manager.Tasks()).To(BeEmpty())
+				Expect(manager.Events()).To(BeEmpty())
+			})
+
+			It("resets the ID that it uses back to 0", func() {
+				Expect(manager.Reset()).To(Succeed())
+				Expect(manager.Create("a")).To(Succeed())
+				t := manager.FindByName("a")
+				Expect(t).NotTo(BeNil())
+				Expect(t.ID).To(Equal(0))
+			})
 		})
 
 		Context("when those three tasks are deleted", func() {
