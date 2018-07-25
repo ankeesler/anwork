@@ -114,8 +114,8 @@ func TestIntegration(t *testing.T) {
 		}
 	})
 	AfterSuite(func() {
-		close(testsRunning)
 		if apiSession != nil {
+			close(testsRunning)
 			apiSession.Kill()
 			fmt.Fprintln(GinkgoWriter, "\nAPI OUT:", string(apiOut.Contents()))
 			fmt.Fprintln(GinkgoWriter, "\nAPI ERR:", string(apiErr.Contents()))
