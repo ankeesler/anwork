@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -58,10 +59,15 @@ func runWithStatus(exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) 
 	s, err := gexec.Start(exec.Command(anworkBin, args...), outBuf, errBuf)
 	ExpectWithOffset(2, err).To(Succeed())
 
-	EventuallyWithOffset(2, s).Should(gexec.Exit(exitCode), "STDOUT: %s\nSTDERR: %s\n",
-		string(outBuf.Contents()), string(errBuf.Contents()))
-	fmt.Fprintln(GinkgoWriter, "[out]:", string(outBuf.Contents()))
-	fmt.Fprintln(GinkgoWriter, "[err]:", string(errBuf.Contents()))
+	timer := time.NewTimer(time.Second * 3)
+	select {
+	case <-s.Exited:
+		fmt.Fprintln(GinkgoWriter, "[out]:", string(outBuf.Contents()))
+		fmt.Fprintln(GinkgoWriter, "[err]:", string(errBuf.Contents()))
+		Expect(s.ExitCode()).To(Equal(exitCode))
+	case <-timer.C:
+		Fail(fmt.Sprintf("The session %+v failed to exit within 3 seconds", s))
+	}
 }
 
 func TestIntegration(t *testing.T) {
@@ -84,7 +90,10 @@ func TestIntegration(t *testing.T) {
 			apiBin, err = gexec.Build("github.com/ankeesler/anwork/cmd/service")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12345")).To(Succeed())
+			cmd := exec.Command(apiBin)
+			cmd.Env = []string{"PORT=12346"}
+
+			Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12346")).To(Succeed())
 
 			apiOut, apiErr = gbytes.NewBuffer(), gbytes.NewBuffer()
 			apiSession, err = gexec.Start(exec.Command(apiBin), apiOut, apiErr)

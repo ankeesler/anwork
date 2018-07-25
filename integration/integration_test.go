@@ -66,12 +66,18 @@ var _ = Describe("anwork", func() {
 
 	Context("when a bad context is passed", func() {
 		It("fails", func() {
+			if runWithApi {
+				Skip("when connecting to API, we ignore the context flag")
+			}
 			runWithStatus(1, outBuf, errBuf, "-c", "/i/really/hope/this/file/doesnt/exist", "show")
 		})
 	})
 
 	Context("when the context is corrupt", func() {
 		It("fails", func() {
+			if runWithApi {
+				Skip("when connecting to API, we ignore the context flag")
+			}
 			runWithStatus(1, outBuf, errBuf, "-c", "data", "-o", "bad-context", "show")
 		})
 	})
