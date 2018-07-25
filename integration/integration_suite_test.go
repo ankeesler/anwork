@@ -25,6 +25,7 @@ var (
 
 	runWithApi     bool
 	apiSession     *gexec.Session
+	testsRunning   chan struct{}
 	apiOut, apiErr *gbytes.Buffer
 )
 
@@ -96,11 +97,24 @@ func TestIntegration(t *testing.T) {
 			Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12346")).To(Succeed())
 
 			apiOut, apiErr = gbytes.NewBuffer(), gbytes.NewBuffer()
-			apiSession, err = gexec.Start(exec.Command(apiBin), apiOut, apiErr)
+			apiSession, err = gexec.Start(cmd, apiOut, apiErr)
 			Expect(err).ToNot(HaveOccurred())
+
+			testsRunning = make(chan struct{})
+
+			go func() {
+				select {
+				case <-apiSession.Exited:
+					panic(fmt.Sprintf("API exited with exit code %d: stdout='%s', stderr='%s'", apiSession.ExitCode(),
+						string(apiOut.Contents()), string(apiErr.Contents())))
+
+				case <-testsRunning:
+				}
+			}()
 		}
 	})
 	AfterSuite(func() {
+		close(testsRunning)
 		if apiSession != nil {
 			apiSession.Kill()
 			fmt.Fprintln(GinkgoWriter, "\nAPI OUT:", string(apiOut.Contents()))
