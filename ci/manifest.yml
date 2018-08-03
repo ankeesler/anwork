@@ -7,3 +7,4 @@ applications:
   disk_quota: 256M
   health-check-type: http
   health-check-http-endpoint: /api/v1/health
+  stack: windows2016
