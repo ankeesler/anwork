@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -101,11 +103,11 @@ var _ = Describe("anwork", func() {
 		})
 		It("shows the task as waiting", func() {
 			run(outBuf, errBuf, "show")
-			Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a \\(0\\)\nFINISHED tasks"))
+			Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a \\(\\d+\\)\nFINISHED tasks"))
 		})
 		It("shows the correct task details", func() {
 			run(outBuf, errBuf, "show", "task-a")
-			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: 0\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
 		})
 		It("records the event in the task's journal", func() {
 			run(outBuf, errBuf, "journal", "task-a")
@@ -128,15 +130,15 @@ var _ = Describe("anwork", func() {
 		})
 		It("shows the tasks as waiting in the order in which they were created", func() {
 			run(outBuf, errBuf, "show")
-			Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a \\(0\\)\n  task-b \\(1\\)\n  task-c \\(2\\)\nFINISHED tasks"))
+			Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a \\(\\d+\\)\n  task-b \\(\\d+\\)\n  task-c \\(\\d+\\)\nFINISHED tasks"))
 		})
 		It("shows the correct task details", func() {
 			run(outBuf, errBuf, "show", "task-a")
-			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: 0\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
 			run(outBuf, errBuf, "show", "task-b")
-			Expect(outBuf).To(gbytes.Say("Name: task-b\nID: 1\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
 			run(outBuf, errBuf, "show", "task-c")
-			Expect(outBuf).To(gbytes.Say("Name: task-c\nID: 2\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
 		})
 		It("records the events in each task's journal", func() {
 			run(outBuf, errBuf, "journal", "task-a")
@@ -166,11 +168,11 @@ var _ = Describe("anwork", func() {
 			})
 			It("properly records the priorities", func() {
 				run(outBuf, errBuf, "show", "task-a")
-				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: 0\nCreated: .*\nPriority: 15\nState: WAITING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 15\nState: WAITING"))
 				run(outBuf, errBuf, "show", "task-b")
-				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: 1\nCreated: .*\nPriority: 10\nState: WAITING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
 				run(outBuf, errBuf, "show", "task-c")
-				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: 2\nCreated: .*\nPriority: 20\nState: WAITING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 20\nState: WAITING"))
 			})
 			It("records the events in each of the task's journals", func() {
 				run(outBuf, errBuf, "journal", "task-a")
@@ -201,11 +203,11 @@ var _ = Describe("anwork", func() {
 			})
 			It("properly records the states", func() {
 				run(outBuf, errBuf, "show", "task-a")
-				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: 0\nCreated: .*\nPriority: 10\nState: RUNNING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: RUNNING"))
 				run(outBuf, errBuf, "show", "task-b")
-				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: 1\nCreated: .*\nPriority: 10\nState: FINISHED"))
+				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: FINISHED"))
 				run(outBuf, errBuf, "show", "task-c")
-				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: 2\nCreated: .*\nPriority: 10\nState: BLOCKED"))
+				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 10\nState: BLOCKED"))
 			})
 			It("records the events in each of the task's journals", func() {
 				run(outBuf, errBuf, "journal", "task-a")
@@ -330,10 +332,20 @@ var _ = Describe("anwork", func() {
 	})
 
 	Context("when creating a task, deleting it, and creating it again", func() {
+		var id int
 		BeforeEach(func() {
 			run(nil, nil, "create", "task-a")
 			run(outBuf, errBuf, "show", "task-a")
-			Expect(outBuf).To(gbytes.Say("ID: 0"))
+			Expect(outBuf).To(gbytes.Say("ID: \\d+"))
+
+			re, err := regexp.Compile(`ID: (\d+)`)
+			Expect(err).NotTo(HaveOccurred())
+
+			matches := re.FindSubmatch(outBuf.Contents())
+			Expect(matches).To(HaveLen(2), fmt.Sprintf("Matches is: %s", matches))
+
+			id, err = strconv.Atoi(string(matches[1]))
+			Expect(err).NotTo(HaveOccurred())
 
 			run(nil, nil, "delete", "task-a")
 			runWithStatus(1, outBuf, errBuf, "show", "task-a")
@@ -342,7 +354,7 @@ var _ = Describe("anwork", func() {
 		})
 		It("should give unique IDs to both tasks", func() {
 			run(outBuf, errBuf, "show", "task-a")
-			Expect(outBuf).ToNot(gbytes.Say("ID: 0"))
+			Expect(outBuf).ToNot(gbytes.Say(fmt.Sprintf("ID: %d", id)))
 		})
 	})
 

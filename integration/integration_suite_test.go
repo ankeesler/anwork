@@ -34,10 +34,14 @@ func init() {
 }
 
 func run(outBuf, errBuf *gbytes.Buffer, args ...string) {
-	runWithStatus(0, outBuf, errBuf, args...)
+	reallyRunWithStatus(2, 0, outBuf, errBuf, args...)
 }
 
 func runWithStatus(exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) {
+	reallyRunWithStatus(2, exitCode, outBuf, errBuf, args...)
+}
+
+func reallyRunWithStatus(offset, exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) {
 	if outBuf == nil {
 		outBuf = gbytes.NewBuffer()
 	}
@@ -58,7 +62,7 @@ func runWithStatus(exitCode int, outBuf, errBuf *gbytes.Buffer, args ...string) 
 
 	fmt.Fprintln(GinkgoWriter, "\n[running]:", anworkBin, strings.Join(args, " "))
 	s, err := gexec.Start(exec.Command(anworkBin, args...), outBuf, errBuf)
-	ExpectWithOffset(2, err).To(Succeed())
+	ExpectWithOffset(offset, err).To(Succeed())
 
 	timer := time.NewTimer(time.Second * 3)
 	select {

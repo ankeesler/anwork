@@ -14,8 +14,8 @@ install:
 
 script:
   - go vet ./...
-  - ./ci/check-fmt.sh
-  - ginkgo -r -cover
+  - [[ -z "$(gofmt -l `find . -name '*.go'`)" ]] || false
+  - ./ci/test.sh
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -f *.coverprofile
