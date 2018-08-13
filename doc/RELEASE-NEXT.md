@@ -1,9 +1,15 @@
 # ANWORK Version NEXT Release Notes
 
 ## New Functionality
-- GA ANWORK service support. Integration test passes with API.
-- ANWORK version includes the git hash at which it was built.
+- GA ANWORK service support.
+    - There is an integration test for the API+client.
+- ANWORK version includes the git hash and date at which it was built.
 - ANWORK release process is automated.
+  - Version updated
+  - Tag added
+  - Backwards compat context added in integration/data/
+  - CLI documentation regenerated.
+  - API documentation generated.
 - ANWORK "archive" command deletes finished tasks.
 - By default, anwork places contexts in $HOME/.anwork/.
 
