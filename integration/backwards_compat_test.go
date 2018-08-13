@@ -21,19 +21,22 @@ var _ = Describe("Backwards compatibility", func() {
 		Context(fmt.Sprintf("version %d", version), func() {
 			BeforeEach(func() {
 				if version < 4 {
-					Skip(fmt.Sprintf("support for version %d has been discontinued as of version 4", version))
+					Skip(fmt.Sprintf("support for version %d has been discontinued as of version 4 (because of protobufs, maybe?)", version))
+				}
+				if runWithApi {
+					Skip("The backwards compat test will not be run with the API")
 				}
 			})
 			context := fmt.Sprintf("v%d-context", version)
 			It("shows the correct tasks", func() {
 				run(outBuf, errBuf, "-o", "data", "-c", context, "show")
 				Expect(outBuf).To(gbytes.Say("RUNNING tasks:"))
-				Expect(outBuf).To(gbytes.Say("  task-c \\(2\\)"))
+				Expect(outBuf).To(gbytes.Say("  task-c \\(\\d+\\)"))
 				Expect(outBuf).To(gbytes.Say("BLOCKED tasks:"))
-				Expect(outBuf).To(gbytes.Say("  task-b \\(1\\)"))
+				Expect(outBuf).To(gbytes.Say("  task-b \\(\\d+\\)"))
 				Expect(outBuf).To(gbytes.Say("WAITING tasks:"))
 				Expect(outBuf).To(gbytes.Say("FINISHED tasks:"))
-				Expect(outBuf).To(gbytes.Say("  task-a \\(0\\)"))
+				Expect(outBuf).To(gbytes.Say("  task-a \\(\\d+\\)"))
 			})
 			It("shows the correct task details", func() {
 				run(outBuf, errBuf, "-o", "data", "-c", context, "show", "task-a")
@@ -45,13 +48,13 @@ var _ = Describe("Backwards compatibility", func() {
 			})
 			It("shows the correct journal", func() {
 				run(outBuf, errBuf, "-o", "data", "-c", context, "journal")
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task task-c from Waiting to Running"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task task-a from Running to Finished"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task task-b from Waiting to Blocked"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task task-a from Waiting to Running"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task task-c"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task task-b"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task task-a"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-c' from Waiting to Running"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-a' from Running to Finished"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-b' from Waiting to Blocked"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-a' from Waiting to Running"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task 'task-c'"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task 'task-b'"))
+				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task 'task-a'"))
 			})
 		})
 	}

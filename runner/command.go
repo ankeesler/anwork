@@ -15,7 +15,7 @@ import (
 //go:generate go run ../cmd/genclidoc/main.go ../doc/CLI.md
 
 // This is the version of this anwork application command set.
-const Version = 4
+const Version = 5
 
 type unknownTaskError struct {
 	name string

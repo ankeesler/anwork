@@ -21,7 +21,7 @@ var (
 
 	runningOnTravis bool
 
-	version = 4
+	version = 5
 
 	runWithApi     bool
 	apiSession     *gexec.Session
