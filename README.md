@@ -15,7 +15,7 @@ To get up and running with ANWORK, run the bootstrap script! Note for Linux: the
 ```
 $ export GOPATH=...
 ```
-2. Run the bootstrap.sh script in the ci/ directory of this repo. If you have `curl` installed already, you can do this.
+2. Run the `bootstrap.sh` script in the `ci/` directory of this repo. If you have `curl` installed already, you can do this.
 ```
 $ curl https://raw.githubusercontent.com/ankeesler/anwork/master/ci/bootstrap.sh | bash
 ```
@@ -29,9 +29,9 @@ See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 ## Developing
 
-To develop on the anwork project, run the bootstrap.sh script as above, and then you should be good to go!
+To develop on the anwork project, run the `bootstrap.sh` script as above, and then you should be good to go!
 
-To run all of the tests, try the following (assuming you are in the root of the repo and `ginkgo` is on your $PATH).
+To run all of the tests, try the following (assuming you are in the root of the repo and `ginkgo` is on your `$PATH`).
 ```
 $ ginkgo -r .
 ```
@@ -54,10 +54,10 @@ formatting rules used in this codebase.
 
 Again, the directory structure is pretty simple. Every directory is a Go source directory except for
 the following that are documented here. Information can be found on the Go source directories using
-the "go doc" command.
+the `go doc` command.
 
 | Directory | Use |
 | --- | --- |
 | ci | Scripts used in the Travis Continuous Integration jobs |
 | doc | Documentation about the anwork executable, e.g., a quick start guide |
-| integration | Integration tests for the anwork executable |
+| integration | Integration tests for the anwork executable/API |
