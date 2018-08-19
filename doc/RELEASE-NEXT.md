@@ -10,6 +10,7 @@
   - Backwards compat context added in integration/data/
   - CLI documentation regenerated.
   - API documentation generated.
+  - Update README with latest release version.
 - ANWORK "archive" command deletes finished tasks.
 - By default, anwork places contexts in $HOME/.anwork/.
 
