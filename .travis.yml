@@ -14,7 +14,7 @@ install:
 
 script:
   - go vet ./...
-  - ./ci/check-fmt.sh
+  - [[ -z "$(gofmt -l `find . -name '*.go'`)" ]] || false
   - ./ci/test.sh
 
 after_success:
