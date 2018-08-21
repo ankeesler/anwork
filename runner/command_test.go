@@ -31,13 +31,19 @@ var _ = Describe("Command", func() {
 		stdoutWriter = gbytes.NewBuffer()
 		debugWriter = gbytes.NewBuffer()
 
-		r = runner.New(factory, stdoutWriter, debugWriter)
+		bi := &runner.BuildInfo{
+			Hash: "abc123",
+			Date: "February 22, 1992",
+		}
+		r = runner.New(bi, factory, stdoutWriter, debugWriter)
 	})
 
 	Describe("version", func() {
-		It("prints out the version", func() {
+		It("prints out the version, git hash, and date", func() {
 			Expect(r.Run([]string{"version"})).To(Succeed())
-			Expect(stdoutWriter).To(gbytes.Say(fmt.Sprintf("ANWORK Version = %d", runner.Version)))
+			Eventually(stdoutWriter).Should(gbytes.Say(fmt.Sprintf("ANWORK Version = %d\n", runner.Version)))
+			Eventually(stdoutWriter).Should(gbytes.Say(fmt.Sprintf("ANWORK Build Hash = abc123\n")))
+			Eventually(stdoutWriter).Should(gbytes.Say(fmt.Sprintf("ANWORK Build Date = February 22, 1992")))
 		})
 	})
 

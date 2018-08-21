@@ -37,7 +37,7 @@ type command struct {
 	// always the Name of the command. The o parameter to this function is an output
 	// stream to which all output should be written. The function should returns a non-nil error
 	// iff an error occured.
-	Action func(cmd *command, args []string, o io.Writer, m task.Manager) error
+	Action func(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error
 }
 
 // These are the Command's used by the anwork application.
@@ -172,12 +172,14 @@ func formatDuration(duration time.Duration) string {
 	return fmt.Sprintf("%s", duration.String())
 }
 
-func versionAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func versionAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	fmt.Fprintln(o, "ANWORK Version =", Version)
+	fmt.Fprintln(o, "ANWORK Build Hash =", buildInfo.Hash)
+	fmt.Fprintln(o, "ANWORK Build Date =", buildInfo.Date)
 	return nil
 }
 
-func resetAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func resetAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	fmt.Fprintf(o, "Are you sure you want to delete all data [y/n]: ")
 
 	var answer string
@@ -204,7 +206,7 @@ func findCreateEvent(m task.Manager, taskID int) *task.Event {
 	return nil
 }
 
-func summaryAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func summaryAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	daysNum, err := strconv.Atoi(args[1])
 	if err != nil {
 		return fmt.Errorf("Cannot convert days %s to number: %s", args[1], err.Error())
@@ -231,7 +233,7 @@ func summaryAction(cmd *command, args []string, o io.Writer, m task.Manager) err
 	return nil
 }
 
-func createAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func createAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	name := args[1]
 	if err := m.Create(name); err != nil {
 		return err
@@ -240,7 +242,7 @@ func createAction(cmd *command, args []string, o io.Writer, m task.Manager) erro
 	return nil
 }
 
-func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	spec := args[1]
 
 	t, err := parseTaskSpec(spec, m)
@@ -255,7 +257,7 @@ func deleteAction(cmd *command, args []string, o io.Writer, m task.Manager) erro
 	return nil
 }
 
-func deleteAllAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func deleteAllAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	tasks := m.Tasks()
 	taskNames := make([]string, len(tasks))
 	for i := range tasks {
@@ -277,7 +279,7 @@ func deleteAllAction(cmd *command, args []string, o io.Writer, m task.Manager) e
 	return nil
 }
 
-func showAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func showAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	if len(args) == 1 {
 		tasks := m.Tasks()
 		printer := func(state task.State) {
@@ -307,7 +309,7 @@ func showAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 	return nil
 }
 
-func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func noteAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	t, err := parseTaskSpec(args[1], m)
 	if err != nil {
 		return err
@@ -320,7 +322,7 @@ func noteAction(cmd *command, args []string, o io.Writer, m task.Manager) error 
 	return nil
 }
 
-func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	t, err := parseTaskSpec(args[1], m)
 	if err != nil {
 		return err
@@ -338,7 +340,7 @@ func setPriorityAction(cmd *command, args []string, o io.Writer, m task.Manager)
 	return nil
 }
 
-func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	t, err := parseTaskSpec(args[1], m)
 	if err != nil {
 		return err
@@ -365,7 +367,7 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager) er
 	return nil
 }
 
-func journalAction(cmd *command, args []string, o io.Writer, m task.Manager) error {
+func journalAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
 	var t *task.Task = nil
 	if len(args) > 1 {
 		var err error

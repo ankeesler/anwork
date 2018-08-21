@@ -28,7 +28,11 @@ var _ = Describe("AnworkRunner", func() {
 		stdoutWriter = gbytes.NewBuffer()
 		debugWriter = gbytes.NewBuffer()
 
-		r = runner.New(factory, stdoutWriter, debugWriter)
+		bi := &runner.BuildInfo{
+			Hash: "whatever",
+			Date: "don't care",
+		}
+		r = runner.New(bi, factory, stdoutWriter, debugWriter)
 	})
 
 	Context("when a valid command is issued and returns successfully", func() {

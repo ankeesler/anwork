@@ -33,9 +33,15 @@ func MarkdownUsage(output io.Writer) {
 	}
 }
 
+// This is a struct used to communicate the git hash and date at which this package was built.
+type BuildInfo struct {
+	Hash, Date string
+}
+
 // A Runner is an object that can run the various pieces of anwork functionality, e.g.,
 // create tasks, show tasks, print out version information, etc.
 type Runner struct {
+	buildInfo                 *BuildInfo
 	factory                   task.ManagerFactory
 	stdoutWriter, debugWriter io.Writer
 }
@@ -43,8 +49,9 @@ type Runner struct {
 // Create a new Runner. The task.ManagerFactory argument will be used to create a
 // manager for use by the Runner. The Runner will write its regular output to
 // the stdoutWriter and its debug output to the debugWriter.
-func New(factory task.ManagerFactory, stdoutWriter, debugWriter io.Writer) *Runner {
+func New(buildInfo *BuildInfo, factory task.ManagerFactory, stdoutWriter, debugWriter io.Writer) *Runner {
 	return &Runner{
+		buildInfo:    buildInfo,
 		factory:      factory,
 		stdoutWriter: stdoutWriter,
 		debugWriter:  debugWriter,
@@ -71,7 +78,7 @@ func (a *Runner) Run(args []string) error {
 	}
 	a.debug("Manager is %s", manager)
 
-	if err := cmd.Action(cmd, args, a.stdoutWriter, manager); err != nil {
+	if err := cmd.Action(cmd, args, a.stdoutWriter, manager, a.buildInfo); err != nil {
 		return fmt.Errorf("Command '%s' failed: %s", args[0], err.Error())
 	} else if err := a.factory.Save(manager); err != nil {
 		return fmt.Errorf("Could not save manager: %s", err.Error())

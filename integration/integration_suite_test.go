@@ -75,6 +75,21 @@ func reallyRunWithStatus(offset, exitCode int, outBuf, errBuf *gbytes.Buffer, ar
 	}
 }
 
+func getBuildHash() string {
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	out, err := cmd.CombinedOutput()
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("output: %s", string(out)))
+	return string(out)
+}
+
+func getBuildDate() string {
+	return time.Now().Format("Mon Jan _2 15:04:05 2006")
+}
+
+func runOfficialBuildScript() string {
+	return "foo"
+}
+
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 

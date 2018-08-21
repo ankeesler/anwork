@@ -88,10 +88,31 @@ var _ = Describe("anwork", func() {
 		AfterEach(func() {
 			run(nil, nil, "reset")
 		})
-		It("prints out the version", func() {
+		It("prints out the version, default build hash, and default date", func() {
 			run(outBuf, errBuf, "version")
-			Expect(outBuf).To(gbytes.Say("ANWORK Version = %d", version))
+			Eventually(outBuf).Should(gbytes.Say("ANWORK Version = %d", version))
+			Eventually(outBuf).Should(gbytes.Say(fmt.Sprintf("ANWORK Build Hash = \\(dev\\)\n")))
+			Eventually(outBuf).Should(gbytes.Say(fmt.Sprintf("ANWORK Build Date = \\?\\?\\?\n")))
 		})
+
+		//Context("when the binary is built via the official build script", func() {
+		//	var officialAnworkBin string
+		//	BeforeEach(func() {
+		//		officialAnworkBin = runOfficialBuildScript()
+		//	})
+		//	AfterEach(func() {
+		//		//Expect(os.RemoveAll(officialAnworkBin)).To(Succeed())
+		//	})
+		//	It("prints out the version, build hash, and date", func() {
+		//		cmd := exec.Command(officialAnworkBin, "version")
+		//		out, err := cmd.CombinedOutput()
+		//		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("output: %s", string(output))
+
+		//		expectedOut := fmt.Sprintf("ANWORK Version = %d\nANWORK Build Hash = %s\n ANWORK Build Date = %s\n",
+		//		version, getBuildHash(), getBuildDate())
+		//		Expect(string(out)).To(Equal(expectedOut))
+		//	})
+		//})
 	})
 
 	Context("when creating a task", func() {
