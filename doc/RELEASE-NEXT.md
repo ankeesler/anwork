@@ -2,14 +2,8 @@
 
 ## New Functionality
 - GA ANWORK service support.
-    - There is an integration test for the API+client.
-- ANWORK release process is automated.
-  - Version updated
-  - Tag added
-  - Backwards compat context added in integration/data/
-  - CLI documentation regenerated.
-  - API documentation generated.
-  - Update README with latest release version.
+  - There is an integration test for the API+client.
+  - API documentation is generated. And added to release script.
 - ANWORK "archive" command deletes finished tasks.
 - By default, anwork places contexts in $HOME/.anwork/.
 

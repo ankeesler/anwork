@@ -18,7 +18,6 @@ out_dir=$HERE/../integration/data
 context=v$version_number-context
 
 $HERE/build.sh -h generate-test-data-hash -d generate-test-data-date -o ./anwork
-./anwork -o $out_dir -c $context version
 ./anwork -o $out_dir -c $context create task-a
 ./anwork -o $out_dir -c $context create task-b
 ./anwork -o $out_dir -c $context create task-c
