@@ -3,6 +3,7 @@ package integration
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -95,24 +96,38 @@ var _ = Describe("anwork", func() {
 			Eventually(outBuf).Should(gbytes.Say(fmt.Sprintf("ANWORK Build Date = \\?\\?\\?\n")))
 		})
 
-		//Context("when the binary is built via the official build script", func() {
-		//	var officialAnworkBin string
-		//	BeforeEach(func() {
-		//		officialAnworkBin = runOfficialBuildScript()
-		//	})
-		//	AfterEach(func() {
-		//		//Expect(os.RemoveAll(officialAnworkBin)).To(Succeed())
-		//	})
-		//	It("prints out the version, build hash, and date", func() {
-		//		cmd := exec.Command(officialAnworkBin, "version")
-		//		out, err := cmd.CombinedOutput()
-		//		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("output: %s", string(output))
+		Context("when the binary is built via the official build script", func() {
+			var (
+				officialAnworkBin string
+				outDir            string
 
-		//		expectedOut := fmt.Sprintf("ANWORK Version = %d\nANWORK Build Hash = %s\n ANWORK Build Date = %s\n",
-		//		version, getBuildHash(), getBuildDate())
-		//		Expect(string(out)).To(Equal(expectedOut))
-		//	})
-		//})
+				buildHash string
+				buildDate string
+			)
+			BeforeEach(func() {
+				buildHash = getBuildHash()
+				buildDate = getBuildDate()
+				officialAnworkBin = runOfficialBuildScript(buildHash, buildDate)
+
+				var err error
+				outDir, err = ioutil.TempDir("", "anwork-version-test")
+				Expect(err).NotTo(HaveOccurred())
+			})
+			AfterEach(func() {
+				Expect(os.RemoveAll(officialAnworkBin)).To(Succeed())
+				Expect(os.RemoveAll(outDir)).To(Succeed())
+			})
+			It("prints out the version, build hash, and date", func() {
+				cmd := exec.Command(officialAnworkBin, "-o", outDir, "version")
+				out, err := cmd.CombinedOutput()
+				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("output: %s", string(out)))
+
+				outBuf := gbytes.BufferWithBytes([]byte(out))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("ANWORK Version = %d\n", version)))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("ANWORK Build Hash = %s\n", buildHash)))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("ANWORK Build Date = %s\n", buildDate)))
+			})
+		})
 	})
 
 	Context("when creating a task", func() {

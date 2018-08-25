@@ -20,10 +20,10 @@ import (
 	"github.com/ankeesler/anwork/task/remote"
 )
 
-var buildInfo = runner.BuildInfo{
-	Hash: "(dev)",
-	Date: "???",
-}
+var (
+	buildHash = "(dev)"
+	buildDate = "???"
+)
 
 type debugWriter struct {
 	debug bool
@@ -81,7 +81,8 @@ func main() {
 		factory = local.NewManagerFactory(root, context)
 	}
 
-	r := runner.New(&buildInfo, factory, os.Stdout, &dw)
+	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate},
+		factory, os.Stdout, &dw)
 	if err := r.Run(flags.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)

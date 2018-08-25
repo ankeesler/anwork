@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -79,15 +80,23 @@ func getBuildHash() string {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	out, err := cmd.CombinedOutput()
 	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("output: %s", string(out)))
-	return string(out)
+	return strings.Trim(string(out), "\n")
 }
 
 func getBuildDate() string {
-	return time.Now().Format("Mon Jan _2 15:04:05 2006")
+	return time.Now().Format(time.RFC3339)
 }
 
-func runOfficialBuildScript() string {
-	return "foo"
+func runOfficialBuildScript(hash, date string) string {
+	cwd, err := os.Getwd()
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	script := filepath.Join(cwd, "..", "ci", "build.sh")
+	anworkBin := filepath.Join(cwd, "..", "anwork")
+	out, err := exec.Command(script, "-h", hash, "-d", date, "-o", anworkBin).CombinedOutput()
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("output: %s", string(out)))
+
+	return anworkBin
 }
 
 func TestIntegration(t *testing.T) {
