@@ -3,7 +3,6 @@
 ## New Functionality
 - GA ANWORK service support.
     - There is an integration test for the API+client.
-- ANWORK version includes the git hash and date at which it was built.
 - ANWORK release process is automated.
   - Version updated
   - Tag added
