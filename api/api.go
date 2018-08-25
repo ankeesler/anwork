@@ -102,10 +102,3 @@ func (a *Api) makeServer() (*http.Server, error) {
 
 	return &http.Server{Handler: mux}, nil
 }
-
-func handleFrontPage(w http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-}
