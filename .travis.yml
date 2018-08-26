@@ -1,4 +1,6 @@
 language: go
+go:
+    - "1.11"
 
 # This takes a little bit of pressure off of the git clone of this repo.
 git:
