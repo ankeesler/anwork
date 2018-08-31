@@ -33,7 +33,9 @@ type rootFlagValue struct {
 func (rfv *rootFlagValue) String() string {
 	if len(rfv.value) == 0 {
 		if homeDir, ok := os.LookupEnv("HOME"); ok {
-			return filepath.Join(homeDir, ".anwork")
+			dir := filepath.Join(homeDir, ".anwork")
+			os.MkdirAll(dir, 0755)
+			return dir
 		} else {
 			return "."
 		}
