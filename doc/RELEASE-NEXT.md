@@ -5,7 +5,7 @@
   - There is an integration test for the API+client.
   - API documentation is generated. And added to release script.
 - ANWORK "archive" command deletes finished tasks.
-- By default, anwork places contexts in $HOME/.anwork/.
+- The API respects the context flag.
 
 ## Changed Functionality
 - You can't set tasks to "Waiting" on the API...

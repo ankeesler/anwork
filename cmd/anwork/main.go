@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ankeesler/anwork/api/client"
 	"github.com/ankeesler/anwork/runner"
@@ -24,6 +25,29 @@ var (
 	buildHash = "(dev)"
 	buildDate = "???"
 )
+
+type rootFlagValue struct {
+	value string
+}
+
+func (rfv *rootFlagValue) String() string {
+	if len(rfv.value) == 0 {
+		if homeDir, ok := os.LookupEnv("HOME"); ok {
+			return filepath.Join(homeDir, ".anwork")
+		} else {
+			return "."
+		}
+	}
+	return rfv.value
+}
+
+func (rfv *rootFlagValue) Set(value string) error {
+	if len(value) == 0 {
+		return fmt.Errorf("Cannot have a root flag with length 0!")
+	}
+	rfv.value = value
+	return nil
+}
 
 type debugWriter struct {
 	debug bool
@@ -38,8 +62,9 @@ func (dw *debugWriter) Write(data []byte) (int, error) {
 
 func main() {
 	var (
-		context, root string
-		dw            debugWriter
+		context string
+		root    rootFlagValue
+		dw      debugWriter
 	)
 
 	flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
@@ -47,7 +72,7 @@ func main() {
 	flags.BoolVar(&dw.debug, "d", false, "Enable debug printing")
 
 	flags.StringVar(&context, "c", "default-context", "Set the persistence context")
-	flags.StringVar(&root, "o", ".", "Set the persistence root directory")
+	flags.Var(&root, "o", "Set the persistence root directory")
 
 	flags.Usage = func() {
 		fmt.Println("Usage of anwork")
@@ -78,7 +103,7 @@ func main() {
 		client := client.New(fmt.Sprintf("http://%s", address))
 		factory = remote.NewManagerFactory(client)
 	} else {
-		factory = local.NewManagerFactory(root, context)
+		factory = local.NewManagerFactory(root.String(), context)
 	}
 
 	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate},

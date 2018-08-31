@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
@@ -82,6 +83,45 @@ var _ = Describe("anwork", func() {
 				Skip("when connecting to API, we ignore the context flag")
 			}
 			runWithStatus(1, outBuf, errBuf, "-c", "data", "-o", "bad-context", "show")
+		})
+	})
+
+	Context("when no output dir is passed", func() {
+		var homeDir string
+		BeforeEach(func() {
+			var found bool
+			homeDir, found = os.LookupEnv("HOME")
+			Expect(found).To(BeTrue(), "Cannot find $HOME env var - this test needs that var to be set")
+		})
+		AfterEach(func() {
+			Expect(os.RemoveAll(filepath.Join(homeDir, ".anwork", "home-dir-context"))).To(Succeed())
+		})
+		It("puts the data in the $HOME/.anwork/ directory", func() {
+			if runWithApi {
+				Skip("the API has its own problems regarding the use of the context...")
+			}
+			run(nil, nil, "-c", "home-dir-context", "create", "task-a")
+			cmd := exec.Command(anworkBin, "-c", "home-dir-context", "create", "task-a")
+			out, err := cmd.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("out: %s", string(out)))
+
+			Expect(filepath.Join(homeDir, ".anwork", "home-dir-context")).To(BeAnExistingFile())
+		})
+	})
+
+	Context("when a zero-length output dir is passed", func() {
+		It("fails", func() {
+			if runWithApi {
+				Skip("when connecting to API, we ignore the output flag")
+			}
+			runWithStatus(1, outBuf, errBuf, "-o", "", "show")
+		})
+	})
+
+	Context("when the debug flag is passed", func() {
+		It("prints out some extra stuff", func() {
+			run(outBuf, errBuf, "-d", "show")
+			Eventually(outBuf).Should(gbytes.Say("Manager is "))
 		})
 	})
 

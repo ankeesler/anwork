@@ -76,7 +76,7 @@ func (a *Runner) Run(args []string) error {
 	if err != nil {
 		return fmt.Errorf("Could not create manager: %s", err.Error())
 	}
-	a.debug("Manager is %s", manager)
+	a.debug("Manager is %s\n", manager)
 
 	if err := cmd.Action(cmd, args, a.stdoutWriter, manager, a.buildInfo); err != nil {
 		return fmt.Errorf("Command '%s' failed: %s", args[0], err.Error())
@@ -88,7 +88,7 @@ func (a *Runner) Run(args []string) error {
 }
 
 func (a *Runner) debug(format string, args ...interface{}) {
-	fmt.Fprintln(a.debugWriter, format, args)
+	fmt.Fprintf(a.debugWriter, format, args...)
 }
 
 func validateArgs(cmd *command, args []string) bool {
