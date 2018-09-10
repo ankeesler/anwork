@@ -188,7 +188,7 @@ func RunManagerTests(factory ManagerFactory) {
 				for i := 3; i < 6; i++ {
 					t := manager.FindByName(names[i-3])
 					msg := fmt.Sprintf("Set state on task '%s' from %s to %s", t.Name,
-						StateNames[StateWaiting], StateNames[states[i-3]])
+						StateNames[StateReady], StateNames[states[i-3]])
 					Expect(events[i].Title).To(Equal(msg))
 					Expect(events[i].Type).To(Equal(EventTypeSetState))
 					Expect(events[i].TaskID).To(Equal(t.ID))

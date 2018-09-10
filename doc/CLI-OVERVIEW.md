@@ -17,10 +17,10 @@ $ anwork set-priority count-fish 15
 
 ## Setting a task's state
 
-There is a command for setting a task to each of 4 possible states: _waiting_, _running_, _blocked_,
-and _finished_. By default, tasks start out in the _waiting_ state.
+There is a command for setting a task to each of 4 possible states: _ready_, _running_, _blocked_,
+and _finished_. By default, tasks start out in the _ready_ state.
 ```
-$ anwork set-waiting weigh-tuna
+$ anwork set-ready weigh-tuna
 $ anwork set-running weigh-tuna
 $ anwork set-blocked weigh-tuna
 $ anwork set-finished weigh-tuna
@@ -71,7 +71,7 @@ $ anwork delete weigh-tuna
 A task specifier starts with the '@' symbol and can refer to one or more tasks. It can be passed to
 the CLI commands that take an argument named _task-specifier_. Here are some examples.
 ```
-$ anwork set-waiting @1 # set the task with ID 1 to the waiting state
+$ anwork set-ready @1 # set the task with ID 1 to the ready state
 $ anwork note @42 'Here is a note' # add a note to the task with ID 42
 ``` 
 

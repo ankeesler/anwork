@@ -6,9 +6,10 @@
   - API documentation is generated. And added to release script.
 - ANWORK "archive" command deletes finished tasks.
 - The API respects the context flag.
+- Use a SQL store for the backing datastore.
 
 ## Changed Functionality
-- You can't set tasks to "Waiting" on the API...
+- You can't set tasks to "Ready" on the API...
 
 ## Deprecated Functionality
 

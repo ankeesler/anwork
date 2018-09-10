@@ -319,7 +319,7 @@ var _ = Describe("Command", func() {
 		Context("when there are no tasks", func() {
 			It("just prints out the task states", func() {
 				Expect(r.Run([]string{"show"})).To(Succeed())
-				Expect(stdoutWriter).To(gbytes.Say("RUNNING tasks:\nBLOCKED tasks:\nWAITING tasks:\nFINISHED tasks:\n"))
+				Expect(stdoutWriter).To(gbytes.Say("RUNNING tasks:\nBLOCKED tasks:\nREADY tasks:\nFINISHED tasks:\n"))
 			})
 
 			Context("when a task name argument is passed", func() {
@@ -343,12 +343,12 @@ var _ = Describe("Command", func() {
 						Name:     "task-b",
 						Priority: 3,
 						ID:       20,
-						State:    task.StateWaiting,
+						State:    task.StateReady,
 					},
 					&task.Task{
 						Name:  "task-c",
 						ID:    30,
-						State: task.StateWaiting,
+						State: task.StateReady,
 					},
 					&task.Task{
 						Name:  "task-d",
@@ -371,7 +371,7 @@ var _ = Describe("Command", func() {
 				expectedOutput := `RUNNING tasks:
   task-a \(10\)
 BLOCKED tasks:
-WAITING tasks:
+READY tasks:
   task-b \(20\)
   task-c \(30\)
 FINISHED tasks:
@@ -386,7 +386,7 @@ FINISHED tasks:
 ID: 20
 Created: \w+ \w+ \d\d? \d\d:\d\d
 Priority: 3
-State: WAITING`
+State: READY`
 					Expect(stdoutWriter).To(gbytes.Say(expectedOutput))
 				})
 			})
@@ -398,7 +398,7 @@ State: WAITING`
 					&task.Task{
 						Name:     "task-a",
 						ID:       10,
-						State:    task.StateWaiting,
+						State:    task.StateReady,
 						Priority: 3,
 					},
 				)
@@ -411,7 +411,7 @@ State: WAITING`
 ID: 10
 Created: \w+ \w+ \d\d? \d\d:\d\d
 Priority: 3
-State: WAITING`
+State: READY`
 				Expect(stdoutWriter).To(gbytes.Say(expectedOutput))
 			})
 
@@ -588,10 +588,10 @@ State: WAITING`
 			states := []task.State{
 				task.StateRunning,
 				task.StateBlocked,
-				task.StateWaiting,
+				task.StateReady,
 				task.StateFinished,
 			}
-			stateStrings := []string{"running", "blocked", "waiting", "finished"}
+			stateStrings := []string{"running", "blocked", "ready", "finished"}
 			for i, state := range states {
 				stateString := stateStrings[i]
 				cmd := fmt.Sprintf("set-%s", stateString)

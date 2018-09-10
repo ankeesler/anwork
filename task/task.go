@@ -3,7 +3,7 @@
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present."
 //
-// Every Task is in one of a number of different State's: Waiting, Blocked, Running, or Finished. A
+// Every Task is in one of a number of different State's: Ready, Blocked, Running, or Finished. A
 // Task also has a priority which describes its relative importance to all other Task's.
 //
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
@@ -18,7 +18,7 @@ type State int
 
 // These are the states that a Task could be in.
 const (
-	StateWaiting  State = 0
+	StateReady    State = 0
 	StateBlocked  State = 1
 	StateRunning  State = 2
 	StateFinished State = 3
@@ -26,7 +26,7 @@ const (
 
 // These are the names of the State's that a Task can occupy, indexed by the State integer value.
 var StateNames = [...]string{
-	"Waiting",
+	"Ready",
 	"Blocked",
 	"Running",
 	"Finished",
@@ -55,7 +55,7 @@ type Task struct {
 	Priority int `json:"priority"`
 
 	// This is the State of the Task. See State* for possible values. A Task can go through any
-	// number of State changes over the course of its life. All Tasks start out in the StateWaiting
+	// number of State changes over the course of its life. All Tasks start out in the StateReady
 	// State.
 	State State `json:"state"`
 }

@@ -400,7 +400,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("...panics, I guess?", func() {
-				Expect(client.UpdateState(1, task.StateWaiting)).NotTo(Succeed())
+				Expect(client.UpdateState(1, task.StateReady)).NotTo(Succeed())
 			})
 		})
 	})

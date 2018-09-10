@@ -177,13 +177,13 @@ var _ = Describe("anwork", func() {
 		AfterEach(func() {
 			run(nil, nil, "reset")
 		})
-		It("shows the task as waiting", func() {
+		It("shows the task as ready", func() {
 			run(outBuf, errBuf, "show")
-			Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a \\(\\d+\\)\nFINISHED tasks"))
+			Expect(outBuf).To(gbytes.Say("READY tasks:\n  task-a \\(\\d+\\)\nFINISHED tasks"))
 		})
 		It("shows the correct task details", func() {
 			run(outBuf, errBuf, "show", "task-a")
-			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
 		})
 		It("records the event in the task's journal", func() {
 			run(outBuf, errBuf, "journal", "task-a")
@@ -204,17 +204,17 @@ var _ = Describe("anwork", func() {
 		AfterEach(func() {
 			run(nil, nil, "reset")
 		})
-		It("shows the tasks as waiting in the order in which they were created", func() {
+		It("shows the tasks as ready in the order in which they were created", func() {
 			run(outBuf, errBuf, "show")
-			Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a \\(\\d+\\)\n  task-b \\(\\d+\\)\n  task-c \\(\\d+\\)\nFINISHED tasks"))
+			Expect(outBuf).To(gbytes.Say("READY tasks:\n  task-a \\(\\d+\\)\n  task-b \\(\\d+\\)\n  task-c \\(\\d+\\)\nFINISHED tasks"))
 		})
 		It("shows the correct task details", func() {
 			run(outBuf, errBuf, "show", "task-a")
-			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
 			run(outBuf, errBuf, "show", "task-b")
-			Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
 			run(outBuf, errBuf, "show", "task-c")
-			Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
+			Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
 		})
 		It("records the events in each task's journal", func() {
 			run(outBuf, errBuf, "journal", "task-a")
@@ -236,7 +236,7 @@ var _ = Describe("anwork", func() {
 			})
 			It("properly shows the tasks in order of priority", func() {
 				run(outBuf, errBuf, "show")
-				Expect(outBuf).To(gbytes.Say("WAITING tasks:"))
+				Expect(outBuf).To(gbytes.Say("READY tasks:"))
 				Expect(outBuf).To(gbytes.Say("  task-b"))
 				Expect(outBuf).To(gbytes.Say("  task-a"))
 				Expect(outBuf).To(gbytes.Say("  task-c"))
@@ -244,11 +244,11 @@ var _ = Describe("anwork", func() {
 			})
 			It("properly records the priorities", func() {
 				run(outBuf, errBuf, "show", "task-a")
-				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 15\nState: WAITING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 15\nState: READY"))
 				run(outBuf, errBuf, "show", "task-b")
-				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: WAITING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
 				run(outBuf, errBuf, "show", "task-c")
-				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 20\nState: WAITING"))
+				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 20\nState: READY"))
 			})
 			It("records the events in each of the task's journals", func() {
 				run(outBuf, errBuf, "journal", "task-a")
@@ -287,17 +287,17 @@ var _ = Describe("anwork", func() {
 			})
 			It("records the events in each of the task's journals", func() {
 				run(outBuf, errBuf, "journal", "task-a")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-a' from Waiting to Running"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-a' from Ready to Running"))
 				run(outBuf, errBuf, "journal", "task-b")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Waiting to Finished"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Ready to Finished"))
 				run(outBuf, errBuf, "journal", "task-c")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-c' from Waiting to Blocked"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-c' from Ready to Blocked"))
 			})
 			It("records the events in the global journal in order from newest to oldest", func() {
 				run(outBuf, errBuf, "journal")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-c' from Waiting to Blocked"))
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Waiting to Finished"))
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-a' from Waiting to Running"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-c' from Ready to Blocked"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Ready to Finished"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-a' from Ready to Running"))
 			})
 		})
 		Context("when adding a note to tasks", func() {
@@ -319,7 +319,7 @@ var _ = Describe("anwork", func() {
 			})
 			It("properly displays the remaining tasks", func() {
 				run(outBuf, errBuf, "show")
-				Expect(outBuf).To(gbytes.Say("WAITING tasks:\n  task-a.*\n  task-c"))
+				Expect(outBuf).To(gbytes.Say("READY tasks:\n  task-a.*\n  task-c"))
 			})
 			It("fails when we try to show the deleted task", func() {
 				runWithStatus(1, outBuf, errBuf, "show", "task-b")
@@ -338,7 +338,7 @@ var _ = Describe("anwork", func() {
 			})
 			It("no longer shows any tasks", func() {
 				run(outBuf, errBuf, "show")
-				Expect(outBuf).To(gbytes.Say("RUNNING tasks:\nBLOCKED tasks:\nWAITING tasks:\nFINISHED tasks"))
+				Expect(outBuf).To(gbytes.Say("RUNNING tasks:\nBLOCKED tasks:\nREADY tasks:\nFINISHED tasks"))
 			})
 			It("fails when we try to show the deleted tasks", func() {
 				runWithStatus(1, outBuf, errBuf, "show", "task-a")
@@ -401,7 +401,7 @@ var _ = Describe("anwork", func() {
 			})
 			It("reports the finished tasks", func() {
 				run(outBuf, errBuf, "summary", "1")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Waiting to Finished"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Ready to Finished"))
 				Expect(outBuf).To(gbytes.Say("  took "))
 			})
 		})

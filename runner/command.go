@@ -109,8 +109,8 @@ var commands = []command{
 		Action:      setStateAction,
 	},
 	command{
-		Name:        "set-waiting",
-		Description: "Mark a task as waiting",
+		Name:        "set-ready",
+		Description: "Mark a task as ready",
 		Args:        []string{"task-name"},
 		Action:      setStateAction,
 	},
@@ -292,7 +292,7 @@ func showAction(cmd *command, args []string, o io.Writer, m task.Manager, buildI
 		}
 		printer(task.StateRunning)
 		printer(task.StateBlocked)
-		printer(task.StateWaiting)
+		printer(task.StateReady)
 		printer(task.StateFinished)
 	} else {
 		t, err := parseTaskSpec(args[1], m)
@@ -352,8 +352,8 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager, bu
 		state = task.StateRunning
 	case "blocked":
 		state = task.StateBlocked
-	case "waiting":
-		state = task.StateWaiting
+	case "ready":
+		state = task.StateReady
 	case "finished":
 		state = task.StateFinished
 	default:

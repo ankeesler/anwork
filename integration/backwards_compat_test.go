@@ -34,7 +34,7 @@ var _ = Describe("Backwards compatibility", func() {
 				Expect(outBuf).To(gbytes.Say("  task-c \\(\\d+\\)"))
 				Expect(outBuf).To(gbytes.Say("BLOCKED tasks:"))
 				Expect(outBuf).To(gbytes.Say("  task-b \\(\\d+\\)"))
-				Expect(outBuf).To(gbytes.Say("WAITING tasks:"))
+				Expect(outBuf).To(gbytes.Say("READY tasks:"))
 				Expect(outBuf).To(gbytes.Say("FINISHED tasks:"))
 				Expect(outBuf).To(gbytes.Say("  task-a \\(\\d+\\)"))
 			})
@@ -47,11 +47,17 @@ var _ = Describe("Backwards compatibility", func() {
 				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: 2\nCreated: \\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\nPriority: 10\nState: RUNNING"))
 			})
 			It("shows the correct journal", func() {
+				var ready string
+				if version < 6 {
+					ready = "Waiting"
+				} else {
+					ready = "Ready"
+				}
 				run(outBuf, errBuf, "-o", "data", "-c", context, "journal")
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-c' from Waiting to Running"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-a' from Running to Finished"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-b' from Waiting to Blocked"))
-				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-a' from Waiting to Running"))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-c' from %s to Running", ready)))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-a' from Running to Finished")))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-b' from %s to Blocked", ready)))
+				Expect(outBuf).To(gbytes.Say(fmt.Sprintf("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Set state on task 'task-a' from %s to Running", ready)))
 				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task 'task-c'"))
 				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task 'task-b'"))
 				Expect(outBuf).To(gbytes.Say("\\[\\w+ \\w+ \\d\\d? \\d\\d?:\\d\\d?\\]: Created task 'task-a'"))

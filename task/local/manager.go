@@ -42,7 +42,7 @@ func (m *manager) Create(name string) error {
 		ID:        m.NextTaskID,
 		StartDate: time.Now().Unix(),
 		Priority:  task.DefaultPriority,
-		State:     task.StateWaiting,
+		State:     task.StateReady,
 	}
 	m.NextTaskID++
 	m.MyTasks = append(m.MyTasks, t)
