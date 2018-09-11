@@ -10,8 +10,11 @@ os:
   - linux
   - osx
 
+env:
+    GO111MODULE=on
+
 install:
- - go get -t -v ./...
+ - go mod download
  - go install -v github.com/onsi/ginkgo/ginkgo
 
 script:
