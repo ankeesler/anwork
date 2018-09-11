@@ -1,4 +1,5 @@
 untracked/
+*.bak
 
 # Emacs leftovers
 *~
