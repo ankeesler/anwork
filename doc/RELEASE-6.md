@@ -1,4 +1,4 @@
-# ANWORK Version NEXT Release Notes
+# ANWORK Version 6 Release Notes
 
 ## New Functionality
 - ANWORK version includes the git hash and date at which it was built.

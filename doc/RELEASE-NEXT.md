@@ -1,4 +1,4 @@
-# ANWORK Version 6 Release Notes
+# ANWORK Version NEXT Release Notes
 
 ## New Functionality
 - GA ANWORK service support.
