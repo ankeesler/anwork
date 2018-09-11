@@ -36,7 +36,7 @@ log "Running tests..."
 log "...done"
 
 log "Committing changes..."
-git add -AN
+git add .
 git commit -m "Release v$next_version."
 log "...done"
 
