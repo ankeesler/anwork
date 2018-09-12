@@ -25,10 +25,10 @@ var (
 
 	version = runner.Version
 
-	runWithApi     bool
-	apiSession     *gexec.Session
-	testsRunning   chan struct{}
-	apiOut, apiErr *gbytes.Buffer
+	runWithApi                 bool
+	apiSession                 *gexec.Session
+	testsRunning, waitingOnApi chan struct{}
+	apiOut, apiErr             *gbytes.Buffer
 )
 
 func init() {
@@ -130,6 +130,7 @@ func TestIntegration(t *testing.T) {
 			Expect(err).ToNot(HaveOccurred())
 
 			testsRunning = make(chan struct{})
+			waitingOnApi = make(chan struct{})
 
 			go func() {
 				select {
@@ -139,12 +140,14 @@ func TestIntegration(t *testing.T) {
 
 				case <-testsRunning:
 				}
+				close(waitingOnApi)
 			}()
 		}
 	})
 	AfterSuite(func() {
 		if apiSession != nil {
 			close(testsRunning)
+			<-waitingOnApi
 			apiSession.Kill()
 			fmt.Fprintln(GinkgoWriter, "\nAPI OUT:", string(apiOut.Contents()))
 			fmt.Fprintln(GinkgoWriter, "\nAPI ERR:", string(apiErr.Contents()))
