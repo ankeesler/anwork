@@ -390,6 +390,7 @@ var _ = Describe("anwork", func() {
 			It("does delete all data if the user says yes", func() {
 				stdin.Write([]byte("y\n"))
 				Eventually(outBuf).Should(gbytes.Say("OK, deleting all data"))
+				Eventually(s).Should(gexec.Exit(0))
 
 				run(outBuf, errBuf, "show")
 				Expect(outBuf).ToNot(gbytes.Say("task-a"))

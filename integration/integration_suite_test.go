@@ -123,25 +123,27 @@ func TestIntegration(t *testing.T) {
 			cmd := exec.Command(apiBin)
 			cmd.Env = []string{"PORT=12346"}
 
-			Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12346")).To(Succeed())
+			if _, ok := os.LookupEnv("ANWORK_API_ADDRESS"); !ok {
+				Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12346")).To(Succeed())
 
-			apiOut, apiErr = gbytes.NewBuffer(), gbytes.NewBuffer()
-			apiSession, err = gexec.Start(cmd, apiOut, apiErr)
-			Expect(err).ToNot(HaveOccurred())
+				apiOut, apiErr = gbytes.NewBuffer(), gbytes.NewBuffer()
+				apiSession, err = gexec.Start(cmd, apiOut, apiErr)
+				Expect(err).ToNot(HaveOccurred())
 
-			testsRunning = make(chan struct{})
-			waitingOnApi = make(chan struct{})
+				testsRunning = make(chan struct{})
+				waitingOnApi = make(chan struct{})
 
-			go func() {
-				select {
-				case <-apiSession.Exited:
-					panic(fmt.Sprintf("API exited with exit code %d: stdout='%s', stderr='%s'", apiSession.ExitCode(),
-						string(apiOut.Contents()), string(apiErr.Contents())))
+				go func() {
+					select {
+					case <-apiSession.Exited:
+						panic(fmt.Sprintf("API exited with exit code %d: stdout='%s', stderr='%s'", apiSession.ExitCode(),
+							string(apiOut.Contents()), string(apiErr.Contents())))
 
-				case <-testsRunning:
-				}
-				close(waitingOnApi)
-			}()
+					case <-testsRunning:
+					}
+					close(waitingOnApi)
+				}()
+			}
 		}
 	})
 	AfterSuite(func() {
