@@ -11,8 +11,6 @@
 - By default, anwork places contexts in $HOME/.anwork/.
 
 ## Changed Functionality
-- The `api` package was refactored to be more correctly tested. A `service`
-  package was added to encapsulate the anwork API HTTP service functionality.
 - The _Waiting_ task state has been renamed to _Ready_. This is so that the
   task states look more like classical kernel scheduler states.
 

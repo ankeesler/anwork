@@ -10,6 +10,8 @@
 
 ## Changed Functionality
 - You can't set tasks to "Ready" on the API...
+- The `api` package was refactored to be more correctly tested. A `service`
+  package was added to encapsulate the anwork API HTTP service functionality.
 
 ## Deprecated Functionality
 
