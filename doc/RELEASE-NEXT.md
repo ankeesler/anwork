@@ -7,6 +7,7 @@
 - ANWORK "archive" command deletes finished tasks.
 - The API respects the context flag.
 - Use a SQL store for the backing datastore.
+- Post anwork binaries on github release page along with release notes and update README to point there.
 
 ## Changed Functionality
 - You can't set tasks to "Ready" on the API...

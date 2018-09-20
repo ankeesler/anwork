@@ -1,11 +1,17 @@
 # ANWORK
 
-ANWORK is a personal task management system.
+ANWORK is a multitasking management system.
 
 [![Build Status](https://travis-ci.org/ankeesler/anwork.svg?branch=master)](https://travis-ci.org/ankeesler/anwork)
 [![codecov](https://codecov.io/gh/ankeesler/anwork/branch/master/graph/badge.svg)](https://codecov.io/gh/ankeesler/anwork)
 
 Latest release: [v6](https://github.com/ankeesler/anwork/releases/tag/v6)
+
+## Philosophy
+
+- As a human, multitasking is hard.
+- As a computer, multitasking is easy.
+- If humans apply some concepts from multitasking operating systems, we may be able to improve our multitasking abilities.
 
 ## Running
 
