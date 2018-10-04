@@ -10,6 +10,7 @@
 - Post anwork binaries on github release page along with release notes and update README to point there.
 - Ability to add note on top of state changes.
 - Show last note in the "show" view.
+- A web view that listens to the JSON data and updates whenever it changes!
 
 ## Changed Functionality
 - You can't set tasks to "Ready" on the API...
