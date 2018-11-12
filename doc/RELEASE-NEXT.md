@@ -12,6 +12,7 @@
 - Show last note in the "show" view.
 - A web view that listens to the JSON data and updates whenever it changes!
 - Ability to rename task.
+- Scheduling something with a deadline and have it automatically prioritized would be really nice.
 
 ## Changed Functionality
 - You can't set tasks to "Ready" on the API...
