@@ -171,6 +171,21 @@ func (m *manager) Reset() error {
 	return nil
 }
 
+func (m *manager) Rename(from, to string) error {
+	if m.FindByName(to) != nil {
+		return fmt.Errorf("task '%s' already exists", to)
+	}
+
+	tFrom := m.FindByName(from)
+	if tFrom == nil {
+		return fmt.Errorf("unknown task '%s'", from)
+	}
+
+	tFrom.Name = to
+
+	return nil
+}
+
 // Return the length of the Task's held by this Manager.
 func (m *manager) Len() int {
 	return len(m.MyTasks)

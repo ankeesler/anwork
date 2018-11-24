@@ -48,4 +48,7 @@ type Manager interface {
 
 	// Perform a factory reset, e.g., make this manager new again.
 	Reset() error
+
+	// Rename a task.
+	Rename(from, to string) error
 }

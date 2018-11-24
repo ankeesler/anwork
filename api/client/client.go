@@ -173,6 +173,11 @@ func (c *Client) UpdateState(id int, state task.State) error {
 	return c.updateTask(id, api.UpdateTaskRequest{State: state})
 }
 
+// Update a task.Task's name.
+func (c *Client) UpdateName(id int, name string) error {
+	return c.updateTask(id, api.UpdateTaskRequest{Name: name})
+}
+
 // Create an event.
 func (c *Client) CreateEvent(title string, teyep task.EventType, startTime int64, taskID int) error {
 	url := fmt.Sprintf("%s/api/v1/events", c.address)

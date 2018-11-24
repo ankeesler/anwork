@@ -117,6 +117,22 @@ func RunManagerTests(factory ManagerFactory) {
 				ids[t.ID] = true
 			}
 		})
+		It("can rename a task", func() {
+			Expect(manager.Rename("1", "5")).To(Succeed())
+
+			t := manager.FindByName("5")
+			Expect(t).ToNot(BeNil())
+			Expect(t.Name).To(Equal("5"))
+
+			t = manager.FindByName("1")
+			Expect(t).To(BeNil())
+		})
+		It("returns an error when trying to rename an unknown task", func() {
+			Expect(manager.Rename("5", "6")).NotTo(Succeed())
+		})
+		It("returns an error when trying to rename a task to an existing task", func() {
+			Expect(manager.Rename("5", "1")).NotTo(Succeed())
+		})
 
 		Context("when a note is added to those tasks", func() {
 			var (

@@ -8,7 +8,6 @@
 - ANWORK "archive" command compresses finished tasks and stores them somewhere.
 - The API respects the context flag.
 - Use a SQL store for the backing datastore.
-- Post anwork binaries on github release page along with release notes and update README to point there.
 - Ability to add note on top of state changes.
 - Show last note in the "show" view.
 - A web view that listens to the JSON data and updates whenever it changes!

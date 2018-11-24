@@ -433,6 +433,33 @@ FINISHED tasks:`
 				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Deleted task 'task-a'"))
 			})
 		})
+		Context("when renaming a task", func() {
+			BeforeEach(func() {
+				run(nil, nil, "rename", "task-a", "task-d")
+			})
+			It("shows the task with the new name", func() {
+				run(outBuf, errBuf, "show")
+				expected := `RUNNING tasks:
+BLOCKED tasks:
+READY tasks:
+  task-d \(\d+\)
+  task-b \(\d+\)
+  task-c \(\d+\)
+FINISHED tasks:`
+				Expect(outBuf).To(gbytes.Say(expected))
+			})
+			It("succeeds when we try to show the new task name", func() {
+				run(outBuf, errBuf, "show", "task-d")
+				Expect(outBuf).To(gbytes.Say("Name: task-d\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
+			})
+			It("fails when we try to show the old task name", func() {
+				runWithStatus(1, outBuf, errBuf, "show", "task-a")
+			})
+			It("records the events in the global journal", func() {
+				run(outBuf, errBuf, "journal")
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]:.*Renamed task 'task-a' to 'task-d'"))
+			})
+		})
 		Context("when performing a summary", func() {
 			BeforeEach(func() {
 				run(nil, nil, "set-finished", "task-b")

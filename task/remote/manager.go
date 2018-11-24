@@ -18,6 +18,7 @@ type APIClient interface {
 	GetTask(int) (*task.Task, error)
 	UpdatePriority(int, int) error
 	UpdateState(int, task.State) error
+	UpdateName(int, string) error
 	CreateEvent(string, task.EventType, int64, int) error
 	GetEvents() ([]*task.Event, error)
 	DeleteEvent(int64) error
@@ -155,4 +156,12 @@ func (m *manager) Reset() error {
 	} else {
 		return nil
 	}
+}
+
+func (m *manager) Rename(from, to string) error {
+	task := m.FindByName(from)
+	if task == nil {
+		return &unknownTaskError{name: from}
+	}
+	return m.client.UpdateName(task.ID, to)
 }

@@ -132,6 +132,12 @@ var commands = []command{
 		Args:        []string{},
 		Action:      archiveAction,
 	},
+	command{
+		Name:        "rename",
+		Description: "Rename a task",
+		Args:        []string{"from", "to"},
+		Action:      renameAction,
+	},
 }
 
 // Find the command with the provided name.
@@ -415,6 +421,23 @@ func archiveAction(cmd *command, args []string, o io.Writer, m task.Manager, bui
 	if len(errMsgs) > 0 {
 		return errors.New(strings.Join(errMsgs, ""))
 	}
+
+	return nil
+}
+
+func renameAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
+	from, err := parseTaskSpec(args[1], m)
+	if err != nil {
+		return err
+	}
+
+	fromName := from.Name
+	toName := args[2]
+	if err := m.Rename(fromName, toName); err != nil {
+		return fmt.Errorf("unable to rename task %s to %s: %s", fromName, toName, err.Error())
+	}
+
+	m.Note(args[2], fmt.Sprintf("Renamed task '%s' to '%s'", fromName, toName))
 
 	return nil
 }

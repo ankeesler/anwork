@@ -2,16 +2,16 @@
 package taskfakes
 
 import (
-	"sync"
+	sync "sync"
 
-	"github.com/ankeesler/anwork/task"
+	task "github.com/ankeesler/anwork/task"
 )
 
 type FakeManager struct {
-	CreateStub        func(name string) error
+	CreateStub        func(string) error
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
-		name string
+		arg1 string
 	}
 	createReturns struct {
 		result1 error
@@ -19,10 +19,10 @@ type FakeManager struct {
 	createReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStub        func(name string) error
+	DeleteStub        func(string) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
-		name string
+		arg1 string
 	}
 	deleteReturns struct {
 		result1 error
@@ -30,86 +30,10 @@ type FakeManager struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FindByIDStub        func(id int) *task.Task
-	findByIDMutex       sync.RWMutex
-	findByIDArgsForCall []struct {
-		id int
-	}
-	findByIDReturns struct {
-		result1 *task.Task
-	}
-	findByIDReturnsOnCall map[int]struct {
-		result1 *task.Task
-	}
-	FindByNameStub        func(name string) *task.Task
-	findByNameMutex       sync.RWMutex
-	findByNameArgsForCall []struct {
-		name string
-	}
-	findByNameReturns struct {
-		result1 *task.Task
-	}
-	findByNameReturnsOnCall map[int]struct {
-		result1 *task.Task
-	}
-	TasksStub        func() []*task.Task
-	tasksMutex       sync.RWMutex
-	tasksArgsForCall []struct{}
-	tasksReturns     struct {
-		result1 []*task.Task
-	}
-	tasksReturnsOnCall map[int]struct {
-		result1 []*task.Task
-	}
-	NoteStub        func(name, note string) error
-	noteMutex       sync.RWMutex
-	noteArgsForCall []struct {
-		name string
-		note string
-	}
-	noteReturns struct {
-		result1 error
-	}
-	noteReturnsOnCall map[int]struct {
-		result1 error
-	}
-	SetPriorityStub        func(name string, priority int) error
-	setPriorityMutex       sync.RWMutex
-	setPriorityArgsForCall []struct {
-		name     string
-		priority int
-	}
-	setPriorityReturns struct {
-		result1 error
-	}
-	setPriorityReturnsOnCall map[int]struct {
-		result1 error
-	}
-	SetStateStub        func(name string, state task.State) error
-	setStateMutex       sync.RWMutex
-	setStateArgsForCall []struct {
-		name  string
-		state task.State
-	}
-	setStateReturns struct {
-		result1 error
-	}
-	setStateReturnsOnCall map[int]struct {
-		result1 error
-	}
-	EventsStub        func() []*task.Event
-	eventsMutex       sync.RWMutex
-	eventsArgsForCall []struct{}
-	eventsReturns     struct {
-		result1 []*task.Event
-	}
-	eventsReturnsOnCall map[int]struct {
-		result1 []*task.Event
-	}
-	DeleteEventStub        func(startTime int64) error
+	DeleteEventStub        func(int64) error
 	deleteEventMutex       sync.RWMutex
 	deleteEventArgsForCall []struct {
-		startTime int64
+		arg1 int64
 	}
 	deleteEventReturns struct {
 		result1 error
@@ -117,34 +41,126 @@ type FakeManager struct {
 	deleteEventReturnsOnCall map[int]struct {
 		result1 error
 	}
+	EventsStub        func() []*task.Event
+	eventsMutex       sync.RWMutex
+	eventsArgsForCall []struct {
+	}
+	eventsReturns struct {
+		result1 []*task.Event
+	}
+	eventsReturnsOnCall map[int]struct {
+		result1 []*task.Event
+	}
+	FindByIDStub        func(int) *task.Task
+	findByIDMutex       sync.RWMutex
+	findByIDArgsForCall []struct {
+		arg1 int
+	}
+	findByIDReturns struct {
+		result1 *task.Task
+	}
+	findByIDReturnsOnCall map[int]struct {
+		result1 *task.Task
+	}
+	FindByNameStub        func(string) *task.Task
+	findByNameMutex       sync.RWMutex
+	findByNameArgsForCall []struct {
+		arg1 string
+	}
+	findByNameReturns struct {
+		result1 *task.Task
+	}
+	findByNameReturnsOnCall map[int]struct {
+		result1 *task.Task
+	}
+	NoteStub        func(string, string) error
+	noteMutex       sync.RWMutex
+	noteArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	noteReturns struct {
+		result1 error
+	}
+	noteReturnsOnCall map[int]struct {
+		result1 error
+	}
+	RenameStub        func(string, string) error
+	renameMutex       sync.RWMutex
+	renameArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	renameReturns struct {
+		result1 error
+	}
+	renameReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ResetStub        func() error
 	resetMutex       sync.RWMutex
-	resetArgsForCall []struct{}
-	resetReturns     struct {
+	resetArgsForCall []struct {
+	}
+	resetReturns struct {
 		result1 error
 	}
 	resetReturnsOnCall map[int]struct {
 		result1 error
 	}
+	SetPriorityStub        func(string, int) error
+	setPriorityMutex       sync.RWMutex
+	setPriorityArgsForCall []struct {
+		arg1 string
+		arg2 int
+	}
+	setPriorityReturns struct {
+		result1 error
+	}
+	setPriorityReturnsOnCall map[int]struct {
+		result1 error
+	}
+	SetStateStub        func(string, task.State) error
+	setStateMutex       sync.RWMutex
+	setStateArgsForCall []struct {
+		arg1 string
+		arg2 task.State
+	}
+	setStateReturns struct {
+		result1 error
+	}
+	setStateReturnsOnCall map[int]struct {
+		result1 error
+	}
+	TasksStub        func() []*task.Task
+	tasksMutex       sync.RWMutex
+	tasksArgsForCall []struct {
+	}
+	tasksReturns struct {
+		result1 []*task.Task
+	}
+	tasksReturnsOnCall map[int]struct {
+		result1 []*task.Task
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManager) Create(name string) error {
+func (fake *FakeManager) Create(arg1 string) error {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
-		name string
-	}{name})
-	fake.recordInvocation("Create", []interface{}{name})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Create", []interface{}{arg1})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(name)
+		return fake.CreateStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.createReturns.result1
+	fakeReturns := fake.createReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeManager) CreateCallCount() int {
@@ -153,13 +169,22 @@ func (fake *FakeManager) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
+func (fake *FakeManager) CreateCalls(stub func(string) error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
+	fake.CreateStub = stub
+}
+
 func (fake *FakeManager) CreateArgsForCall(i int) string {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].name
+	argsForCall := fake.createArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeManager) CreateReturns(result1 error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	fake.createReturns = struct {
 		result1 error
@@ -167,6 +192,8 @@ func (fake *FakeManager) CreateReturns(result1 error) {
 }
 
 func (fake *FakeManager) CreateReturnsOnCall(i int, result1 error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	if fake.createReturnsOnCall == nil {
 		fake.createReturnsOnCall = make(map[int]struct {
@@ -178,21 +205,22 @@ func (fake *FakeManager) CreateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) Delete(name string) error {
+func (fake *FakeManager) Delete(arg1 string) error {
 	fake.deleteMutex.Lock()
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
-		name string
-	}{name})
-	fake.recordInvocation("Delete", []interface{}{name})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Delete", []interface{}{arg1})
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
-		return fake.DeleteStub(name)
+		return fake.DeleteStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deleteReturns.result1
+	fakeReturns := fake.deleteReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeManager) DeleteCallCount() int {
@@ -201,13 +229,22 @@ func (fake *FakeManager) DeleteCallCount() int {
 	return len(fake.deleteArgsForCall)
 }
 
+func (fake *FakeManager) DeleteCalls(stub func(string) error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = stub
+}
+
 func (fake *FakeManager) DeleteArgsForCall(i int) string {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
-	return fake.deleteArgsForCall[i].name
+	argsForCall := fake.deleteArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeManager) DeleteReturns(result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = nil
 	fake.deleteReturns = struct {
 		result1 error
@@ -215,6 +252,8 @@ func (fake *FakeManager) DeleteReturns(result1 error) {
 }
 
 func (fake *FakeManager) DeleteReturnsOnCall(i int, result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = nil
 	if fake.deleteReturnsOnCall == nil {
 		fake.deleteReturnsOnCall = make(map[int]struct {
@@ -226,344 +265,22 @@ func (fake *FakeManager) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) FindByID(id int) *task.Task {
-	fake.findByIDMutex.Lock()
-	ret, specificReturn := fake.findByIDReturnsOnCall[len(fake.findByIDArgsForCall)]
-	fake.findByIDArgsForCall = append(fake.findByIDArgsForCall, struct {
-		id int
-	}{id})
-	fake.recordInvocation("FindByID", []interface{}{id})
-	fake.findByIDMutex.Unlock()
-	if fake.FindByIDStub != nil {
-		return fake.FindByIDStub(id)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.findByIDReturns.result1
-}
-
-func (fake *FakeManager) FindByIDCallCount() int {
-	fake.findByIDMutex.RLock()
-	defer fake.findByIDMutex.RUnlock()
-	return len(fake.findByIDArgsForCall)
-}
-
-func (fake *FakeManager) FindByIDArgsForCall(i int) int {
-	fake.findByIDMutex.RLock()
-	defer fake.findByIDMutex.RUnlock()
-	return fake.findByIDArgsForCall[i].id
-}
-
-func (fake *FakeManager) FindByIDReturns(result1 *task.Task) {
-	fake.FindByIDStub = nil
-	fake.findByIDReturns = struct {
-		result1 *task.Task
-	}{result1}
-}
-
-func (fake *FakeManager) FindByIDReturnsOnCall(i int, result1 *task.Task) {
-	fake.FindByIDStub = nil
-	if fake.findByIDReturnsOnCall == nil {
-		fake.findByIDReturnsOnCall = make(map[int]struct {
-			result1 *task.Task
-		})
-	}
-	fake.findByIDReturnsOnCall[i] = struct {
-		result1 *task.Task
-	}{result1}
-}
-
-func (fake *FakeManager) FindByName(name string) *task.Task {
-	fake.findByNameMutex.Lock()
-	ret, specificReturn := fake.findByNameReturnsOnCall[len(fake.findByNameArgsForCall)]
-	fake.findByNameArgsForCall = append(fake.findByNameArgsForCall, struct {
-		name string
-	}{name})
-	fake.recordInvocation("FindByName", []interface{}{name})
-	fake.findByNameMutex.Unlock()
-	if fake.FindByNameStub != nil {
-		return fake.FindByNameStub(name)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.findByNameReturns.result1
-}
-
-func (fake *FakeManager) FindByNameCallCount() int {
-	fake.findByNameMutex.RLock()
-	defer fake.findByNameMutex.RUnlock()
-	return len(fake.findByNameArgsForCall)
-}
-
-func (fake *FakeManager) FindByNameArgsForCall(i int) string {
-	fake.findByNameMutex.RLock()
-	defer fake.findByNameMutex.RUnlock()
-	return fake.findByNameArgsForCall[i].name
-}
-
-func (fake *FakeManager) FindByNameReturns(result1 *task.Task) {
-	fake.FindByNameStub = nil
-	fake.findByNameReturns = struct {
-		result1 *task.Task
-	}{result1}
-}
-
-func (fake *FakeManager) FindByNameReturnsOnCall(i int, result1 *task.Task) {
-	fake.FindByNameStub = nil
-	if fake.findByNameReturnsOnCall == nil {
-		fake.findByNameReturnsOnCall = make(map[int]struct {
-			result1 *task.Task
-		})
-	}
-	fake.findByNameReturnsOnCall[i] = struct {
-		result1 *task.Task
-	}{result1}
-}
-
-func (fake *FakeManager) Tasks() []*task.Task {
-	fake.tasksMutex.Lock()
-	ret, specificReturn := fake.tasksReturnsOnCall[len(fake.tasksArgsForCall)]
-	fake.tasksArgsForCall = append(fake.tasksArgsForCall, struct{}{})
-	fake.recordInvocation("Tasks", []interface{}{})
-	fake.tasksMutex.Unlock()
-	if fake.TasksStub != nil {
-		return fake.TasksStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.tasksReturns.result1
-}
-
-func (fake *FakeManager) TasksCallCount() int {
-	fake.tasksMutex.RLock()
-	defer fake.tasksMutex.RUnlock()
-	return len(fake.tasksArgsForCall)
-}
-
-func (fake *FakeManager) TasksReturns(result1 []*task.Task) {
-	fake.TasksStub = nil
-	fake.tasksReturns = struct {
-		result1 []*task.Task
-	}{result1}
-}
-
-func (fake *FakeManager) TasksReturnsOnCall(i int, result1 []*task.Task) {
-	fake.TasksStub = nil
-	if fake.tasksReturnsOnCall == nil {
-		fake.tasksReturnsOnCall = make(map[int]struct {
-			result1 []*task.Task
-		})
-	}
-	fake.tasksReturnsOnCall[i] = struct {
-		result1 []*task.Task
-	}{result1}
-}
-
-func (fake *FakeManager) Note(name string, note string) error {
-	fake.noteMutex.Lock()
-	ret, specificReturn := fake.noteReturnsOnCall[len(fake.noteArgsForCall)]
-	fake.noteArgsForCall = append(fake.noteArgsForCall, struct {
-		name string
-		note string
-	}{name, note})
-	fake.recordInvocation("Note", []interface{}{name, note})
-	fake.noteMutex.Unlock()
-	if fake.NoteStub != nil {
-		return fake.NoteStub(name, note)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.noteReturns.result1
-}
-
-func (fake *FakeManager) NoteCallCount() int {
-	fake.noteMutex.RLock()
-	defer fake.noteMutex.RUnlock()
-	return len(fake.noteArgsForCall)
-}
-
-func (fake *FakeManager) NoteArgsForCall(i int) (string, string) {
-	fake.noteMutex.RLock()
-	defer fake.noteMutex.RUnlock()
-	return fake.noteArgsForCall[i].name, fake.noteArgsForCall[i].note
-}
-
-func (fake *FakeManager) NoteReturns(result1 error) {
-	fake.NoteStub = nil
-	fake.noteReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) NoteReturnsOnCall(i int, result1 error) {
-	fake.NoteStub = nil
-	if fake.noteReturnsOnCall == nil {
-		fake.noteReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.noteReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) SetPriority(name string, priority int) error {
-	fake.setPriorityMutex.Lock()
-	ret, specificReturn := fake.setPriorityReturnsOnCall[len(fake.setPriorityArgsForCall)]
-	fake.setPriorityArgsForCall = append(fake.setPriorityArgsForCall, struct {
-		name     string
-		priority int
-	}{name, priority})
-	fake.recordInvocation("SetPriority", []interface{}{name, priority})
-	fake.setPriorityMutex.Unlock()
-	if fake.SetPriorityStub != nil {
-		return fake.SetPriorityStub(name, priority)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.setPriorityReturns.result1
-}
-
-func (fake *FakeManager) SetPriorityCallCount() int {
-	fake.setPriorityMutex.RLock()
-	defer fake.setPriorityMutex.RUnlock()
-	return len(fake.setPriorityArgsForCall)
-}
-
-func (fake *FakeManager) SetPriorityArgsForCall(i int) (string, int) {
-	fake.setPriorityMutex.RLock()
-	defer fake.setPriorityMutex.RUnlock()
-	return fake.setPriorityArgsForCall[i].name, fake.setPriorityArgsForCall[i].priority
-}
-
-func (fake *FakeManager) SetPriorityReturns(result1 error) {
-	fake.SetPriorityStub = nil
-	fake.setPriorityReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) SetPriorityReturnsOnCall(i int, result1 error) {
-	fake.SetPriorityStub = nil
-	if fake.setPriorityReturnsOnCall == nil {
-		fake.setPriorityReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.setPriorityReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) SetState(name string, state task.State) error {
-	fake.setStateMutex.Lock()
-	ret, specificReturn := fake.setStateReturnsOnCall[len(fake.setStateArgsForCall)]
-	fake.setStateArgsForCall = append(fake.setStateArgsForCall, struct {
-		name  string
-		state task.State
-	}{name, state})
-	fake.recordInvocation("SetState", []interface{}{name, state})
-	fake.setStateMutex.Unlock()
-	if fake.SetStateStub != nil {
-		return fake.SetStateStub(name, state)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.setStateReturns.result1
-}
-
-func (fake *FakeManager) SetStateCallCount() int {
-	fake.setStateMutex.RLock()
-	defer fake.setStateMutex.RUnlock()
-	return len(fake.setStateArgsForCall)
-}
-
-func (fake *FakeManager) SetStateArgsForCall(i int) (string, task.State) {
-	fake.setStateMutex.RLock()
-	defer fake.setStateMutex.RUnlock()
-	return fake.setStateArgsForCall[i].name, fake.setStateArgsForCall[i].state
-}
-
-func (fake *FakeManager) SetStateReturns(result1 error) {
-	fake.SetStateStub = nil
-	fake.setStateReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) SetStateReturnsOnCall(i int, result1 error) {
-	fake.SetStateStub = nil
-	if fake.setStateReturnsOnCall == nil {
-		fake.setStateReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.setStateReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) Events() []*task.Event {
-	fake.eventsMutex.Lock()
-	ret, specificReturn := fake.eventsReturnsOnCall[len(fake.eventsArgsForCall)]
-	fake.eventsArgsForCall = append(fake.eventsArgsForCall, struct{}{})
-	fake.recordInvocation("Events", []interface{}{})
-	fake.eventsMutex.Unlock()
-	if fake.EventsStub != nil {
-		return fake.EventsStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.eventsReturns.result1
-}
-
-func (fake *FakeManager) EventsCallCount() int {
-	fake.eventsMutex.RLock()
-	defer fake.eventsMutex.RUnlock()
-	return len(fake.eventsArgsForCall)
-}
-
-func (fake *FakeManager) EventsReturns(result1 []*task.Event) {
-	fake.EventsStub = nil
-	fake.eventsReturns = struct {
-		result1 []*task.Event
-	}{result1}
-}
-
-func (fake *FakeManager) EventsReturnsOnCall(i int, result1 []*task.Event) {
-	fake.EventsStub = nil
-	if fake.eventsReturnsOnCall == nil {
-		fake.eventsReturnsOnCall = make(map[int]struct {
-			result1 []*task.Event
-		})
-	}
-	fake.eventsReturnsOnCall[i] = struct {
-		result1 []*task.Event
-	}{result1}
-}
-
-func (fake *FakeManager) DeleteEvent(startTime int64) error {
+func (fake *FakeManager) DeleteEvent(arg1 int64) error {
 	fake.deleteEventMutex.Lock()
 	ret, specificReturn := fake.deleteEventReturnsOnCall[len(fake.deleteEventArgsForCall)]
 	fake.deleteEventArgsForCall = append(fake.deleteEventArgsForCall, struct {
-		startTime int64
-	}{startTime})
-	fake.recordInvocation("DeleteEvent", []interface{}{startTime})
+		arg1 int64
+	}{arg1})
+	fake.recordInvocation("DeleteEvent", []interface{}{arg1})
 	fake.deleteEventMutex.Unlock()
 	if fake.DeleteEventStub != nil {
-		return fake.DeleteEventStub(startTime)
+		return fake.DeleteEventStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deleteEventReturns.result1
+	fakeReturns := fake.deleteEventReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeManager) DeleteEventCallCount() int {
@@ -572,13 +289,22 @@ func (fake *FakeManager) DeleteEventCallCount() int {
 	return len(fake.deleteEventArgsForCall)
 }
 
+func (fake *FakeManager) DeleteEventCalls(stub func(int64) error) {
+	fake.deleteEventMutex.Lock()
+	defer fake.deleteEventMutex.Unlock()
+	fake.DeleteEventStub = stub
+}
+
 func (fake *FakeManager) DeleteEventArgsForCall(i int) int64 {
 	fake.deleteEventMutex.RLock()
 	defer fake.deleteEventMutex.RUnlock()
-	return fake.deleteEventArgsForCall[i].startTime
+	argsForCall := fake.deleteEventArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeManager) DeleteEventReturns(result1 error) {
+	fake.deleteEventMutex.Lock()
+	defer fake.deleteEventMutex.Unlock()
 	fake.DeleteEventStub = nil
 	fake.deleteEventReturns = struct {
 		result1 error
@@ -586,6 +312,8 @@ func (fake *FakeManager) DeleteEventReturns(result1 error) {
 }
 
 func (fake *FakeManager) DeleteEventReturnsOnCall(i int, result1 error) {
+	fake.deleteEventMutex.Lock()
+	defer fake.deleteEventMutex.Unlock()
 	fake.DeleteEventStub = nil
 	if fake.deleteEventReturnsOnCall == nil {
 		fake.deleteEventReturnsOnCall = make(map[int]struct {
@@ -597,10 +325,305 @@ func (fake *FakeManager) DeleteEventReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeManager) Events() []*task.Event {
+	fake.eventsMutex.Lock()
+	ret, specificReturn := fake.eventsReturnsOnCall[len(fake.eventsArgsForCall)]
+	fake.eventsArgsForCall = append(fake.eventsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Events", []interface{}{})
+	fake.eventsMutex.Unlock()
+	if fake.EventsStub != nil {
+		return fake.EventsStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.eventsReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) EventsCallCount() int {
+	fake.eventsMutex.RLock()
+	defer fake.eventsMutex.RUnlock()
+	return len(fake.eventsArgsForCall)
+}
+
+func (fake *FakeManager) EventsCalls(stub func() []*task.Event) {
+	fake.eventsMutex.Lock()
+	defer fake.eventsMutex.Unlock()
+	fake.EventsStub = stub
+}
+
+func (fake *FakeManager) EventsReturns(result1 []*task.Event) {
+	fake.eventsMutex.Lock()
+	defer fake.eventsMutex.Unlock()
+	fake.EventsStub = nil
+	fake.eventsReturns = struct {
+		result1 []*task.Event
+	}{result1}
+}
+
+func (fake *FakeManager) EventsReturnsOnCall(i int, result1 []*task.Event) {
+	fake.eventsMutex.Lock()
+	defer fake.eventsMutex.Unlock()
+	fake.EventsStub = nil
+	if fake.eventsReturnsOnCall == nil {
+		fake.eventsReturnsOnCall = make(map[int]struct {
+			result1 []*task.Event
+		})
+	}
+	fake.eventsReturnsOnCall[i] = struct {
+		result1 []*task.Event
+	}{result1}
+}
+
+func (fake *FakeManager) FindByID(arg1 int) *task.Task {
+	fake.findByIDMutex.Lock()
+	ret, specificReturn := fake.findByIDReturnsOnCall[len(fake.findByIDArgsForCall)]
+	fake.findByIDArgsForCall = append(fake.findByIDArgsForCall, struct {
+		arg1 int
+	}{arg1})
+	fake.recordInvocation("FindByID", []interface{}{arg1})
+	fake.findByIDMutex.Unlock()
+	if fake.FindByIDStub != nil {
+		return fake.FindByIDStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.findByIDReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) FindByIDCallCount() int {
+	fake.findByIDMutex.RLock()
+	defer fake.findByIDMutex.RUnlock()
+	return len(fake.findByIDArgsForCall)
+}
+
+func (fake *FakeManager) FindByIDCalls(stub func(int) *task.Task) {
+	fake.findByIDMutex.Lock()
+	defer fake.findByIDMutex.Unlock()
+	fake.FindByIDStub = stub
+}
+
+func (fake *FakeManager) FindByIDArgsForCall(i int) int {
+	fake.findByIDMutex.RLock()
+	defer fake.findByIDMutex.RUnlock()
+	argsForCall := fake.findByIDArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeManager) FindByIDReturns(result1 *task.Task) {
+	fake.findByIDMutex.Lock()
+	defer fake.findByIDMutex.Unlock()
+	fake.FindByIDStub = nil
+	fake.findByIDReturns = struct {
+		result1 *task.Task
+	}{result1}
+}
+
+func (fake *FakeManager) FindByIDReturnsOnCall(i int, result1 *task.Task) {
+	fake.findByIDMutex.Lock()
+	defer fake.findByIDMutex.Unlock()
+	fake.FindByIDStub = nil
+	if fake.findByIDReturnsOnCall == nil {
+		fake.findByIDReturnsOnCall = make(map[int]struct {
+			result1 *task.Task
+		})
+	}
+	fake.findByIDReturnsOnCall[i] = struct {
+		result1 *task.Task
+	}{result1}
+}
+
+func (fake *FakeManager) FindByName(arg1 string) *task.Task {
+	fake.findByNameMutex.Lock()
+	ret, specificReturn := fake.findByNameReturnsOnCall[len(fake.findByNameArgsForCall)]
+	fake.findByNameArgsForCall = append(fake.findByNameArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("FindByName", []interface{}{arg1})
+	fake.findByNameMutex.Unlock()
+	if fake.FindByNameStub != nil {
+		return fake.FindByNameStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.findByNameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) FindByNameCallCount() int {
+	fake.findByNameMutex.RLock()
+	defer fake.findByNameMutex.RUnlock()
+	return len(fake.findByNameArgsForCall)
+}
+
+func (fake *FakeManager) FindByNameCalls(stub func(string) *task.Task) {
+	fake.findByNameMutex.Lock()
+	defer fake.findByNameMutex.Unlock()
+	fake.FindByNameStub = stub
+}
+
+func (fake *FakeManager) FindByNameArgsForCall(i int) string {
+	fake.findByNameMutex.RLock()
+	defer fake.findByNameMutex.RUnlock()
+	argsForCall := fake.findByNameArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeManager) FindByNameReturns(result1 *task.Task) {
+	fake.findByNameMutex.Lock()
+	defer fake.findByNameMutex.Unlock()
+	fake.FindByNameStub = nil
+	fake.findByNameReturns = struct {
+		result1 *task.Task
+	}{result1}
+}
+
+func (fake *FakeManager) FindByNameReturnsOnCall(i int, result1 *task.Task) {
+	fake.findByNameMutex.Lock()
+	defer fake.findByNameMutex.Unlock()
+	fake.FindByNameStub = nil
+	if fake.findByNameReturnsOnCall == nil {
+		fake.findByNameReturnsOnCall = make(map[int]struct {
+			result1 *task.Task
+		})
+	}
+	fake.findByNameReturnsOnCall[i] = struct {
+		result1 *task.Task
+	}{result1}
+}
+
+func (fake *FakeManager) Note(arg1 string, arg2 string) error {
+	fake.noteMutex.Lock()
+	ret, specificReturn := fake.noteReturnsOnCall[len(fake.noteArgsForCall)]
+	fake.noteArgsForCall = append(fake.noteArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("Note", []interface{}{arg1, arg2})
+	fake.noteMutex.Unlock()
+	if fake.NoteStub != nil {
+		return fake.NoteStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.noteReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) NoteCallCount() int {
+	fake.noteMutex.RLock()
+	defer fake.noteMutex.RUnlock()
+	return len(fake.noteArgsForCall)
+}
+
+func (fake *FakeManager) NoteCalls(stub func(string, string) error) {
+	fake.noteMutex.Lock()
+	defer fake.noteMutex.Unlock()
+	fake.NoteStub = stub
+}
+
+func (fake *FakeManager) NoteArgsForCall(i int) (string, string) {
+	fake.noteMutex.RLock()
+	defer fake.noteMutex.RUnlock()
+	argsForCall := fake.noteArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) NoteReturns(result1 error) {
+	fake.noteMutex.Lock()
+	defer fake.noteMutex.Unlock()
+	fake.NoteStub = nil
+	fake.noteReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) NoteReturnsOnCall(i int, result1 error) {
+	fake.noteMutex.Lock()
+	defer fake.noteMutex.Unlock()
+	fake.NoteStub = nil
+	if fake.noteReturnsOnCall == nil {
+		fake.noteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.noteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) Rename(arg1 string, arg2 string) error {
+	fake.renameMutex.Lock()
+	ret, specificReturn := fake.renameReturnsOnCall[len(fake.renameArgsForCall)]
+	fake.renameArgsForCall = append(fake.renameArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("Rename", []interface{}{arg1, arg2})
+	fake.renameMutex.Unlock()
+	if fake.RenameStub != nil {
+		return fake.RenameStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.renameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) RenameCallCount() int {
+	fake.renameMutex.RLock()
+	defer fake.renameMutex.RUnlock()
+	return len(fake.renameArgsForCall)
+}
+
+func (fake *FakeManager) RenameCalls(stub func(string, string) error) {
+	fake.renameMutex.Lock()
+	defer fake.renameMutex.Unlock()
+	fake.RenameStub = stub
+}
+
+func (fake *FakeManager) RenameArgsForCall(i int) (string, string) {
+	fake.renameMutex.RLock()
+	defer fake.renameMutex.RUnlock()
+	argsForCall := fake.renameArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) RenameReturns(result1 error) {
+	fake.renameMutex.Lock()
+	defer fake.renameMutex.Unlock()
+	fake.RenameStub = nil
+	fake.renameReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) RenameReturnsOnCall(i int, result1 error) {
+	fake.renameMutex.Lock()
+	defer fake.renameMutex.Unlock()
+	fake.RenameStub = nil
+	if fake.renameReturnsOnCall == nil {
+		fake.renameReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.renameReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeManager) Reset() error {
 	fake.resetMutex.Lock()
 	ret, specificReturn := fake.resetReturnsOnCall[len(fake.resetArgsForCall)]
-	fake.resetArgsForCall = append(fake.resetArgsForCall, struct{}{})
+	fake.resetArgsForCall = append(fake.resetArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Reset", []interface{}{})
 	fake.resetMutex.Unlock()
 	if fake.ResetStub != nil {
@@ -609,7 +632,8 @@ func (fake *FakeManager) Reset() error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.resetReturns.result1
+	fakeReturns := fake.resetReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeManager) ResetCallCount() int {
@@ -618,7 +642,15 @@ func (fake *FakeManager) ResetCallCount() int {
 	return len(fake.resetArgsForCall)
 }
 
+func (fake *FakeManager) ResetCalls(stub func() error) {
+	fake.resetMutex.Lock()
+	defer fake.resetMutex.Unlock()
+	fake.ResetStub = stub
+}
+
 func (fake *FakeManager) ResetReturns(result1 error) {
+	fake.resetMutex.Lock()
+	defer fake.resetMutex.Unlock()
 	fake.ResetStub = nil
 	fake.resetReturns = struct {
 		result1 error
@@ -626,6 +658,8 @@ func (fake *FakeManager) ResetReturns(result1 error) {
 }
 
 func (fake *FakeManager) ResetReturnsOnCall(i int, result1 error) {
+	fake.resetMutex.Lock()
+	defer fake.resetMutex.Unlock()
 	fake.ResetStub = nil
 	if fake.resetReturnsOnCall == nil {
 		fake.resetReturnsOnCall = make(map[int]struct {
@@ -637,6 +671,180 @@ func (fake *FakeManager) ResetReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeManager) SetPriority(arg1 string, arg2 int) error {
+	fake.setPriorityMutex.Lock()
+	ret, specificReturn := fake.setPriorityReturnsOnCall[len(fake.setPriorityArgsForCall)]
+	fake.setPriorityArgsForCall = append(fake.setPriorityArgsForCall, struct {
+		arg1 string
+		arg2 int
+	}{arg1, arg2})
+	fake.recordInvocation("SetPriority", []interface{}{arg1, arg2})
+	fake.setPriorityMutex.Unlock()
+	if fake.SetPriorityStub != nil {
+		return fake.SetPriorityStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.setPriorityReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) SetPriorityCallCount() int {
+	fake.setPriorityMutex.RLock()
+	defer fake.setPriorityMutex.RUnlock()
+	return len(fake.setPriorityArgsForCall)
+}
+
+func (fake *FakeManager) SetPriorityCalls(stub func(string, int) error) {
+	fake.setPriorityMutex.Lock()
+	defer fake.setPriorityMutex.Unlock()
+	fake.SetPriorityStub = stub
+}
+
+func (fake *FakeManager) SetPriorityArgsForCall(i int) (string, int) {
+	fake.setPriorityMutex.RLock()
+	defer fake.setPriorityMutex.RUnlock()
+	argsForCall := fake.setPriorityArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) SetPriorityReturns(result1 error) {
+	fake.setPriorityMutex.Lock()
+	defer fake.setPriorityMutex.Unlock()
+	fake.SetPriorityStub = nil
+	fake.setPriorityReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SetPriorityReturnsOnCall(i int, result1 error) {
+	fake.setPriorityMutex.Lock()
+	defer fake.setPriorityMutex.Unlock()
+	fake.SetPriorityStub = nil
+	if fake.setPriorityReturnsOnCall == nil {
+		fake.setPriorityReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setPriorityReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SetState(arg1 string, arg2 task.State) error {
+	fake.setStateMutex.Lock()
+	ret, specificReturn := fake.setStateReturnsOnCall[len(fake.setStateArgsForCall)]
+	fake.setStateArgsForCall = append(fake.setStateArgsForCall, struct {
+		arg1 string
+		arg2 task.State
+	}{arg1, arg2})
+	fake.recordInvocation("SetState", []interface{}{arg1, arg2})
+	fake.setStateMutex.Unlock()
+	if fake.SetStateStub != nil {
+		return fake.SetStateStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.setStateReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) SetStateCallCount() int {
+	fake.setStateMutex.RLock()
+	defer fake.setStateMutex.RUnlock()
+	return len(fake.setStateArgsForCall)
+}
+
+func (fake *FakeManager) SetStateCalls(stub func(string, task.State) error) {
+	fake.setStateMutex.Lock()
+	defer fake.setStateMutex.Unlock()
+	fake.SetStateStub = stub
+}
+
+func (fake *FakeManager) SetStateArgsForCall(i int) (string, task.State) {
+	fake.setStateMutex.RLock()
+	defer fake.setStateMutex.RUnlock()
+	argsForCall := fake.setStateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) SetStateReturns(result1 error) {
+	fake.setStateMutex.Lock()
+	defer fake.setStateMutex.Unlock()
+	fake.SetStateStub = nil
+	fake.setStateReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SetStateReturnsOnCall(i int, result1 error) {
+	fake.setStateMutex.Lock()
+	defer fake.setStateMutex.Unlock()
+	fake.SetStateStub = nil
+	if fake.setStateReturnsOnCall == nil {
+		fake.setStateReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setStateReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) Tasks() []*task.Task {
+	fake.tasksMutex.Lock()
+	ret, specificReturn := fake.tasksReturnsOnCall[len(fake.tasksArgsForCall)]
+	fake.tasksArgsForCall = append(fake.tasksArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Tasks", []interface{}{})
+	fake.tasksMutex.Unlock()
+	if fake.TasksStub != nil {
+		return fake.TasksStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.tasksReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) TasksCallCount() int {
+	fake.tasksMutex.RLock()
+	defer fake.tasksMutex.RUnlock()
+	return len(fake.tasksArgsForCall)
+}
+
+func (fake *FakeManager) TasksCalls(stub func() []*task.Task) {
+	fake.tasksMutex.Lock()
+	defer fake.tasksMutex.Unlock()
+	fake.TasksStub = stub
+}
+
+func (fake *FakeManager) TasksReturns(result1 []*task.Task) {
+	fake.tasksMutex.Lock()
+	defer fake.tasksMutex.Unlock()
+	fake.TasksStub = nil
+	fake.tasksReturns = struct {
+		result1 []*task.Task
+	}{result1}
+}
+
+func (fake *FakeManager) TasksReturnsOnCall(i int, result1 []*task.Task) {
+	fake.tasksMutex.Lock()
+	defer fake.tasksMutex.Unlock()
+	fake.TasksStub = nil
+	if fake.tasksReturnsOnCall == nil {
+		fake.tasksReturnsOnCall = make(map[int]struct {
+			result1 []*task.Task
+		})
+	}
+	fake.tasksReturnsOnCall[i] = struct {
+		result1 []*task.Task
+	}{result1}
+}
+
 func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -644,24 +852,26 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.createMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.deleteEventMutex.RLock()
+	defer fake.deleteEventMutex.RUnlock()
+	fake.eventsMutex.RLock()
+	defer fake.eventsMutex.RUnlock()
 	fake.findByIDMutex.RLock()
 	defer fake.findByIDMutex.RUnlock()
 	fake.findByNameMutex.RLock()
 	defer fake.findByNameMutex.RUnlock()
-	fake.tasksMutex.RLock()
-	defer fake.tasksMutex.RUnlock()
 	fake.noteMutex.RLock()
 	defer fake.noteMutex.RUnlock()
+	fake.renameMutex.RLock()
+	defer fake.renameMutex.RUnlock()
+	fake.resetMutex.RLock()
+	defer fake.resetMutex.RUnlock()
 	fake.setPriorityMutex.RLock()
 	defer fake.setPriorityMutex.RUnlock()
 	fake.setStateMutex.RLock()
 	defer fake.setStateMutex.RUnlock()
-	fake.eventsMutex.RLock()
-	defer fake.eventsMutex.RUnlock()
-	fake.deleteEventMutex.RLock()
-	defer fake.deleteEventMutex.RUnlock()
-	fake.resetMutex.RLock()
-	defer fake.resetMutex.RUnlock()
+	fake.tasksMutex.RLock()
+	defer fake.tasksMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

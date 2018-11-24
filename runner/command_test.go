@@ -823,4 +823,50 @@ State: READY`
 			})
 		})
 	})
+
+	Describe("rename", func() {
+		Context("the manager succeeds", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a", State: task.StateFinished})
+				manager.RenameReturnsOnCall(0, nil)
+			})
+
+			It("calls the manager and adds a note and succeeds", func() {
+				Expect(r.Run([]string{"rename", "task-a", "task-d"})).To(Succeed())
+
+				from, to := manager.RenameArgsForCall(0)
+				Expect(from).To(Equal("task-a"))
+				Expect(to).To(Equal("task-d"))
+
+				name, note := manager.NoteArgsForCall(0)
+				Expect(name).To(Equal("task-d"))
+				Expect(note).To(Equal("Renamed task 'task-a' to 'task-d'"))
+			})
+		})
+
+		Context("when the manager fails", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a", State: task.StateFinished})
+				manager.RenameReturnsOnCall(0, errors.New("some rename error"))
+			})
+
+			It("calls delete on each finished task", func() {
+				err := r.Run([]string{"rename", "task-a", "task-d"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unable to rename task task-a to task-d: some rename error"))
+			})
+		})
+
+		Context("when the from task is invalid", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, nil)
+			})
+
+			It("calls delete on each finished task", func() {
+				err := r.Run([]string{"rename", "task-z", "task-d"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unknown task: task-z"))
+			})
+		})
+	})
 })

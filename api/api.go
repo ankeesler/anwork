@@ -14,7 +14,7 @@
 //   Get the details about a task:
 //   GET /api/v1/tasks/:id -> returns the task.Task
 //
-//   Update a task's state or priority:
+//   Update a task's state or priority or name:
 //   PUT /api/v1/tasks/:id api.UpdateTaskRequest
 //
 //   Delete a task:

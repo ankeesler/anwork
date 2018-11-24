@@ -455,4 +455,45 @@ var _ = Describe("Manager", func() {
 			})
 		})
 	})
+
+	Describe("Rename", func() {
+		BeforeEach(func() {
+			tasks := []*task.Task{
+				&task.Task{Name: "task-a", ID: 1},
+				&task.Task{Name: "task-b", ID: 2},
+				&task.Task{Name: "task-c", ID: 3},
+			}
+			client.GetTasksReturnsOnCall(0, tasks, nil)
+		})
+
+		It("renames a task via a call to the client", func() {
+			Expect(manager.Rename("task-a", "task-b")).To(Succeed())
+
+			Expect(client.GetTasksCallCount()).To(Equal(1))
+
+			Expect(client.UpdateNameCallCount()).To(Equal(1))
+			id, to := client.UpdateNameArgsForCall(0)
+			Expect(id).To(Equal(1))
+			Expect(to).To(Equal("task-b"))
+		})
+
+		It("returns an error for an unknown task", func() {
+			err := manager.Rename("task-z", "task-b")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Unknown task with name task-z"))
+
+			Expect(client.GetTasksCallCount()).To(Equal(1))
+		})
+
+		Context("when the client fails", func() {
+			BeforeEach(func() {
+				client.UpdateNameReturnsOnCall(0, errors.New("failed to rename task"))
+			})
+			It("returns the error", func() {
+				err := manager.Rename("task-a", "task-b")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("failed to rename task"))
+			})
+		})
+	})
 })

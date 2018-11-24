@@ -2,16 +2,17 @@
 package taskfakes
 
 import (
-	"sync"
+	sync "sync"
 
-	"github.com/ankeesler/anwork/task"
+	task "github.com/ankeesler/anwork/task"
 )
 
 type FakeManagerFactory struct {
 	CreateStub        func() (task.Manager, error)
 	createMutex       sync.RWMutex
-	createArgsForCall []struct{}
-	createReturns     struct {
+	createArgsForCall []struct {
+	}
+	createReturns struct {
 		result1 task.Manager
 		result2 error
 	}
@@ -37,7 +38,8 @@ type FakeManagerFactory struct {
 func (fake *FakeManagerFactory) Create() (task.Manager, error) {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
-	fake.createArgsForCall = append(fake.createArgsForCall, struct{}{})
+	fake.createArgsForCall = append(fake.createArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Create", []interface{}{})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
@@ -46,7 +48,8 @@ func (fake *FakeManagerFactory) Create() (task.Manager, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.createReturns.result1, fake.createReturns.result2
+	fakeReturns := fake.createReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeManagerFactory) CreateCallCount() int {
@@ -55,7 +58,15 @@ func (fake *FakeManagerFactory) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
+func (fake *FakeManagerFactory) CreateCalls(stub func() (task.Manager, error)) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
+	fake.CreateStub = stub
+}
+
 func (fake *FakeManagerFactory) CreateReturns(result1 task.Manager, result2 error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	fake.createReturns = struct {
 		result1 task.Manager
@@ -64,6 +75,8 @@ func (fake *FakeManagerFactory) CreateReturns(result1 task.Manager, result2 erro
 }
 
 func (fake *FakeManagerFactory) CreateReturnsOnCall(i int, result1 task.Manager, result2 error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	if fake.createReturnsOnCall == nil {
 		fake.createReturnsOnCall = make(map[int]struct {
@@ -91,7 +104,8 @@ func (fake *FakeManagerFactory) Save(arg1 task.Manager) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.saveReturns.result1
+	fakeReturns := fake.saveReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeManagerFactory) SaveCallCount() int {
@@ -100,13 +114,22 @@ func (fake *FakeManagerFactory) SaveCallCount() int {
 	return len(fake.saveArgsForCall)
 }
 
+func (fake *FakeManagerFactory) SaveCalls(stub func(task.Manager) error) {
+	fake.saveMutex.Lock()
+	defer fake.saveMutex.Unlock()
+	fake.SaveStub = stub
+}
+
 func (fake *FakeManagerFactory) SaveArgsForCall(i int) task.Manager {
 	fake.saveMutex.RLock()
 	defer fake.saveMutex.RUnlock()
-	return fake.saveArgsForCall[i].arg1
+	argsForCall := fake.saveArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeManagerFactory) SaveReturns(result1 error) {
+	fake.saveMutex.Lock()
+	defer fake.saveMutex.Unlock()
 	fake.SaveStub = nil
 	fake.saveReturns = struct {
 		result1 error
@@ -114,6 +137,8 @@ func (fake *FakeManagerFactory) SaveReturns(result1 error) {
 }
 
 func (fake *FakeManagerFactory) SaveReturnsOnCall(i int, result1 error) {
+	fake.saveMutex.Lock()
+	defer fake.saveMutex.Unlock()
 	fake.SaveStub = nil
 	if fake.saveReturnsOnCall == nil {
 		fake.saveReturnsOnCall = make(map[int]struct {

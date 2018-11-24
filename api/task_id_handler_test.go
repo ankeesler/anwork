@@ -191,8 +191,39 @@ var _ = Describe("TaskIDHandler", func() {
 			Expect(rsp.Code).To(Equal(http.StatusNoContent))
 		})
 
+		It("updates the state, priority, and name when all parameters are set", func() {
+			req := api.UpdateTaskRequest{State: task.StateRunning, Priority: 10, Name: "new-name"}
+			reqBytes, err := json.Marshal(req)
+			Expect(err).NotTo(HaveOccurred())
+			reqBody := bytes.NewBuffer(reqBytes)
+
+			rsp := handlePut(handler, "/api/v1/tasks/5", reqBody)
+
+			Expect(manager.FindByIDCallCount()).To(Equal(1))
+			Expect(manager.FindByIDArgsForCall(0)).To(Equal(5))
+
+			Expect(manager.SetStateCallCount()).To(Equal(1))
+			Expect(manager.SetPriorityCallCount()).To(Equal(1))
+
+			Expect(manager.RenameCallCount()).To(Equal(1))
+
+			name, state := manager.SetStateArgsForCall(0)
+			Expect(name).To(Equal("task-a"))
+			Expect(state).To(Equal(task.StateRunning))
+
+			name, priority := manager.SetPriorityArgsForCall(0)
+			Expect(name).To(Equal("task-a"))
+			Expect(priority).To(Equal(10))
+
+			from, to := manager.RenameArgsForCall(0)
+			Expect(from).To(Equal("task-a"))
+			Expect(to).To(Equal("new-name"))
+
+			Expect(rsp.Code).To(Equal(http.StatusNoContent))
+		})
+
 		It("logs a bunch of stuff", func() {
-			req := api.UpdateTaskRequest{State: task.StateRunning, Priority: 10}
+			req := api.UpdateTaskRequest{State: task.StateRunning, Priority: 10, Name: "new-name"}
 			reqBytes, err := json.Marshal(req)
 			Expect(err).NotTo(HaveOccurred())
 			reqBody := bytes.NewBuffer(reqBytes)
@@ -203,6 +234,7 @@ var _ = Describe("TaskIDHandler", func() {
 			Eventually(logWriter).Should(gbytes.Say(fmt.Sprintf("handling request %s", string(reqBytes))))
 			Eventually(logWriter).Should(gbytes.Say("set state Running"))
 			Eventually(logWriter).Should(gbytes.Say("set priority 10"))
+			Eventually(logWriter).Should(gbytes.Say("set name new-name"))
 		})
 
 		Context("when the state is invalid", func() {
@@ -335,6 +367,41 @@ var _ = Describe("TaskIDHandler", func() {
 				handlePut(handler, "/api/v1/tasks/5", reqBody)
 
 				Eventually(logWriter).Should(gbytes.Say("Failed to set priority: some priority error"))
+			})
+		})
+
+		Context("when we fail to rename the task", func() {
+			BeforeEach(func() {
+				manager.RenameReturnsOnCall(0, errors.New("some rename error"))
+			})
+
+			It("returns internal server error", func() {
+				req := api.UpdateTaskRequest{Name: "new-name"}
+				reqBytes, err := json.Marshal(req)
+				Expect(err).NotTo(HaveOccurred())
+				reqBody := bytes.NewBuffer(reqBytes)
+
+				rsp := handlePut(handler, "/api/v1/tasks/5", reqBody)
+
+				Expect(rsp.Code).To(Equal(http.StatusInternalServerError))
+				Expect(rsp.HeaderMap["Content-Type"]).To(Equal([]string{"application/json"}))
+
+				expectedErrJson, err := json.Marshal(api.ErrorResponse{Message: "Failed to rename task 'task-a' to 'new-name': some rename error"})
+				Expect(err).NotTo(HaveOccurred())
+				errJson, err := ioutil.ReadAll(rsp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(errJson).To(Equal(expectedErrJson))
+			})
+
+			It("logs the error", func() {
+				req := api.UpdateTaskRequest{Name: "new-name"}
+				reqBytes, err := json.Marshal(req)
+				Expect(err).NotTo(HaveOccurred())
+				reqBody := bytes.NewBuffer(reqBytes)
+
+				handlePut(handler, "/api/v1/tasks/5", reqBody)
+
+				Eventually(logWriter).Should(gbytes.Say("Failed to rename task 'task-a' to 'new-name': some rename error"))
 			})
 		})
 

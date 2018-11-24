@@ -405,6 +405,62 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
+	Describe("UpdateName", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
+				ghttp.VerifyJSONRepresenting(api.UpdateTaskRequest{Name: "new-name"}),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+		})
+
+		It("updates the task via a PUT to /api/v1/tasks/:id endpoint", func() {
+			Expect(client.UpdateName(1, "new-name")).To(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the task does not exist", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
+					ghttp.RespondWith(http.StatusNotFound, nil),
+				))
+			})
+
+			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
+				err := client.UpdateName(1, "new-name")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Unknown task with ID 1"))
+			})
+		})
+
+		Context("when the error payload is weird", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
+					ghttp.RespondWith(http.StatusInternalServerError, nil),
+				))
+			})
+
+			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
+				err := client.UpdateName(1, "new-name")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Unexpected response payload: "))
+			})
+		})
+
+		Context("when the request fails", func() {
+			BeforeEach(func() {
+				server.Close()
+			})
+
+			It("returns an error", func() {
+				Expect(client.UpdateName(1, "new-name")).NotTo(Succeed())
+			})
+		})
+	})
+
 	Describe("CreateEvent", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(

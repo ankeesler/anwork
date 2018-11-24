@@ -101,6 +101,15 @@ func (h *taskIDHandler) handlePut(w http.ResponseWriter, r *http.Request, t *tas
 		}
 		h.log.Printf("set priority %d", req.Priority)
 	}
+	if req.Name != "" {
+		if err := h.manager.Rename(t.Name, req.Name); err != nil {
+			msg := fmt.Sprintf("Failed to rename task '%s' to '%s': %s",
+				t.Name, req.Name, err.Error())
+			respondWithError(w, http.StatusInternalServerError, msg, h.log)
+			return
+		}
+		h.log.Printf("set name %s", req.Name)
+	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
