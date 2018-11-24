@@ -71,7 +71,7 @@ func reallyRunWithStatus(offset, exitCode int, outBuf, errBuf *gbytes.Buffer, ar
 	case <-s.Exited:
 		fmt.Fprintln(GinkgoWriter, "[out]:", string(outBuf.Contents()))
 		fmt.Fprintln(GinkgoWriter, "[err]:", string(errBuf.Contents()))
-		Expect(s.ExitCode()).To(Equal(exitCode))
+		ExpectWithOffset(offset, s.ExitCode()).To(Equal(exitCode))
 	case <-timer.C:
 		Fail(fmt.Sprintf("The session %+v failed to exit within 3 seconds", s))
 	}

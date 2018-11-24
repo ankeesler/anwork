@@ -396,6 +396,43 @@ var _ = Describe("anwork", func() {
 				Expect(outBuf).ToNot(gbytes.Say("task-a"))
 			})
 		})
+		Context("when archiving", func() {
+			BeforeEach(func() {
+				run(nil, nil, "create", "task-d")
+				run(nil, nil, "set-finished", "task-b")
+				run(nil, nil, "set-running", "task-c")
+				run(nil, nil, "set-finished", "task-a")
+				run(nil, nil, "archive")
+			})
+			It("no longer shows any of the finished tasks", func() {
+				run(outBuf, errBuf, "show")
+				output := string(outBuf.Contents())
+				expectedOutput := `RUNNING tasks:
+  task-c \(\d+\)
+BLOCKED tasks:
+READY tasks:
+  task-d \(\d+\)
+FINISHED tasks:`
+				Expect(output).To(MatchRegexp(expectedOutput))
+			})
+			It("fails when we try to show the finished tasks", func() {
+				runWithStatus(1, nil, nil, "show", "task-a")
+				runWithStatus(1, nil, nil, "show", "task-b")
+				run(nil, nil, "show", "task-c")
+				run(nil, nil, "show", "task-d")
+			})
+			It("fails to show the journal for the finished tasks", func() {
+				runWithStatus(1, nil, nil, "journal", "task-a")
+				runWithStatus(1, nil, nil, "journal", "task-b")
+				run(nil, nil, "journal", "task-c")
+				run(nil, nil, "journal", "task-d")
+			})
+			It("records the events in the global journal in order from newest to oldest", func() {
+				run(outBuf, errBuf, "journal")
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Deleted task 'task-b'"))
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Deleted task 'task-a'"))
+			})
+		})
 		Context("when performing a summary", func() {
 			BeforeEach(func() {
 				run(nil, nil, "set-finished", "task-b")

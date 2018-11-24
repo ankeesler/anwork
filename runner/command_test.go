@@ -772,4 +772,55 @@ State: READY`
 			})
 		})
 	})
+
+	Describe("archive", func() {
+		Context("when there are no tasks", func() {
+			It("does not tell the manager to delete anything", func() {
+				Expect(r.Run([]string{"archive"})).To(Succeed())
+				Expect(manager.DeleteCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("when there are multiple tasks", func() {
+			BeforeEach(func() {
+				tasks := []*task.Task{
+					&task.Task{Name: "task-a", State: task.StateFinished},
+					&task.Task{Name: "task-b", State: task.StateBlocked},
+					&task.Task{Name: "task-c", State: task.StateFinished},
+				}
+				manager.TasksReturnsOnCall(0, tasks)
+			})
+
+			Context("when the manager deletes stuff happily", func() {
+				BeforeEach(func() {
+					manager.DeleteReturnsOnCall(0, nil)
+					manager.DeleteReturnsOnCall(1, nil)
+				})
+
+				It("calls delete on each finished task", func() {
+					Expect(r.Run([]string{"archive"})).To(Succeed())
+					Expect(manager.DeleteCallCount()).To(Equal(2))
+					Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+					Expect(manager.DeleteArgsForCall(1)).To(Equal("task-c"))
+				})
+			})
+
+			Context("when the manager fails to delete a task", func() {
+				BeforeEach(func() {
+					manager.DeleteReturnsOnCall(0, errors.New("delete failure 0"))
+					manager.DeleteReturnsOnCall(1, nil)
+				})
+
+				It("notifies the user of which task was not able to be deleted", func() {
+					err := r.Run([]string{"archive"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("unable to delete task task-a: delete failure 0"))
+
+					Expect(manager.DeleteCallCount()).To(Equal(2))
+					Expect(manager.DeleteArgsForCall(0)).To(Equal("task-a"))
+					Expect(manager.DeleteArgsForCall(1)).To(Equal("task-c"))
+				})
+			})
+		})
+	})
 })

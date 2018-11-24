@@ -126,6 +126,12 @@ var commands = []command{
 		Args:        []string{"[task-name]"},
 		Action:      journalAction,
 	},
+	command{
+		Name:        "archive",
+		Description: "Remove the finished tasks",
+		Args:        []string{},
+		Action:      archiveAction,
+	},
 }
 
 // Find the command with the provided name.
@@ -384,5 +390,31 @@ func journalAction(cmd *command, args []string, o io.Writer, m task.Manager, bui
 			fmt.Fprintf(o, "[%s]: %s\n", formatDate(e.Date), e.Title)
 		}
 	}
+	return nil
+}
+
+func archiveAction(cmd *command, args []string, o io.Writer, m task.Manager, buildInfo *BuildInfo) error {
+	tasks := m.Tasks()
+	taskNames := make([]string, len(tasks))
+	taskStates := make([]task.State, len(tasks))
+	for i := range tasks {
+		taskNames[i] = tasks[i].Name
+		taskStates[i] = tasks[i].State
+	}
+
+	errMsgs := []string{}
+	for i, taskName := range taskNames {
+		if taskStates[i] == task.StateFinished {
+			if err := m.Delete(taskName); err != nil {
+				msg := fmt.Sprintf("\n\tunable to delete task %s: %s", taskName, err.Error())
+				errMsgs = append(errMsgs, msg)
+			}
+		}
+	}
+
+	if len(errMsgs) > 0 {
+		return errors.New(strings.Join(errMsgs, ""))
+	}
+
 	return nil
 }
