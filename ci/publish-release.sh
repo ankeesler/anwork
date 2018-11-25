@@ -37,7 +37,7 @@ if [[ -z "$tag" ]] || [[ -z "$token" ]] || [[ -z "$artifact" ]] || [[ -z "$doc" 
 fi
 
 commit="$(git rev-parse $tag)"
-body="$(awk '{printf "%s\\n", $0}' $doc)"
+body="$(awk '{printf "%s\\n", $0}' $doc | tr '"' "'")"
 data=$(cat <<EOF
 {
   "tag_name": "$tag",
