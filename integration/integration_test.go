@@ -198,7 +198,7 @@ var _ = Describe("anwork", func() {
 	Context("when creating multiple tasks", func() {
 		BeforeEach(func() {
 			run(outBuf, errBuf, "create", "task-a")
-			run(outBuf, errBuf, "create", "task-b")
+			run(outBuf, errBuf, "c", "task-b")
 			run(outBuf, errBuf, "create", "task-c")
 		})
 		AfterEach(func() {
@@ -211,7 +211,7 @@ var _ = Describe("anwork", func() {
 		It("shows the correct task details", func() {
 			run(outBuf, errBuf, "show", "task-a")
 			Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
-			run(outBuf, errBuf, "show", "task-b")
+			run(outBuf, errBuf, "s", "task-b")
 			Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
 			run(outBuf, errBuf, "show", "task-c")
 			Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 10\nState: READY"))
@@ -219,7 +219,7 @@ var _ = Describe("anwork", func() {
 		It("records the events in each task's journal", func() {
 			run(outBuf, errBuf, "journal", "task-a")
 			Expect(outBuf).To(gbytes.Say("\\[.*\\]: Created task 'task-a'"))
-			run(outBuf, errBuf, "journal", "task-b")
+			run(outBuf, errBuf, "j", "task-b")
 			Expect(outBuf).To(gbytes.Say("\\[.*\\]: Created task 'task-b'"))
 			run(outBuf, errBuf, "journal", "task-c")
 			Expect(outBuf).To(gbytes.Say("\\[.*\\]: Created task 'task-c'"))
@@ -265,51 +265,19 @@ var _ = Describe("anwork", func() {
 				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set priority on task 'task-a' from 10 to 15"))
 			})
 		})
-		Context("when changing the state on tasks", func() {
-			BeforeEach(func() {
-				run(nil, nil, "set-running", "task-a")
-				run(nil, nil, "set-finished", "task-b")
-				run(nil, nil, "set-blocked", "task-c")
-			})
-			It("properly displays the states", func() {
-				run(outBuf, errBuf, "show")
-				Expect(outBuf).To(gbytes.Say("RUNNING tasks:\n  task-a"))
-				Expect(outBuf).To(gbytes.Say("BLOCKED tasks:\n  task-c"))
-				Expect(outBuf).To(gbytes.Say("FINISHED tasks:\n  task-b"))
-			})
-			It("properly records the states", func() {
-				run(outBuf, errBuf, "show", "task-a")
-				Expect(outBuf).To(gbytes.Say("Name: task-a\nID: \\d+\nCreated: .*\nPriority: 10\nState: RUNNING"))
-				run(outBuf, errBuf, "show", "task-b")
-				Expect(outBuf).To(gbytes.Say("Name: task-b\nID: \\d+\nCreated: .*\nPriority: 10\nState: FINISHED"))
-				run(outBuf, errBuf, "show", "task-c")
-				Expect(outBuf).To(gbytes.Say("Name: task-c\nID: \\d+\nCreated: .*\nPriority: 10\nState: BLOCKED"))
-			})
-			It("records the events in each of the task's journals", func() {
-				run(outBuf, errBuf, "journal", "task-a")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-a' from Ready to Running"))
-				run(outBuf, errBuf, "journal", "task-b")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Ready to Finished"))
-				run(outBuf, errBuf, "journal", "task-c")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-c' from Ready to Blocked"))
-			})
-			It("records the events in the global journal in order from newest to oldest", func() {
-				run(outBuf, errBuf, "journal")
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-c' from Ready to Blocked"))
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Ready to Finished"))
-				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-a' from Ready to Running"))
-			})
-		})
 		Context("when adding a note to tasks", func() {
 			BeforeEach(func() {
 				run(nil, nil, "note", "task-a", "Here is a note")
+				run(nil, nil, "n", "task-a", "Here is another note")
 			})
 			It("records the note in task-a's journal", func() {
 				run(outBuf, errBuf, "journal", "task-a")
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Note added to task 'task-a': Here is another note"))
 				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Note added to task 'task-a': Here is a note"))
 			})
 			It("records the note in the global journal", func() {
 				run(outBuf, errBuf, "journal")
+				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Note added to task 'task-a': Here is another note"))
 				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Note added to task 'task-a': Here is a note"))
 			})
 		})

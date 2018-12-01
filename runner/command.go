@@ -28,7 +28,7 @@ func (u unknownTaskError) Error() string {
 // A Command represents a keyword (see Name field) passed to the anwork executable that incites some
 // behavior to run (via Command.Run).
 type command struct {
-	Name, Description string
+	Name, Alias, Description string
 
 	// This slice holds the name(s) of the argument(s) that is(/are) expected by the Command.
 	Args []string
@@ -62,6 +62,7 @@ var commands = []command{
 	},
 	command{
 		Name:        "create",
+		Alias:       "c",
 		Description: "Create a new task",
 		Args:        []string{"task-name"},
 		Action:      createAction,
@@ -80,12 +81,14 @@ var commands = []command{
 	},
 	command{
 		Name:        "show",
+		Alias:       "s",
 		Description: "Show the current tasks, or the details of a specific task",
 		Args:        []string{"[task-name]"},
 		Action:      showAction,
 	},
 	command{
 		Name:        "note",
+		Alias:       "n",
 		Description: "Add a note to a task",
 		Args:        []string{"task-name", "note"},
 		Action:      noteAction,
@@ -98,30 +101,35 @@ var commands = []command{
 	},
 	command{
 		Name:        "set-running",
+		Alias:       "sr",
 		Description: "Mark a task as running",
 		Args:        []string{"task-name"},
 		Action:      setStateAction,
 	},
 	command{
 		Name:        "set-blocked",
+		Alias:       "sb",
 		Description: "Mark a task as blocked",
 		Args:        []string{"task-name"},
 		Action:      setStateAction,
 	},
 	command{
 		Name:        "set-ready",
+		Alias:       "sy",
 		Description: "Mark a task as ready",
 		Args:        []string{"task-name"},
 		Action:      setStateAction,
 	},
 	command{
 		Name:        "set-finished",
+		Alias:       "sf",
 		Description: "Mark a task as finished",
 		Args:        []string{"task-name"},
 		Action:      setStateAction,
 	},
 	command{
 		Name:        "journal",
+		Alias:       "j",
 		Description: "Show the journal; optionally pass a task name to only show events for that task",
 		Args:        []string{"[task-name]"},
 		Action:      journalAction,
@@ -143,7 +151,7 @@ var commands = []command{
 // Find the command with the provided name.
 func findCommand(name string) *command {
 	for _, c := range commands {
-		if c.Name == name {
+		if c.Name == name || c.Alias == name {
 			return &c
 		}
 	}
@@ -360,13 +368,13 @@ func setStateAction(cmd *command, args []string, o io.Writer, m task.Manager, bu
 
 	var state task.State
 	switch command := strings.TrimPrefix(args[0], "set-"); command {
-	case "running":
+	case "running", "sr":
 		state = task.StateRunning
-	case "blocked":
+	case "blocked", "sb":
 		state = task.StateBlocked
-	case "ready":
+	case "ready", "sy":
 		state = task.StateReady
-	case "finished":
+	case "finished", "sf":
 		state = task.StateFinished
 	default:
 		panic("Unknown state: " + command)

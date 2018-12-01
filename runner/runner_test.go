@@ -123,14 +123,43 @@ var _ = Describe("AnworkRunner", func() {
 		})
 	})
 
+	Context("when shortcut commands are passed", func() {
+		Context("when the shortcut command is invalid", func() {
+			It("fails with an unknown command error", func() {
+				err := r.Run([]string{"sq"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Unknown command: 'sq'"))
+			})
+		})
+		Context("when the shortcut command is valid", func() {
+			It("runs the commands as expected", func() {
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "some-task"})
+				err := r.Run([]string{"sr", "some-task"})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			Context("when the shortcut command has an argument passed to it", func() {
+				It("returns a helpful error with the actual command name", func() {
+					err := r.Run([]string{"sr"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Invalid argument passed to command 'set-running'"))
+				})
+			})
+		})
+	})
+
 	Describe("Usage", func() {
 		It("prints the usage information for every command in a command line format", func() {
 			buffer := gbytes.NewBuffer()
 			runner.Usage(buffer)
 			Expect(buffer).To(gbytes.Say("  create task-name"))
-			Expect(buffer).To(gbytes.Say("   Create a new task"))
+			Expect(buffer).To(gbytes.Say("   Create a new task \\(alias: c\\)"))
 			Expect(buffer).To(gbytes.Say("  show \\[task-name\\]"))
-			Expect(buffer).To(gbytes.Say("   Show the current tasks, or the details of a specific task"))
+			Expect(buffer).To(gbytes.Say("   Show the current tasks, or the details of a specific task \\(alias: s\\)"))
+			Expect(buffer).To(gbytes.Say("  set-running task-name"))
+			Expect(buffer).To(gbytes.Say("   Mark a task as running \\(alias: sr\\)"))
+			Expect(buffer).To(gbytes.Say("  set-ready task-name"))
+			Expect(buffer).To(gbytes.Say("   Mark a task as ready \\(alias: sy\\)"))
 		})
 	})
 
@@ -139,9 +168,17 @@ var _ = Describe("AnworkRunner", func() {
 			buffer := gbytes.NewBuffer()
 			runner.MarkdownUsage(buffer)
 			Expect(buffer).To(gbytes.Say("### `anwork create task-name`"))
-			Expect(buffer).To(gbytes.Say("\\* Create a new task"))
+			Expect(buffer).To(gbytes.Say("\\* Create a new task\n"))
+			Expect(buffer).To(gbytes.Say("\\* Alias: `c`"))
 			Expect(buffer).To(gbytes.Say("### `anwork show \\[task-name\\]`"))
-			Expect(buffer).To(gbytes.Say("\\* Show the current tasks, or the details of a specific task"))
+			Expect(buffer).To(gbytes.Say("\\* Show the current tasks, or the details of a specific task\n"))
+			Expect(buffer).To(gbytes.Say("\\* Alias: `s`"))
+			Expect(buffer).To(gbytes.Say("### `anwork set-running task-name`"))
+			Expect(buffer).To(gbytes.Say("\\* Mark a task as running\n"))
+			Expect(buffer).To(gbytes.Say("\\* Alias: `sr`"))
+			Expect(buffer).To(gbytes.Say("### `anwork set-ready task-name`"))
+			Expect(buffer).To(gbytes.Say("\\* Mark a task as ready\n"))
+			Expect(buffer).To(gbytes.Say("\\* Alias: `sy`"))
 		})
 	})
 })

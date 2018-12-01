@@ -14,7 +14,11 @@ import (
 func Usage(output io.Writer) {
 	for _, c := range commands {
 		fmt.Fprintf(output, "  %s %s\n", c.Name, strings.Join(c.Args, " "))
-		fmt.Fprintf(output, "        %s\n", c.Description)
+		fmt.Fprintf(output, "        %s", c.Description)
+		if c.Alias != "" {
+			fmt.Fprintf(output, " (alias: %s)", c.Alias)
+		}
+		fmt.Fprintln(output)
 	}
 }
 
@@ -28,8 +32,11 @@ func MarkdownUsage(output io.Writer) {
 		}
 		fmt.Fprintln(output, "`")
 
-		fmt.Fprintf(output, "* %s", c.Description)
-		fmt.Fprintln(output)
+		fmt.Fprintf(output, "* %s\n", c.Description)
+
+		if c.Alias != "" {
+			fmt.Fprintf(output, "* Alias: `%s`\n", c.Alias)
+		}
 	}
 }
 
@@ -69,7 +76,7 @@ func (a *Runner) Run(args []string) error {
 
 	if !validateArgs(cmd, args) {
 		return fmt.Errorf("Invalid argument passed to command '%s':\n\tGot: %s\n\tExpected: %s",
-			args[0], args[1:], cmd.Args)
+			cmd.Name, args[1:], cmd.Args)
 	}
 
 	manager, err := a.factory.Create()
