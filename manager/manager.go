@@ -1,6 +1,8 @@
 package manager
 
 import (
+	"fmt"
+
 	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/task2"
 )
@@ -73,7 +75,19 @@ func (m *manager) Create(name string) error {
 	return m.repo.CreateTask(&task)
 }
 
-func (m *manager) Delete(name string) error                      { return nil }
+func (m *manager) Delete(name string) error {
+	task, err := m.repo.FindTaskByName(name)
+	if err != nil {
+		return err
+	}
+
+	if task == nil {
+		return fmt.Errorf("unknown task with name '%s'", name)
+	}
+
+	return m.repo.DeleteTask(task)
+}
+
 func (m *manager) FindByID(id int) (*task2.Task, error)          { return nil, nil }
 func (m *manager) FindByName(name string) (*task2.Task, error)   { return nil, nil }
 func (m *manager) Tasks() ([]*task2.Task, error)                 { return nil, nil }
