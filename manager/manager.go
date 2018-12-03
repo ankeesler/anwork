@@ -73,7 +73,16 @@ func (m *manager) Create(name string) error {
 		Priority:  defaultPriority,
 		State:     defaultState,
 	}
-	return m.repo.CreateTask(&task)
+	if err := m.repo.CreateTask(&task); err != nil {
+		return err
+	}
+
+	return m.repo.CreateEvent(&task2.Event{
+		Title:  fmt.Sprintf("Created task '%s'", name),
+		Date:   m.clock.Now().Unix(),
+		Type:   task2.EventTypeCreate,
+		TaskID: task.ID,
+	})
 }
 
 func (m *manager) Delete(name string) error {
@@ -86,12 +95,30 @@ func (m *manager) Delete(name string) error {
 		return fmt.Errorf("unknown task with name '%s'", name)
 	}
 
-	return m.repo.DeleteTask(task)
+	if err := m.repo.DeleteTask(task); err != nil {
+		return err
+	}
+
+	return m.repo.CreateEvent(&task2.Event{
+		Title:  fmt.Sprintf("Deleted task '%s'", name),
+		Date:   m.clock.Now().Unix(),
+		Type:   task2.EventTypeDelete,
+		TaskID: task.ID,
+	})
 }
 
-func (m *manager) FindByID(id int) (*task2.Task, error)          { return nil, nil }
-func (m *manager) FindByName(name string) (*task2.Task, error)   { return nil, nil }
-func (m *manager) Tasks() ([]*task2.Task, error)                 { return nil, nil }
+func (m *manager) FindByID(id int) (*task2.Task, error) {
+	return m.repo.FindTaskByID(id)
+}
+
+func (m *manager) FindByName(name string) (*task2.Task, error) {
+	return m.repo.FindTaskByName(name)
+}
+
+func (m *manager) Tasks() ([]*task2.Task, error) {
+	return m.repo.Tasks()
+}
+
 func (m *manager) Note(name, note string) error                  { return nil }
 func (m *manager) SetPriority(name string, priority int) error   { return nil }
 func (m *manager) SetState(name string, state task2.State) error { return nil }
