@@ -1,3 +1,5 @@
+// Package fs contains a task.Repo implementation which uses the filesystem to store
+// task.Task's.
 package fs
 
 import (

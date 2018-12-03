@@ -1,3 +1,4 @@
+// Package manager contains an interface through which task.Task'fs can be created, read, updated, and deleted.
 package manager
 
 import (
