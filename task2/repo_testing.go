@@ -16,9 +16,9 @@ func RunRepoTests(createRepoFunc func() Repo) {
 	BeforeEach(func() {
 		repo = createRepoFunc()
 
-		taskA = &Task{Name: "task-a", ID: 1}
-		taskB = &Task{Name: "task-b", ID: 2}
-		taskC = &Task{Name: "task-c", ID: 3}
+		taskA = &Task{Name: "task-a"}
+		taskB = &Task{Name: "task-b"}
+		taskC = &Task{Name: "task-c"}
 
 		eventA = &Event{Title: "event-a", Date: 1}
 		eventB = &Event{Title: "event-b", Date: 2}
@@ -39,6 +39,13 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(*tasks[1]).To(Equal(*taskB))
 				Expect(*tasks[2]).To(Equal(*taskC))
 			})
+			It("gives each a unique ID", func() {
+				tasks, err := repo.Tasks()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(tasks[0].ID).NotTo(Equal(tasks[1].ID))
+				Expect(tasks[1].ID).NotTo(Equal(tasks[2].ID))
+				Expect(tasks[2].ID).NotTo(Equal(tasks[0].ID))
+			})
 		})
 		Context("when a task with that ID already exists", func() {
 			BeforeEach(func() {
@@ -46,10 +53,23 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateTask(taskB)).To(Succeed())
 				Expect(repo.CreateTask(taskC)).To(Succeed())
 			})
-			It("returns an error", func() {
+			It("ignores it and gives the task a new unused ID", func() {
+				tasks, err := repo.Tasks()
+				Expect(err).NotTo(HaveOccurred())
+
 				dupTaskA := *taskA
 				dupTaskA.Name = "dup-task-a"
-				Expect(repo.CreateTask(&dupTaskA)).NotTo(Succeed())
+				dupTaskA.ID = tasks[0].ID
+				Expect(repo.CreateTask(&dupTaskA)).To(Succeed())
+
+				tasks, err = repo.Tasks()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(tasks).To(HaveLen(4))
+
+				Expect(*tasks[0]).To(Equal(*taskA))
+				Expect(*tasks[1]).To(Equal(*taskB))
+				Expect(*tasks[2]).To(Equal(*taskC))
+				Expect(*tasks[3]).To(Equal(dupTaskA))
 			})
 		})
 	})
@@ -97,8 +117,9 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateTask(taskB)).To(Succeed())
 			})
 			It("returns the task", func() {
-				task, err := repo.FindTaskByID(2)
+				task, err := repo.FindTaskByID(taskB.ID)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(task).ToNot(BeNil())
 				Expect(*task).To(Equal(*taskB))
 			})
 		})
@@ -137,6 +158,7 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateTask(taskC)).To(Succeed())
 			})
 			It("returns an error", func() {
+				taskB.ID = 999
 				Expect(repo.UpdateTask(taskB)).NotTo(Succeed())
 			})
 		})
@@ -180,6 +202,7 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateTask(taskC)).To(Succeed())
 			})
 			It("returns an error", func() {
+				taskB.ID = 999
 				Expect(repo.DeleteTask(taskB)).NotTo(Succeed())
 			})
 		})
@@ -300,42 +323,48 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(*tasks[1]).To(Equal(*taskB))
 				Expect(*tasks[2]).To(Equal(*taskC))
 			})
-		})
-		Context("when tasks are updated with one repo", func() {
-			var newTaskB Task
-			BeforeEach(func() {
-				Expect(repo.CreateTask(taskA)).To(Succeed())
-				Expect(repo.CreateTask(taskB)).To(Succeed())
-				Expect(repo.CreateTask(taskC)).To(Succeed())
-
-				newTaskB = *taskB
-				newTaskB.Name = "new-task-b"
-				Expect(repo.UpdateTask(&newTaskB)).To(Succeed())
-			})
-			It("returns then from another repo with Tasks()", func() {
+			It("another repo makes new tasks with new IDs", func() {
 				repo2 := createRepoFunc()
+				anotherTaskA := *taskA
+				anotherTaskA.Name = "another-task-a"
+				Expect(repo2.CreateTask(&anotherTaskA)).To(Succeed())
+
 				tasks, err := repo2.Tasks()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(*tasks[0]).To(Equal(*taskA))
-				Expect(*tasks[1]).To(Equal(newTaskB))
-				Expect(*tasks[2]).To(Equal(*taskC))
+				Expect(tasks[0].ID).NotTo(Equal(tasks[1].ID))
+				Expect(tasks[1].ID).NotTo(Equal(tasks[2].ID))
+				Expect(tasks[2].ID).NotTo(Equal(tasks[3].ID))
+				Expect(tasks[3].ID).NotTo(Equal(tasks[0].ID))
 			})
-		})
-		Context("when tasks are deleted with one repo", func() {
-			BeforeEach(func() {
-				Expect(repo.CreateTask(taskA)).To(Succeed())
-				Expect(repo.CreateTask(taskB)).To(Succeed())
-				Expect(repo.CreateTask(taskC)).To(Succeed())
 
-				Expect(repo.DeleteTask(taskC)).To(Succeed())
+			Context("when a task is updated with one repo", func() {
+				var newTaskB Task
+				BeforeEach(func() {
+					newTaskB = *taskB
+					newTaskB.Name = "new-task-b"
+					Expect(repo.UpdateTask(&newTaskB)).To(Succeed())
+				})
+				It("returns them from another repo with Tasks()", func() {
+					repo2 := createRepoFunc()
+					tasks, err := repo2.Tasks()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(*tasks[0]).To(Equal(*taskA))
+					Expect(*tasks[1]).To(Equal(newTaskB))
+					Expect(*tasks[2]).To(Equal(*taskC))
+				})
 			})
-			It("returns then from another repo with Tasks()", func() {
-				repo2 := createRepoFunc()
-				tasks, err := repo2.Tasks()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(tasks).To(HaveLen(2))
-				Expect(*tasks[0]).To(Equal(*taskA))
-				Expect(*tasks[1]).To(Equal(*taskB))
+			Context("when a task is deleted with one repo", func() {
+				BeforeEach(func() {
+					Expect(repo.DeleteTask(taskC)).To(Succeed())
+				})
+				It("returns the updated task list from another repo with Tasks()", func() {
+					repo2 := createRepoFunc()
+					tasks, err := repo2.Tasks()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(tasks).To(HaveLen(2))
+					Expect(*tasks[0]).To(Equal(*taskA))
+					Expect(*tasks[1]).To(Equal(*taskB))
+				})
 			})
 		})
 		Context("when events are created with one repo", func() {
@@ -344,7 +373,7 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
 			})
-			It("returns then from another repo with Events()", func() {
+			It("returns them from another repo with Events()", func() {
 				repo2 := createRepoFunc()
 				events, err := repo2.Events()
 				Expect(err).NotTo(HaveOccurred())
@@ -352,22 +381,18 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(*events[1]).To(Equal(*eventB))
 				Expect(*events[2]).To(Equal(*eventC))
 			})
-		})
-		Context("when events are deleted with one repo", func() {
-			BeforeEach(func() {
-				Expect(repo.CreateEvent(eventA)).To(Succeed())
-				Expect(repo.CreateEvent(eventB)).To(Succeed())
-				Expect(repo.CreateEvent(eventC)).To(Succeed())
-
-				Expect(repo.DeleteEvent(eventC)).To(Succeed())
-			})
-			It("returns then from another repo with Events()", func() {
-				repo2 := createRepoFunc()
-				events, err := repo2.Events()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(events).To(HaveLen(2))
-				Expect(*events[0]).To(Equal(*eventA))
-				Expect(*events[1]).To(Equal(*eventB))
+			Context("when events are deleted with one repo", func() {
+				BeforeEach(func() {
+					Expect(repo.DeleteEvent(eventC)).To(Succeed())
+				})
+				It("returns the updated event list from another repo with Events()", func() {
+					repo2 := createRepoFunc()
+					events, err := repo2.Events()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(events).To(HaveLen(2))
+					Expect(*events[0]).To(Equal(*eventA))
+					Expect(*events[1]).To(Equal(*eventB))
+				})
 			})
 		})
 	})

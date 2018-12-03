@@ -9,8 +9,9 @@ import (
 )
 
 type repo struct {
-	MyTasks  []*task2.Task  `json:"tasks"`
-	MyEvents []*task2.Event `json:"events"`
+	MyTasks    []*task2.Task  `json:"tasks"`
+	MyEvents   []*task2.Event `json:"events"`
+	NextTaskID int
 
 	file   string
 	loaded bool
@@ -28,11 +29,8 @@ func (r *repo) CreateTask(task *task2.Task) error {
 		return err
 	}
 
-	if t, err := r.FindTaskByID(task.ID); err != nil {
-		return err
-	} else if t != nil {
-		return &duplicateTaskError{name: task.Name, id: task.ID}
-	}
+	task.ID = r.NextTaskID
+	r.NextTaskID++
 
 	r.MyTasks = append(r.MyTasks, task)
 

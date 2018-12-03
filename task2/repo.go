@@ -19,9 +19,6 @@ var StateNames = [...]string{
 	"Finished",
 }
 
-// This is the default priority that a Task gets when created.
-const DefaultPriority = 10
-
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present." A Task also has a priority which describes its relative importance to
 // all other Task's.
@@ -31,9 +28,6 @@ type Task struct {
 
 	// This is a unique ID. Every Task has a different ID.
 	ID int `json:"id"`
-
-	// This is a description of the Task.
-	Description string `json:"description"`
 
 	// This is when the Task was created, represented by the number of seconds since January 1, 1970.
 	StartDate int64 `json:"startDate"`
@@ -71,16 +65,31 @@ type Event struct {
 	TaskID int `json:"taskid"`
 }
 
+//go:generate counterfeiter . Repo
+
 // Repo is an object that allows CRUD operations on Task's and Event's.
 type Repo interface {
+	// CreateTask creates a Task. The Task.ID field is set by the Repo.
 	CreateTask(*Task) error
+	// Tasks returns all of the Task's in this Repo.
 	Tasks() ([]*Task, error)
+	// FindTaskByID tries to find a Task with the provided ID. If the Task does not
+	// exist, it will return nil, nil.
 	FindTaskByID(int) (*Task, error)
+	// FindTaskByName tries to find a Task with the provided name. If the Task does not
+	// exist, it will return nil, nil.
 	FindTaskByName(string) (*Task, error)
+	// UpdateTask finds the Task in the Repo with the provided ID and updates its
+	// values to those provided.
 	UpdateTask(*Task) error
+	// DeleteTask deletes a Task with the provided ID.
 	DeleteTask(*Task) error
 
+	// CreateEvent creates a Event. If an Event with the provided Date already exists,
+	// the Repo will return an error.
 	CreateEvent(*Event) error
+	// Events returns all of the Event's in this Repo.
 	Events() ([]*Event, error)
+	// DeleteEvent deletes an Event with the provided Date.
 	DeleteEvent(*Event) error
 }
