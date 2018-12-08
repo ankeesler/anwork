@@ -252,4 +252,441 @@ var _ = Describe("Manager", func() {
 			})
 		})
 	})
+
+	Describe("Note", func() {
+		BeforeEach(func() {
+			repo.FindTaskByNameReturnsOnCall(0, &task2.Task{Name: "task-a", ID: 10}, nil)
+		})
+
+		It("creates an event with type note", func() {
+			Expect(manager.Note("task-a", "here is a note")).To(Succeed())
+
+			Expect(repo.FindTaskByNameCallCount()).To(Equal(1))
+			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
+
+			Expect(repo.CreateEventCallCount()).To(Equal(1))
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+				Title:  "Note: here is a note",
+				Date:   clock.Now().Unix(),
+				Type:   task2.EventTypeNote,
+				TaskID: 10,
+			}))
+		})
+
+		Context("the find by name call fails", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, errors.New("some find by name error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.Note("task-a", "here is a note")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some find by name error"))
+			})
+		})
+
+		Context("the task does not exist", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, nil)
+			})
+
+			It("returns the error", func() {
+				err := manager.Note("task-a", "here is a note")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("unknown task with name 'task-a'"))
+			})
+		})
+
+		Context("the event cannot be created", func() {
+			BeforeEach(func() {
+				repo.CreateEventReturnsOnCall(0, errors.New("some create event error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.Note("task-a", "here is a note")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some create event error"))
+			})
+		})
+	})
+
+	Describe("SetPriority", func() {
+		BeforeEach(func() {
+			repo.FindTaskByNameReturnsOnCall(0,
+				&task2.Task{
+					Name:      "task-a",
+					ID:        10,
+					Priority:  20,
+					State:     task2.StateRunning,
+					StartDate: 123,
+				},
+				nil)
+		})
+
+		It("updates the task and adds an event saying the priority was updated", func() {
+			Expect(manager.SetPriority("task-a", 30)).To(Succeed())
+
+			Expect(repo.FindTaskByNameCallCount()).To(Equal(1))
+			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
+
+			Expect(repo.CreateEventCallCount()).To(Equal(1))
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+				Title:  "Set priority on task 'task-a' from 20 to 30",
+				Date:   clock.Now().Unix(),
+				Type:   task2.EventTypeNote,
+				TaskID: 10,
+			}))
+
+			Expect(repo.UpdateTaskCallCount()).To(Equal(1))
+			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&task2.Task{
+				Name:      "task-a",
+				ID:        10,
+				Priority:  30,
+				State:     task2.StateRunning,
+				StartDate: 123,
+			}))
+		})
+
+		Context("the find by name call fails", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, errors.New("some find by name error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.SetPriority("task-a", 30)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some find by name error"))
+			})
+		})
+
+		Context("the task does not exist", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, nil)
+			})
+
+			It("returns the error", func() {
+				err := manager.SetPriority("task-a", 30)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("unknown task with name 'task-a'"))
+			})
+		})
+
+		Context("the task cannot be updated", func() {
+			BeforeEach(func() {
+				repo.UpdateTaskReturnsOnCall(0, errors.New("some update task error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.SetPriority("task-a", 30)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some update task error"))
+			})
+		})
+
+		Context("the event cannot be added", func() {
+			BeforeEach(func() {
+				repo.CreateEventReturnsOnCall(0, errors.New("some create event error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.SetPriority("task-a", 30)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some create event error"))
+			})
+		})
+	})
+
+	Describe("SetState", func() {
+		BeforeEach(func() {
+			repo.FindTaskByNameReturnsOnCall(0,
+				&task2.Task{
+					Name:      "task-a",
+					ID:        10,
+					Priority:  20,
+					State:     task2.StateRunning,
+					StartDate: 123,
+				},
+				nil)
+		})
+
+		It("updates the task and adds an event saying the state was updated", func() {
+			Expect(manager.SetState("task-a", task2.StateBlocked)).To(Succeed())
+
+			Expect(repo.FindTaskByNameCallCount()).To(Equal(1))
+			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
+
+			Expect(repo.CreateEventCallCount()).To(Equal(1))
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+				Title:  "Set state on task 'task-a' from Running to Blocked",
+				Date:   clock.Now().Unix(),
+				Type:   task2.EventTypeNote,
+				TaskID: 10,
+			}))
+
+			Expect(repo.UpdateTaskCallCount()).To(Equal(1))
+			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&task2.Task{
+				Name:      "task-a",
+				ID:        10,
+				Priority:  20,
+				State:     task2.StateBlocked,
+				StartDate: 123,
+			}))
+		})
+
+		Context("the find by name call fails", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, errors.New("some find by name error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.SetState("task-a", task2.StateBlocked)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some find by name error"))
+			})
+		})
+
+		Context("the task does not exist", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, nil)
+			})
+
+			It("returns the error", func() {
+				err := manager.SetState("task-a", task2.StateBlocked)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("unknown task with name 'task-a'"))
+			})
+		})
+
+		Context("the task cannot be updated", func() {
+			BeforeEach(func() {
+				repo.UpdateTaskReturnsOnCall(0, errors.New("some update task error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.SetState("task-a", task2.StateBlocked)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some update task error"))
+			})
+		})
+
+		Context("the event cannot be added", func() {
+			BeforeEach(func() {
+				repo.CreateEventReturnsOnCall(0, errors.New("some create event error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.SetState("task-a", task2.StateBlocked)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some create event error"))
+			})
+		})
+	})
+
+	Describe("Events", func() {
+		var events []*task2.Event
+		BeforeEach(func() {
+			events = []*task2.Event{
+				&task2.Event{Title: "event-a"},
+				&task2.Event{Title: "event-b"},
+				&task2.Event{Title: "event-c"},
+			}
+			repo.EventsReturnsOnCall(0, events, nil)
+		})
+
+		It("calls the repo to get the events", func() {
+			t, err := manager.Events()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(t).To(Equal(events))
+
+			Expect(repo.EventsCallCount()).To(Equal(1))
+		})
+
+		Context("when the repo fails to get the events", func() {
+			BeforeEach(func() {
+				repo.EventsReturnsOnCall(0, nil, errors.New("some events error"))
+			})
+
+			It("returns the error", func() {
+				_, err := manager.Events()
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some events error"))
+			})
+		})
+	})
+
+	Describe("DeleteEvent", func() {
+		It("calls out to the repo to delete the event", func() {
+			Expect(manager.DeleteEvent(12345)).To(Succeed())
+
+			Expect(repo.DeleteEventCallCount()).To(Equal(1))
+			Expect(repo.DeleteEventArgsForCall(0)).To(Equal(&task2.Event{Date: 12345}))
+		})
+
+		Context("when we fail to delete an event", func() {
+			BeforeEach(func() {
+				repo.DeleteEventReturnsOnCall(0, errors.New("failed to delete event"))
+			})
+
+			It("returns the error", func() {
+				err := manager.DeleteEvent(12345)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed to delete event"))
+			})
+		})
+	})
+
+	Describe("Reset", func() {
+		var tasks []*task2.Task
+		var events []*task2.Event
+		BeforeEach(func() {
+			tasks = []*task2.Task{
+				&task2.Task{Name: "task-a", ID: 1},
+				&task2.Task{Name: "task-b", ID: 2},
+				&task2.Task{Name: "task-c", ID: 3},
+			}
+			repo.TasksReturnsOnCall(0, tasks, nil)
+			events = []*task2.Event{
+				&task2.Event{Title: "task-a", Date: 1},
+				&task2.Event{Title: "task-b", Date: 2},
+				&task2.Event{Title: "task-c", Date: 3},
+			}
+			repo.EventsReturnsOnCall(0, events, nil)
+		})
+
+		It("deletes all tasks and events", func() {
+			Expect(manager.Reset()).To(Succeed())
+
+			Expect(repo.TasksCallCount()).To(Equal(1))
+			for i, task := range tasks {
+				Expect(repo.DeleteTaskArgsForCall(i)).To(Equal(task))
+			}
+
+			Expect(repo.EventsCallCount()).To(Equal(1))
+			for i, event := range events {
+				Expect(repo.DeleteEventArgsForCall(i)).To(Equal(event))
+			}
+		})
+
+		Context("getting the tasks fails", func() {
+			BeforeEach(func() {
+				repo.TasksReturnsOnCall(0, nil, errors.New("some tasks error"))
+			})
+
+			It("returns an error before doing anything", func() {
+				Expect(manager.Reset()).To(MatchError("some tasks error"))
+
+				Expect(repo.TasksCallCount()).To(Equal(1))
+				Expect(repo.DeleteTaskCallCount()).To(Equal(0))
+
+				Expect(repo.EventsCallCount()).To(Equal(0))
+				Expect(repo.DeleteEventCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("getting the events fails", func() {
+			BeforeEach(func() {
+				repo.EventsReturnsOnCall(0, nil, errors.New("some events error"))
+			})
+
+			It("returns an error before doing anything", func() {
+				Expect(manager.Reset()).To(MatchError("some events error"))
+
+				Expect(repo.TasksCallCount()).To(Equal(1))
+				Expect(repo.DeleteTaskCallCount()).To(Equal(0))
+
+				Expect(repo.EventsCallCount()).To(Equal(1))
+				Expect(repo.DeleteEventCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("at least one of the deletes fails", func() {
+			BeforeEach(func() {
+				repo.DeleteTaskReturnsOnCall(2, errors.New("some delete task error"))
+				repo.DeleteEventReturnsOnCall(1, errors.New("some delete event error"))
+			})
+
+			It("does its best to delete the stuff it can and returns an error", func() {
+				err := manager.Reset()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some delete task error"))
+				Expect(err.Error()).To(ContainSubstring("some delete event error"))
+
+				Expect(repo.TasksCallCount()).To(Equal(1))
+				for i, task := range tasks {
+					Expect(repo.DeleteTaskArgsForCall(i)).To(Equal(task))
+				}
+
+				Expect(repo.EventsCallCount()).To(Equal(1))
+				for i, event := range events {
+					Expect(repo.DeleteEventArgsForCall(i)).To(Equal(event))
+				}
+			})
+		})
+	})
+
+	Describe("Rename", func() {
+		BeforeEach(func() {
+			repo.FindTaskByNameReturnsOnCall(0,
+				&task2.Task{
+					Name:      "task-a",
+					ID:        10,
+					Priority:  20,
+					State:     task2.StateRunning,
+					StartDate: 123,
+				},
+				nil)
+		})
+
+		It("updates the task", func() {
+			Expect(manager.Rename("task-a", "new-task-a")).To(Succeed())
+
+			Expect(repo.FindTaskByNameCallCount()).To(Equal(1))
+			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
+
+			Expect(repo.UpdateTaskCallCount()).To(Equal(1))
+			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&task2.Task{
+				Name:      "new-task-a",
+				ID:        10,
+				Priority:  20,
+				State:     task2.StateRunning,
+				StartDate: 123,
+			}))
+		})
+
+		Context("the find by name call fails", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, errors.New("some find by name error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.Rename("task-a", "new-task-a")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some find by name error"))
+			})
+		})
+
+		Context("the task does not exist", func() {
+			BeforeEach(func() {
+				repo.FindTaskByNameReturnsOnCall(0, nil, nil)
+			})
+
+			It("returns the error", func() {
+				err := manager.Rename("task-a", "new-task-a")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("unknown task with name 'task-a'"))
+			})
+		})
+
+		Context("the task cannot be updated", func() {
+			BeforeEach(func() {
+				repo.UpdateTaskReturnsOnCall(0, errors.New("some update task error"))
+			})
+
+			It("returns the error", func() {
+				err := manager.Rename("task-a", "new-task-a")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("some update task error"))
+			})
+		})
+	})
 })
