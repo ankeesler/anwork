@@ -6,6 +6,7 @@ ANWORK is a multitasking management system.
 [![codecov](https://codecov.io/gh/ankeesler/anwork/branch/master/graph/badge.svg)](https://codecov.io/gh/ankeesler/anwork)
 
 Latest release: [v7](https://github.com/ankeesler/anwork/releases/v7)
+Upcoming features/bugs/refactors: [Tracker Project](https://www.pivotaltracker.com/n/projects/2230869)
 
 ## Philosophy
 
@@ -15,37 +16,22 @@ Latest release: [v7](https://github.com/ankeesler/anwork/releases/v7)
 
 ## Running
 
-To get up and running with ANWORK, run the bootstrap script! Note for Linux: the script calls out to `sudo`.
-
-1. Set your GOPATH environmental variable accordingly.
-```
-$ export GOPATH=...
-```
-2. Run the `bootstrap.sh` script in the `ci/` directory of this repo. If you have `curl` installed already, you can do this.
-```
-$ curl https://raw.githubusercontent.com/ankeesler/anwork/master/ci/bootstrap.sh | bash
-```
-3. Run `anwork`.
-```
-$ $GOPATH/bin/anwork
-$ ...
-```
+To get up and running with ANWORK...
+- If you are running on darwin, download the latest binary [here](https://github.com/ankeesler/anwork/releases/latest)
+- If you are running on linux, I am sure you know how to build Go code, so build the `./cmd/anwork` package
+- If you are running on windows, ..., meh
 
 See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
 
 ## Developing
 
-To develop on the anwork project, run the `bootstrap.sh` script as above, and then you should be good to go!
-
-To run all of the tests, try the following (assuming you are in the root of the repo and `ginkgo` is on your `$PATH`).
-```
-$ ginkgo -r .
-```
-
-To run the tests in a particular package, try the following.
-```
-$ ginkgo path/to/package
-```
+To develop on the anwork project...
+- Make sure you have at least go version 1.11 - I recommend using [`brew`](https://brew.sh/) (see command below).
+  - `$ brew install go`
+- To run all the tests...
+  - `$ ./ci/test.sh`
+- To run a single package of tests...
+  - `$ ginkgo ./path/to/package`
 
 ### Style
 
