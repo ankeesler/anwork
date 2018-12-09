@@ -16,7 +16,7 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/manager"
-	"github.com/ankeesler/anwork/runner2"
+	runner "github.com/ankeesler/anwork/runner2"
 	"github.com/ankeesler/anwork/task2"
 	"github.com/ankeesler/anwork/task2/fs"
 )
@@ -82,7 +82,7 @@ func main() {
 		flags.SetOutput(os.Stdout)
 		flags.PrintDefaults()
 		fmt.Println("Commands")
-		runner2.Usage(os.Stdout)
+		runner.Usage(os.Stdout)
 	}
 
 	if err := flags.Parse(os.Args[1:]); err == flag.ErrHelp {
@@ -111,7 +111,7 @@ func main() {
 
 	clock := clock.NewClock()
 
-	r := runner2.New(&runner2.BuildInfo{Hash: buildHash, Date: buildDate},
+	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate},
 		manager.New(repo, clock), os.Stdout, &dw)
 	if err := r.Run(flags.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
