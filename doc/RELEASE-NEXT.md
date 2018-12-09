@@ -11,6 +11,7 @@
 - Show last note in the "show" view.
 - A web view that listens to the JSON data and updates whenever it changes!
 - Scheduling something with a deadline and have it automatically prioritized would be really nice.
+- Instead of '@' for a task ID prefix, use '.'.
 
 ## Changed Functionality
 - You can't set tasks to "Ready" on the API...
