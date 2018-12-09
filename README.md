@@ -6,6 +6,7 @@ ANWORK is a multitasking management system.
 [![codecov](https://codecov.io/gh/ankeesler/anwork/branch/master/graph/badge.svg)](https://codecov.io/gh/ankeesler/anwork)
 
 Latest release: [v7](https://github.com/ankeesler/anwork/releases/v7)
+
 Upcoming features/bugs/refactors: [Tracker Project](https://www.pivotaltracker.com/n/projects/2230869)
 
 ## Philosophy

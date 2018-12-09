@@ -1,7 +1,6 @@
 # ANWORK Version NEXT Release Notes
 
-We are experimenting with using Pivotal Tracker to keep track of work! Check it out here!
-  https://www.pivotaltracker.com/n/projects/2230869
+We are experimenting with using Pivotal Tracker to keep track of work! Check it out [here](https://www.pivotaltracker.com/n/projects/2230869)!
 
 ## New Functionality
 - GA ANWORK service support.
