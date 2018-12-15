@@ -110,9 +110,9 @@ func main() {
 	}
 
 	clock := clock.NewClock()
+	m := manager.New(repo, clock)
 
-	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate},
-		manager.New(repo, clock), os.Stdout, &dw)
+	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate}, m, os.Stdout, &dw)
 	if err := r.Run(flags.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)

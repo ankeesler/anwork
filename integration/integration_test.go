@@ -68,21 +68,12 @@ var _ = Describe("anwork", func() {
 		})
 	})
 
-	Context("when a bad context is passed", func() {
-		It("fails", func() {
-			if runWithApi {
-				Skip("when connecting to API, we ignore the context flag")
-			}
-			runWithStatus(1, outBuf, errBuf, "-c", "/i/really/hope/this/file/doesnt/exist", "show")
-		})
-	})
-
 	Context("when the context is corrupt", func() {
 		It("fails", func() {
 			if runWithApi {
 				Skip("when connecting to API, we ignore the context flag")
 			}
-			runWithStatus(1, outBuf, errBuf, "-c", "data", "-o", "bad-context", "show")
+			runWithStatus(1, outBuf, errBuf, "-c", "bad-context", "-o", "data", "show")
 		})
 	})
 
@@ -433,6 +424,7 @@ FINISHED tasks:`
 				run(nil, nil, "set-finished", "task-b")
 			})
 			It("reports the finished tasks", func() {
+				run(outBuf, errBuf, "journal")
 				run(outBuf, errBuf, "summary", "1")
 				Expect(outBuf).To(gbytes.Say("\\[.*\\]: Set state on task 'task-b' from Ready to Finished"))
 				Expect(outBuf).To(gbytes.Say("  took "))

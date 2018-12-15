@@ -11,9 +11,11 @@ import (
 )
 
 type repo struct {
-	MyTasks    []*task2.Task  `json:"tasks"`
-	MyEvents   []*task2.Event `json:"events"`
+	MyTasks    []*task2.Task `json:"tasks"`
 	NextTaskID int
+
+	MyEvents    []*task2.Event `json:"events"`
+	NextEventID int
 
 	file   string
 	loaded bool
@@ -118,9 +120,8 @@ func (r *repo) CreateEvent(event *task2.Event) error {
 		return err
 	}
 
-	if r.findEvent(event) != -1 {
-		return &duplicateEventError{title: event.Title, date: event.Date}
-	}
+	event.ID = r.NextEventID
+	r.NextEventID++
 
 	r.MyEvents = append(r.MyEvents, event)
 
@@ -135,18 +136,21 @@ func (r *repo) Events() ([]*task2.Event, error) {
 	return r.MyEvents, nil
 }
 
+func (r *repo) FindEventByID(id int) (*task2.Event, error) {
+	index := r.findEvent(id)
+	if index == -1 {
+		return nil, nil
+	} else {
+		return r.MyEvents[index], nil
+	}
+}
+
 func (r *repo) DeleteEvent(event *task2.Event) error {
 	if err := r.ensureLoaded(); err != nil {
 		return err
 	}
 
-	index := r.findEvent(event)
-	for i, e := range r.MyEvents {
-		if e.Date == event.Date {
-			index = i
-			break
-		}
-	}
+	index := r.findEvent(event.ID)
 
 	if index != -1 {
 		r.MyEvents = append(r.MyEvents[:index], r.MyEvents[index+1:]...)
@@ -156,10 +160,10 @@ func (r *repo) DeleteEvent(event *task2.Event) error {
 	}
 }
 
-func (r *repo) findEvent(event *task2.Event) int {
+func (r *repo) findEvent(id int) int {
 	index := -1
 	for i, e := range r.MyEvents {
-		if e.Date == event.Date {
+		if e.ID == id {
 			index = i
 			break
 		}

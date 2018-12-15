@@ -335,7 +335,7 @@ func showAction(cmd *command, args []string, o io.Writer, m manager.Manager, bui
 		}
 
 		printer := func(state task2.State) {
-			fmt.Fprintf(o, "%s tasks:\n", strings.ToUpper(task2.StateNames[state]))
+			fmt.Fprintf(o, "%s tasks:\n", strings.ToUpper(string(state)))
 			for _, task := range tasks {
 				if task.State == state {
 					fmt.Fprintf(o, "  %s (%d)\n", task.Name, task.ID)
@@ -356,7 +356,7 @@ func showAction(cmd *command, args []string, o io.Writer, m manager.Manager, bui
 		fmt.Fprintf(o, "ID: %d\n", t.ID)
 		fmt.Fprintf(o, "Created: %s\n", formatDate(t.StartDate))
 		fmt.Fprintf(o, "Priority: %d\n", t.Priority)
-		fmt.Fprintf(o, "State: %s\n", strings.ToUpper(task2.StateNames[t.State]))
+		fmt.Fprintf(o, "State: %s\n", strings.ToUpper(string(t.State)))
 	}
 	return nil
 }

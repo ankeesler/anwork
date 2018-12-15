@@ -20,11 +20,13 @@ type Repo interface {
 	// DeleteTask deletes a Task with the provided ID.
 	DeleteTask(*Task) error
 
-	// CreateEvent creates a Event. If an Event with the provided Date already exists,
-	// the Repo will return an error.
+	// CreateEvent creates a Event. The Event.ID field is set by the Repo.
 	CreateEvent(*Event) error
+	// FindEventByID will try to find an Event with the provided ID. If the Event does
+	// not exist, it will return nil, nil.
+	FindEventByID(int) (*Event, error)
 	// Events returns all of the Event's in this Repo.
 	Events() ([]*Event, error)
-	// DeleteEvent deletes an Event with the provided Date.
+	// DeleteEvent deletes an Event with the provided ID.
 	DeleteEvent(*Event) error
 }

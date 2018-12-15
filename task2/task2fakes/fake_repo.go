@@ -64,6 +64,19 @@ type FakeRepo struct {
 		result1 []*task2.Event
 		result2 error
 	}
+	FindEventByIDStub        func(int) (*task2.Event, error)
+	findEventByIDMutex       sync.RWMutex
+	findEventByIDArgsForCall []struct {
+		arg1 int
+	}
+	findEventByIDReturns struct {
+		result1 *task2.Event
+		result2 error
+	}
+	findEventByIDReturnsOnCall map[int]struct {
+		result1 *task2.Event
+		result2 error
+	}
 	FindTaskByIDStub        func(int) (*task2.Task, error)
 	findTaskByIDMutex       sync.RWMutex
 	findTaskByIDArgsForCall []struct {
@@ -412,6 +425,69 @@ func (fake *FakeRepo) EventsReturnsOnCall(i int, result1 []*task2.Event, result2
 	}{result1, result2}
 }
 
+func (fake *FakeRepo) FindEventByID(arg1 int) (*task2.Event, error) {
+	fake.findEventByIDMutex.Lock()
+	ret, specificReturn := fake.findEventByIDReturnsOnCall[len(fake.findEventByIDArgsForCall)]
+	fake.findEventByIDArgsForCall = append(fake.findEventByIDArgsForCall, struct {
+		arg1 int
+	}{arg1})
+	fake.recordInvocation("FindEventByID", []interface{}{arg1})
+	fake.findEventByIDMutex.Unlock()
+	if fake.FindEventByIDStub != nil {
+		return fake.FindEventByIDStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.findEventByIDReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRepo) FindEventByIDCallCount() int {
+	fake.findEventByIDMutex.RLock()
+	defer fake.findEventByIDMutex.RUnlock()
+	return len(fake.findEventByIDArgsForCall)
+}
+
+func (fake *FakeRepo) FindEventByIDCalls(stub func(int) (*task2.Event, error)) {
+	fake.findEventByIDMutex.Lock()
+	defer fake.findEventByIDMutex.Unlock()
+	fake.FindEventByIDStub = stub
+}
+
+func (fake *FakeRepo) FindEventByIDArgsForCall(i int) int {
+	fake.findEventByIDMutex.RLock()
+	defer fake.findEventByIDMutex.RUnlock()
+	argsForCall := fake.findEventByIDArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRepo) FindEventByIDReturns(result1 *task2.Event, result2 error) {
+	fake.findEventByIDMutex.Lock()
+	defer fake.findEventByIDMutex.Unlock()
+	fake.FindEventByIDStub = nil
+	fake.findEventByIDReturns = struct {
+		result1 *task2.Event
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRepo) FindEventByIDReturnsOnCall(i int, result1 *task2.Event, result2 error) {
+	fake.findEventByIDMutex.Lock()
+	defer fake.findEventByIDMutex.Unlock()
+	fake.FindEventByIDStub = nil
+	if fake.findEventByIDReturnsOnCall == nil {
+		fake.findEventByIDReturnsOnCall = make(map[int]struct {
+			result1 *task2.Event
+			result2 error
+		})
+	}
+	fake.findEventByIDReturnsOnCall[i] = struct {
+		result1 *task2.Event
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeRepo) FindTaskByID(arg1 int) (*task2.Task, error) {
 	fake.findTaskByIDMutex.Lock()
 	ret, specificReturn := fake.findTaskByIDReturnsOnCall[len(fake.findTaskByIDArgsForCall)]
@@ -666,6 +742,8 @@ func (fake *FakeRepo) Invocations() map[string][][]interface{} {
 	defer fake.deleteTaskMutex.RUnlock()
 	fake.eventsMutex.RLock()
 	defer fake.eventsMutex.RUnlock()
+	fake.findEventByIDMutex.RLock()
+	defer fake.findEventByIDMutex.RUnlock()
 	fake.findTaskByIDMutex.RLock()
 	defer fake.findTaskByIDMutex.RUnlock()
 	fake.findTaskByNameMutex.RLock()

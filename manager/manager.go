@@ -1,8 +1,10 @@
-// Package manager contains an interface through which task.Task'fs can be created, read, updated, and deleted.
+// Package manager contains an interface through which task.Task's can be created,
+// read, updated, and deleted.
 package manager
 
 import (
 	"fmt"
+	"sort"
 
 	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/task2"
@@ -13,7 +15,8 @@ import (
 
 // A Manager is an interface through which Task's can be created, read, updated, and deleted.
 type Manager interface {
-	// Create a task with a name. Return an error if the task name is not unique.
+	// Create a task with a name. Returns an error if the task name is not unique.
+	// All Tasks start out in the task.StateReady task.State.
 	Create(name string) error
 
 	// Delete a task with a name. Returns an error if the task was not able to be deleted.
@@ -30,8 +33,6 @@ type Manager interface {
 	// When multiple tasks have the same priority, the Task's will be ordered by their (unique) ID in
 	// ascending order. This means that the older Task's will come first. This is a conscious decision.
 	// The Task's that have been around the longest are assumed to need to be completed first.
-	//
-	// This function will never return nil!
 	Tasks() ([]*task2.Task, error)
 
 	// Add a note for a task.
@@ -43,8 +44,6 @@ type Manager interface {
 
 	// Get the events associated with this manager.
 	Events() ([]*task2.Event, error)
-	// Delete an event, identified by its start time.
-	DeleteEvent(startTime int64) error
 
 	// Perform a factory reset, e.g., make this manager new again.
 	Reset() error
@@ -110,13 +109,26 @@ func (m *manager) FindByName(name string) (*task2.Task, error) {
 }
 
 func (m *manager) Tasks() ([]*task2.Task, error) {
-	return m.repo.Tasks()
+	tasks, err := m.repo.Tasks()
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(tasks, func(i, j int) bool {
+		if tasks[i].Priority == tasks[j].Priority {
+			return tasks[i].ID < tasks[j].ID
+		} else {
+			return tasks[i].Priority < tasks[j].Priority
+		}
+	})
+
+	return tasks, nil
 }
 
 func (m *manager) Note(name, note string) error {
 	return m.doWithTask(name, func(task *task2.Task) error {
 		return m.repo.CreateEvent(&task2.Event{
-			Title:  fmt.Sprintf("Note: %s", note),
+			Title:  fmt.Sprintf("Note added to task '%s': %s", name, note),
 			Date:   m.clock.Now().Unix(),
 			Type:   task2.EventTypeNote,
 			TaskID: task.ID,
@@ -136,7 +148,7 @@ func (m *manager) SetPriority(name string, priority int) error {
 			Title: fmt.Sprintf("Set priority on task '%s' from %d to %d",
 				name, oldPriority, priority),
 			Date:   m.clock.Now().Unix(),
-			Type:   task2.EventTypeNote,
+			Type:   task2.EventTypeSetPriority,
 			TaskID: task.ID,
 		})
 	})
@@ -151,10 +163,9 @@ func (m *manager) SetState(name string, state task2.State) error {
 		}
 
 		return m.repo.CreateEvent(&task2.Event{
-			Title: fmt.Sprintf("Set state on task '%s' from %s to %s",
-				name, task2.StateNames[oldState], task2.StateNames[state]),
+			Title:  fmt.Sprintf("Set state on task '%s' from %s to %s", name, oldState, state),
 			Date:   m.clock.Now().Unix(),
-			Type:   task2.EventTypeNote,
+			Type:   task2.EventTypeSetState,
 			TaskID: task.ID,
 		})
 	})
@@ -164,29 +175,26 @@ func (m *manager) Events() ([]*task2.Event, error) {
 	return m.repo.Events()
 }
 
-func (m *manager) DeleteEvent(startTime int64) error {
-	event := task2.Event{Date: startTime}
-	return m.repo.DeleteEvent(&event)
-}
-
 func (m *manager) Reset() error {
 	tasks, err := m.repo.Tasks()
 	if err != nil {
 		return err
 	}
+	tasksSize := len(tasks)
 
 	events, err := m.repo.Events()
 	if err != nil {
 		return err
 	}
+	eventsSize := len(events)
 
 	var result *multierror.Error
-	for _, task := range tasks {
-		result = multierror.Append(result, m.repo.DeleteTask(task))
+	for i := tasksSize - 1; i >= 0; i-- {
+		result = multierror.Append(result, m.repo.DeleteTask(tasks[i]))
 	}
 
-	for _, event := range events {
-		result = multierror.Append(result, m.repo.DeleteEvent(event))
+	for i := eventsSize - 1; i >= 0; i-- {
+		result = multierror.Append(result, m.repo.DeleteEvent(events[i]))
 	}
 
 	return result.ErrorOrNil()

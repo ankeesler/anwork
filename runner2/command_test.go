@@ -719,7 +719,7 @@ State: READY`
 
 				name, state := manager.SetStateArgsForCall(0)
 				Expect(name).To(Equal("task-a"))
-				Expect(state).To(Equal(task2.StateRunning))
+				Expect(state).To(Equal(task2.State(task2.StateRunning)))
 			})
 
 			Context("when the task spec is totally bogus", func() {

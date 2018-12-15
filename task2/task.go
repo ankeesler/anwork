@@ -10,23 +10,15 @@
 package task2
 
 // A State describes the status of some Task.
-type State int
+type State string
 
 // These are the states that a Task could be in.
 const (
-	StateReady    State = 0
-	StateBlocked  State = 1
-	StateRunning  State = 2
-	StateFinished State = 3
+	StateReady    State = "Ready"
+	StateBlocked        = "Blocked"
+	StateRunning        = "Running"
+	StateFinished       = "Finished"
 )
-
-// These are the names of the State's that a Task can occupy, indexed by the State integer value.
-var StateNames = [...]string{
-	"Ready",
-	"Blocked",
-	"Running",
-	"Finished",
-}
 
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present." A Task also has a priority which describes its relative importance to
@@ -45,8 +37,7 @@ type Task struct {
 	Priority int `json:"priority"`
 
 	// This is the State of the Task. See State* for possible values. A Task can go through any
-	// number of State changes over the course of its life. All Tasks start out in the StateReady
-	// State.
+	// number of State changes over the course of its life.
 	State State `json:"state"`
 }
 
@@ -55,18 +46,20 @@ type EventType int
 
 // These are the types of Event's that can occur.
 const (
-	EventTypeCreate      EventType = 0
-	EventTypeDelete      EventType = 1
-	EventTypeSetState    EventType = 2
-	EventTypeNote        EventType = 3
-	EventTypeSetPriority EventType = 4
+	EventTypeCreate = iota
+	EventTypeDelete
+	EventTypeSetState
+	EventTypeNote
+	EventTypeSetPriority
 )
 
 // An Event is something that took place. Each Event is associated with only one Task.
 type Event struct {
+	// Unique identifier for the Event.
+	ID int
 	// A string description of the Event.
 	Title string `json:"title"`
-	// The time that the Event took place, represented by the number of seconds since January 1, 1970. This is unique for each Event.
+	// The time that the Event took place, represented by the number of seconds since January 1, 1970.
 	Date int64 `json:"date"`
 	// The type of Event.
 	Type EventType `json:"type"`

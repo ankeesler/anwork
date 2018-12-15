@@ -20,9 +20,9 @@ func RunRepoTests(createRepoFunc func() Repo) {
 		taskB = &Task{Name: "task-b"}
 		taskC = &Task{Name: "task-c"}
 
-		eventA = &Event{Title: "event-a", Date: 1}
-		eventB = &Event{Title: "event-b", Date: 2}
-		eventC = &Event{Title: "event-c", Date: 3}
+		eventA = &Event{Title: "event-a"}
+		eventB = &Event{Title: "event-b"}
+		eventC = &Event{Title: "event-c"}
 	})
 
 	Describe("CreateTask", func() {
@@ -242,16 +242,30 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(*events[2]).To(Equal(*eventC))
 			})
 		})
-		Context("when an event with that date already exists", func() {
+		Context("when an event with that ID already exists", func() {
 			BeforeEach(func() {
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
 			})
-			It("returns an error", func() {
+			It("ignores the ID and returns a new ID", func() {
+				events, err := repo.Events()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(events).To(HaveLen(3))
+
 				dupEventA := *eventA
 				dupEventA.Title = "dup-event-a"
-				Expect(repo.CreateEvent(&dupEventA)).NotTo(Succeed())
+				dupEventA.ID = events[0].ID
+				Expect(repo.CreateEvent(&dupEventA)).To(Succeed())
+
+				events, err = repo.Events()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(events).To(HaveLen(4))
+
+				Expect(*events[0]).To(Equal(*eventA))
+				Expect(*events[1]).To(Equal(*eventB))
+				Expect(*events[2]).To(Equal(*eventC))
+				Expect(*events[3]).To(Equal(dupEventA))
 			})
 		})
 	})
@@ -280,6 +294,33 @@ func RunRepoTests(createRepoFunc func() Repo) {
 		})
 	})
 
+	Describe("FindEventByID", func() {
+		Context("when the event does not exist", func() {
+			BeforeEach(func() {
+				Expect(repo.CreateEvent(eventA)).To(Succeed())
+				Expect(repo.CreateEvent(eventC)).To(Succeed())
+			})
+			It("returns nil and nil error", func() {
+				event, err := repo.FindEventByID(2)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(event).To(BeNil())
+			})
+		})
+
+		Context("when the event exists", func() {
+			BeforeEach(func() {
+				Expect(repo.CreateEvent(eventA)).To(Succeed())
+				Expect(repo.CreateEvent(eventB)).To(Succeed())
+			})
+			It("returns the event", func() {
+				event, err := repo.FindEventByID(eventB.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(event).ToNot(BeNil())
+				Expect(*event).To(Equal(*eventB))
+			})
+		})
+	})
+
 	Describe("DeleteEvent", func() {
 		Context("when the event does not exist", func() {
 			BeforeEach(func() {
@@ -287,6 +328,7 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
 			})
 			It("returns an error", func() {
+				eventB.ID = 999
 				Expect(repo.DeleteEvent(eventB)).NotTo(Succeed())
 			})
 		})

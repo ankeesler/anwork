@@ -251,6 +251,30 @@ var _ = Describe("Manager", func() {
 				Expect(err).To(MatchError("some tasks error"))
 			})
 		})
+
+		Context("when the priorities change", func() {
+			BeforeEach(func() {
+				tasks = []*task2.Task{
+					&task2.Task{Name: "task-a", Priority: 40, ID: 1},
+					&task2.Task{Name: "task-b", Priority: 30, ID: 2},
+					&task2.Task{Name: "task-c", Priority: 20, ID: 3},
+					&task2.Task{Name: "task-d", Priority: 30, ID: 4},
+				}
+				tasksCopied := make([]*task2.Task, len(tasks))
+				copy(tasksCopied, tasks)
+				repo.TasksReturnsOnCall(0, tasksCopied, nil)
+			})
+
+			It("returns the tasks in order of highest priority and then newest id", func() {
+				tasksSorted, err := manager.Tasks()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(tasksSorted).To(HaveLen(4))
+				Expect(tasksSorted[0]).To(Equal(tasks[2]))
+				Expect(tasksSorted[1]).To(Equal(tasks[1]))
+				Expect(tasksSorted[2]).To(Equal(tasks[3]))
+				Expect(tasksSorted[3]).To(Equal(tasks[0]))
+			})
+		})
 	})
 
 	Describe("Note", func() {
@@ -266,7 +290,7 @@ var _ = Describe("Manager", func() {
 
 			Expect(repo.CreateEventCallCount()).To(Equal(1))
 			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
-				Title:  "Note: here is a note",
+				Title:  "Note added to task 'task-a': here is a note",
 				Date:   clock.Now().Unix(),
 				Type:   task2.EventTypeNote,
 				TaskID: 10,
@@ -333,7 +357,7 @@ var _ = Describe("Manager", func() {
 			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
 				Title:  "Set priority on task 'task-a' from 20 to 30",
 				Date:   clock.Now().Unix(),
-				Type:   task2.EventTypeNote,
+				Type:   task2.EventTypeSetPriority,
 				TaskID: 10,
 			}))
 
@@ -419,7 +443,7 @@ var _ = Describe("Manager", func() {
 			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
 				Title:  "Set state on task 'task-a' from Running to Blocked",
 				Date:   clock.Now().Unix(),
-				Type:   task2.EventTypeNote,
+				Type:   task2.EventTypeSetState,
 				TaskID: 10,
 			}))
 
@@ -514,42 +538,25 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	Describe("DeleteEvent", func() {
-		It("calls out to the repo to delete the event", func() {
-			Expect(manager.DeleteEvent(12345)).To(Succeed())
-
-			Expect(repo.DeleteEventCallCount()).To(Equal(1))
-			Expect(repo.DeleteEventArgsForCall(0)).To(Equal(&task2.Event{Date: 12345}))
-		})
-
-		Context("when we fail to delete an event", func() {
-			BeforeEach(func() {
-				repo.DeleteEventReturnsOnCall(0, errors.New("failed to delete event"))
-			})
-
-			It("returns the error", func() {
-				err := manager.DeleteEvent(12345)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("failed to delete event"))
-			})
-		})
-	})
-
 	Describe("Reset", func() {
 		var tasks []*task2.Task
+		var tasksSize int
 		var events []*task2.Event
+		var eventsSize int
 		BeforeEach(func() {
 			tasks = []*task2.Task{
 				&task2.Task{Name: "task-a", ID: 1},
 				&task2.Task{Name: "task-b", ID: 2},
 				&task2.Task{Name: "task-c", ID: 3},
 			}
+			tasksSize = len(tasks)
 			repo.TasksReturnsOnCall(0, tasks, nil)
 			events = []*task2.Event{
-				&task2.Event{Title: "task-a", Date: 1},
-				&task2.Event{Title: "task-b", Date: 2},
-				&task2.Event{Title: "task-c", Date: 3},
+				&task2.Event{Title: "task-a", ID: 1},
+				&task2.Event{Title: "task-b", ID: 2},
+				&task2.Event{Title: "task-c", ID: 3},
 			}
+			eventsSize = len(events)
 			repo.EventsReturnsOnCall(0, events, nil)
 		})
 
@@ -557,13 +564,17 @@ var _ = Describe("Manager", func() {
 			Expect(manager.Reset()).To(Succeed())
 
 			Expect(repo.TasksCallCount()).To(Equal(1))
-			for i, task := range tasks {
-				Expect(repo.DeleteTaskArgsForCall(i)).To(Equal(task))
+			j := 0
+			for i := tasksSize - 1; i >= 0; i-- {
+				Expect(repo.DeleteTaskArgsForCall(j)).To(Equal(tasks[i]))
+				j++
 			}
 
 			Expect(repo.EventsCallCount()).To(Equal(1))
-			for i, event := range events {
-				Expect(repo.DeleteEventArgsForCall(i)).To(Equal(event))
+			j = 0
+			for i := eventsSize - 1; i >= 0; i-- {
+				Expect(repo.DeleteEventArgsForCall(j)).To(Equal(events[i]))
+				j++
 			}
 		})
 
@@ -612,13 +623,17 @@ var _ = Describe("Manager", func() {
 				Expect(err.Error()).To(ContainSubstring("some delete event error"))
 
 				Expect(repo.TasksCallCount()).To(Equal(1))
-				for i, task := range tasks {
-					Expect(repo.DeleteTaskArgsForCall(i)).To(Equal(task))
+				j := 0
+				for i := tasksSize - 1; i >= 0; i-- {
+					Expect(repo.DeleteTaskArgsForCall(j)).To(Equal(tasks[i]))
+					j++
 				}
 
 				Expect(repo.EventsCallCount()).To(Equal(1))
-				for i, event := range events {
-					Expect(repo.DeleteEventArgsForCall(i)).To(Equal(event))
+				j = 0
+				for i := eventsSize - 1; i >= 0; i-- {
+					Expect(repo.DeleteEventArgsForCall(j)).To(Equal(events[i]))
+					j++
 				}
 			})
 		})
