@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -67,8 +68,8 @@ var _ = Describe("API", func() {
 	})
 
 	Context("method not allowed", func() {
-		XIt("returns a 405", func() {
-			rsp, err := post("/api/v1/tasks/1")
+		It("returns a 405", func() {
+			rsp, err := deletee("/api/v1/tasks")
 			Expect(err).NotTo(HaveOccurred())
 			defer rsp.Body.Close()
 
@@ -81,8 +82,39 @@ func get(path string) (*http.Response, error) {
 	return http.Get(fmt.Sprintf("http://127.0.0.1:12345%s", path))
 }
 
-func post(path string) (*http.Response, error) {
-	return http.Post(fmt.Sprintf("http://127.0.0.1:12345%s", path), "", nil)
+func put(path string, body interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
+
+	data, err := json.Marshal(body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	buf := bytes.NewBuffer(data)
+	req, err := http.NewRequest(http.MethodPut, url, buf)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return http.DefaultClient.Do(req)
+}
+
+func post(path, body interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
+
+	data, err := json.Marshal(body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	buf := bytes.NewBuffer(data)
+	req, err := http.NewRequest(http.MethodPost, url, buf)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return http.DefaultClient.Do(req)
+}
+
+func deletee(path string) (*http.Response, error) {
+	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
+
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return http.DefaultClient.Do(req)
 }
 
 func assertError(rsp *http.Response, message string) {
@@ -100,7 +132,37 @@ func assertTasks(rsp *http.Response, tasks []*task2.Task) {
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	actualTasks := make([]*task2.Task, 1)
-	ExpectWithOffset(1, json.Unmarshal(bytes, &tasks)).NotTo(HaveOccurred())
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualTasks)).NotTo(HaveOccurred())
 
-	ExpectWithOffset(1, tasks).To(Equal(actualTasks))
+	ExpectWithOffset(1, actualTasks).To(Equal(tasks))
+}
+
+func assertTask(rsp *http.Response, task *task2.Task) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	var actualTask task2.Task
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualTask)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualTask).To(Equal(*task))
+}
+
+func assertEvents(rsp *http.Response, tasks []*task2.Event) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	actualEvents := make([]*task2.Event, 1)
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualEvents)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualEvents).To(Equal(tasks))
+}
+
+func assertEvent(rsp *http.Response, task *task2.Event) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	var actualEvent task2.Event
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualEvent)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualEvent).To(Equal(*task))
 }

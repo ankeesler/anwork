@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 
 	api "github.com/ankeesler/anwork/api2"
 	"github.com/ankeesler/anwork/task2"
@@ -22,7 +24,17 @@ func New(address string) task2.Repo {
 }
 
 func (c *client) CreateTask(task *task2.Task) error {
-	return c.do(http.MethodPost, c.tasksURL(), task, nil)
+	rsp, err := c.doExt(http.MethodPost, c.tasksURL(), task, nil)
+	if err != nil {
+		return err
+	}
+
+	location := rsp.Header.Get("Location")
+	if location == "" || !parseID(location, &task.ID) {
+		return fmt.Errorf("could not parse ID from Location response header: %s", location)
+	}
+
+	return nil
 }
 
 func (c *client) Tasks() ([]*task2.Task, error) {
@@ -37,22 +49,29 @@ func (c *client) Tasks() ([]*task2.Task, error) {
 func (c *client) FindTaskByID(id int) (*task2.Task, error) {
 	var task task2.Task
 
-	if err := c.do(http.MethodGet, c.taskURL(id), nil, &task); err != nil {
+	rsp, err := c.doExt(http.MethodGet, c.taskURL(id), nil, &task)
+	if rsp != nil && rsp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
+	} else {
+		return &task, nil
 	}
-
-	return &task, nil
 }
 
 func (c *client) FindTaskByName(name string) (*task2.Task, error) {
-	var task task2.Task
+	tasks := make([]*task2.Task, 0, 1)
 
 	url := fmt.Sprintf("%s?name=%s", c.tasksURL(), name)
-	if err := c.do(http.MethodGet, url, nil, &task); err != nil {
+	if err := c.do(http.MethodGet, url, nil, &tasks); err != nil {
 		return nil, err
 	}
 
-	return &task, nil
+	if len(tasks) == 0 {
+		return nil, nil
+	} else {
+		return tasks[0], nil
+	}
 }
 
 func (c *client) UpdateTask(task *task2.Task) error {
@@ -64,7 +83,17 @@ func (c *client) DeleteTask(task *task2.Task) error {
 }
 
 func (c *client) CreateEvent(event *task2.Event) error {
-	return c.do(http.MethodPost, c.eventsURL(), event, nil)
+	rsp, err := c.doExt(http.MethodPost, c.eventsURL(), event, nil)
+	if err != nil {
+		return err
+	}
+
+	location := rsp.Header.Get("Location")
+	if location == "" || !parseID(location, &event.ID) {
+		return fmt.Errorf("could not parse ID from Location response header: %s", location)
+	}
+
+	return nil
 }
 
 func (c *client) Events() ([]*task2.Event, error) {
@@ -79,11 +108,14 @@ func (c *client) Events() ([]*task2.Event, error) {
 func (c *client) FindEventByID(id int) (*task2.Event, error) {
 	var event task2.Event
 
-	if err := c.do(http.MethodGet, c.eventURL(id), nil, &event); err != nil {
+	rsp, err := c.doExt(http.MethodGet, c.eventURL(id), nil, &event)
+	if rsp != nil && rsp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
+	} else {
+		return &event, nil
 	}
-
-	return &event, nil
 }
 
 func (c *client) DeleteEvent(event *task2.Event) error {
@@ -107,14 +139,19 @@ func (c *client) eventURL(id int) string {
 }
 
 func (c *client) do(method, url string, input interface{}, output interface{}) error {
+	_, err := c.doExt(method, url, input, output)
+	return err
+}
+
+func (c *client) doExt(method, url string, input interface{}, output interface{}) (*http.Response, error) {
 	body, err := c.encodeBody(input)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if input != nil {
@@ -126,17 +163,17 @@ func (c *client) do(method, url string, input interface{}, output interface{}) e
 
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer rsp.Body.Close()
 
 	if c.is5xxStatus(rsp) {
-		return &badResponseError{code: rsp.Status, message: c.decodeError(rsp.Body)}
+		return rsp, &badResponseError{code: rsp.Status, message: c.decodeError(rsp.Body)}
 	} else if c.is4xxStatus(rsp) {
-		return &badResponseError{code: rsp.Status}
+		return rsp, &badResponseError{code: rsp.Status}
 	}
 
-	return c.decodeBody(rsp.Body, output)
+	return rsp, c.decodeBody(rsp.Body, output)
 }
 
 func (c *client) encodeBody(input interface{}) (io.Reader, error) {
@@ -187,4 +224,16 @@ func (c *client) is4xxStatus(rsp *http.Response) bool {
 
 func (c *client) is5xxStatus(rsp *http.Response) bool {
 	return rsp.StatusCode >= 500 && rsp.StatusCode < 600
+}
+
+func parseID(location string, id *int) bool {
+	segments := strings.Split(location, "/")
+	idS := segments[len(segments)-1]
+	idN, err := strconv.Atoi(idS)
+	if err != nil {
+		return false
+	}
+
+	*id = idN
+	return true
 }

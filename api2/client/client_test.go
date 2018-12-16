@@ -42,14 +42,14 @@ var _ = Describe("Client", func() {
 		Context("on 4xx response", func() {
 			BeforeEach(func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.RespondWith(http.StatusNotFound, nil),
+					ghttp.RespondWith(http.StatusMethodNotAllowed, nil),
 				))
 			})
 
 			It("returns error on 4xx response containing status", func() {
 				err := clientFunc(client)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("404 Not Found"))
+				Expect(err.Error()).To(ContainSubstring("405 Method Not Allowed"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
 			})
@@ -158,7 +158,7 @@ var _ = Describe("Client", func() {
 				ghttp.RespondWith(
 					http.StatusCreated,
 					nil,
-					http.Header{"Location": {"/api/v1/tasks/1"}}),
+					http.Header{"Location": {"/api/v1/tasks/10"}}),
 			))
 		})
 
@@ -167,6 +167,38 @@ var _ = Describe("Client", func() {
 			Expect(client.CreateTask(task)).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		It("sets the provided task's ID to the newly allocated ID", func() {
+			task := tasks[0]
+			Expect(client.CreateTask(task)).To(Succeed())
+
+			Expect(task.ID).To(Equal(10))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the returned location is invalid", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest(http.MethodPost, "/api/v1/tasks"),
+					ghttp.VerifyJSONRepresenting(tasks[0]),
+					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.RespondWith(
+						http.StatusCreated,
+						nil,
+						http.Header{"Location": {"/api/v1/tasks/tuna"}}),
+				))
+			})
+
+			It("returns an error", func() {
+				task := tasks[0]
+				err := client.CreateTask(task)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("could not parse ID from Location response header: /api/v1/tasks/tuna"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
 		})
 
 		testAllCommonFailures(func(c task2.Repo) error {
@@ -227,6 +259,22 @@ var _ = Describe("Client", func() {
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
+		Context("on 404 not found response", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWith(http.StatusNotFound, nil),
+				))
+			})
+
+			It("returns nil, nil", func() {
+				task, err := client.FindTaskByID(10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(task).To(BeNil())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+
 		testBad2xxResponseBody(func(c task2.Repo) error {
 			_, err := c.FindTaskByID(10)
 			return err
@@ -245,7 +293,7 @@ var _ = Describe("Client", func() {
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
-					tasks[0],
+					[]*task2.Task{tasks[0]},
 					http.Header{"Content-Type": {"application/json"}},
 				),
 			))
@@ -257,6 +305,25 @@ var _ = Describe("Client", func() {
 			Expect(task).To(Equal(tasks[0]))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the server responds with an empty array of tasks", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWithJSONEncoded(
+						http.StatusOK,
+						[]*task2.Task{},
+						http.Header{"Content-Type": {"application/json"}}),
+				))
+			})
+
+			It("returns nil, nil", func() {
+				task, err := client.FindTaskByName("task-a")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(task).To(BeNil())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
 		})
 
 		testBad2xxResponseBody(func(c task2.Repo) error {
@@ -326,7 +393,7 @@ var _ = Describe("Client", func() {
 				ghttp.RespondWith(
 					http.StatusCreated,
 					nil,
-					http.Header{"Location": {"/api/v1/events/1"}}),
+					http.Header{"Location": {"/api/v1/events/10"}}),
 			))
 		})
 
@@ -335,6 +402,38 @@ var _ = Describe("Client", func() {
 			Expect(client.CreateEvent(event)).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		It("sets the provided event's ID to the newly allocated ID", func() {
+			event := events[0]
+			Expect(client.CreateEvent(event)).To(Succeed())
+
+			Expect(event.ID).To(Equal(10))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the returned location is invalid", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest(http.MethodPost, "/api/v1/events"),
+					ghttp.VerifyJSONRepresenting(events[0]),
+					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.RespondWith(
+						http.StatusCreated,
+						nil,
+						http.Header{"Location": {"/api/v1/events/tuna"}}),
+				))
+			})
+
+			It("returns an error", func() {
+				event := events[0]
+				err := client.CreateEvent(event)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("could not parse ID from Location response header: /api/v1/events/tuna"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
 		})
 
 		testAllCommonFailures(func(c task2.Repo) error {
@@ -392,6 +491,27 @@ var _ = Describe("Client", func() {
 			Expect(event).To(Equal(events[0]))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("on 404 not found response", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWith(http.StatusNotFound, nil),
+				))
+			})
+
+			It("returns nil, nil", func() {
+				event, err := client.FindEventByID(10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(event).To(BeNil())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+
+		testBad2xxResponseBody(func(c task2.Repo) error {
+			_, err := c.FindEventByID(10)
+			return err
 		})
 
 		testAllCommonFailures(func(c task2.Repo) error {
