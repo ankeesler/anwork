@@ -31,17 +31,6 @@ type FakeManager struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteEventStub        func(int64) error
-	deleteEventMutex       sync.RWMutex
-	deleteEventArgsForCall []struct {
-		arg1 int64
-	}
-	deleteEventReturns struct {
-		result1 error
-	}
-	deleteEventReturnsOnCall map[int]struct {
-		result1 error
-	}
 	EventsStub        func() ([]*task2.Event, error)
 	eventsMutex       sync.RWMutex
 	eventsArgsForCall []struct {
@@ -270,66 +259,6 @@ func (fake *FakeManager) DeleteReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.deleteReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) DeleteEvent(arg1 int64) error {
-	fake.deleteEventMutex.Lock()
-	ret, specificReturn := fake.deleteEventReturnsOnCall[len(fake.deleteEventArgsForCall)]
-	fake.deleteEventArgsForCall = append(fake.deleteEventArgsForCall, struct {
-		arg1 int64
-	}{arg1})
-	fake.recordInvocation("DeleteEvent", []interface{}{arg1})
-	fake.deleteEventMutex.Unlock()
-	if fake.DeleteEventStub != nil {
-		return fake.DeleteEventStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.deleteEventReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeManager) DeleteEventCallCount() int {
-	fake.deleteEventMutex.RLock()
-	defer fake.deleteEventMutex.RUnlock()
-	return len(fake.deleteEventArgsForCall)
-}
-
-func (fake *FakeManager) DeleteEventCalls(stub func(int64) error) {
-	fake.deleteEventMutex.Lock()
-	defer fake.deleteEventMutex.Unlock()
-	fake.DeleteEventStub = stub
-}
-
-func (fake *FakeManager) DeleteEventArgsForCall(i int) int64 {
-	fake.deleteEventMutex.RLock()
-	defer fake.deleteEventMutex.RUnlock()
-	argsForCall := fake.deleteEventArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeManager) DeleteEventReturns(result1 error) {
-	fake.deleteEventMutex.Lock()
-	defer fake.deleteEventMutex.Unlock()
-	fake.DeleteEventStub = nil
-	fake.deleteEventReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeManager) DeleteEventReturnsOnCall(i int, result1 error) {
-	fake.deleteEventMutex.Lock()
-	defer fake.deleteEventMutex.Unlock()
-	fake.DeleteEventStub = nil
-	if fake.deleteEventReturnsOnCall == nil {
-		fake.deleteEventReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteEventReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -873,8 +802,6 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.createMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
-	fake.deleteEventMutex.RLock()
-	defer fake.deleteEventMutex.RUnlock()
 	fake.eventsMutex.RLock()
 	defer fake.eventsMutex.RUnlock()
 	fake.findByIDMutex.RLock()
