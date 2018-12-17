@@ -5,7 +5,7 @@ import (
 	http "net/http"
 	sync "sync"
 
-	"github.com/ankeesler/anwork/api"
+	api "github.com/ankeesler/anwork/api"
 )
 
 type FakeAuthenticator struct {

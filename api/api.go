@@ -10,6 +10,9 @@ import (
 	"github.com/tedsuo/rata"
 )
 
+// This is the major verison of the API.
+const Version = 1
+
 //go:generate counterfeiter . Authenticator
 
 // Authenticator is an object that performs authentication for the ANWORK API.
