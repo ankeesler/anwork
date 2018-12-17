@@ -20,6 +20,19 @@ type FakeAuthenticator struct {
 	authenticateReturnsOnCall map[int]struct {
 		result1 error
 	}
+	TokenStub        func(*http.Request) (string, error)
+	tokenMutex       sync.RWMutex
+	tokenArgsForCall []struct {
+		arg1 *http.Request
+	}
+	tokenReturns struct {
+		result1 string
+		result2 error
+	}
+	tokenReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -84,11 +97,76 @@ func (fake *FakeAuthenticator) AuthenticateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeAuthenticator) Token(arg1 *http.Request) (string, error) {
+	fake.tokenMutex.Lock()
+	ret, specificReturn := fake.tokenReturnsOnCall[len(fake.tokenArgsForCall)]
+	fake.tokenArgsForCall = append(fake.tokenArgsForCall, struct {
+		arg1 *http.Request
+	}{arg1})
+	fake.recordInvocation("Token", []interface{}{arg1})
+	fake.tokenMutex.Unlock()
+	if fake.TokenStub != nil {
+		return fake.TokenStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.tokenReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeAuthenticator) TokenCallCount() int {
+	fake.tokenMutex.RLock()
+	defer fake.tokenMutex.RUnlock()
+	return len(fake.tokenArgsForCall)
+}
+
+func (fake *FakeAuthenticator) TokenCalls(stub func(*http.Request) (string, error)) {
+	fake.tokenMutex.Lock()
+	defer fake.tokenMutex.Unlock()
+	fake.TokenStub = stub
+}
+
+func (fake *FakeAuthenticator) TokenArgsForCall(i int) *http.Request {
+	fake.tokenMutex.RLock()
+	defer fake.tokenMutex.RUnlock()
+	argsForCall := fake.tokenArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeAuthenticator) TokenReturns(result1 string, result2 error) {
+	fake.tokenMutex.Lock()
+	defer fake.tokenMutex.Unlock()
+	fake.TokenStub = nil
+	fake.tokenReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAuthenticator) TokenReturnsOnCall(i int, result1 string, result2 error) {
+	fake.tokenMutex.Lock()
+	defer fake.tokenMutex.Unlock()
+	fake.TokenStub = nil
+	if fake.tokenReturnsOnCall == nil {
+		fake.tokenReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.tokenReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeAuthenticator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.authenticateMutex.RLock()
 	defer fake.authenticateMutex.RUnlock()
+	fake.tokenMutex.RLock()
+	defer fake.tokenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

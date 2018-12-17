@@ -20,6 +20,9 @@ type Authenticator interface {
 	// Authenticate performs auth on an http.Request. If it passes, it should
 	// return a nil error. If it fails, it should return an error.
 	Authenticate(req *http.Request) error
+	// Generate a token for authentication. This token should probably be used
+	// in the Authenticate method.
+	Token(req *http.Request) (string, error)
 }
 
 type api struct {
@@ -29,6 +32,8 @@ type api struct {
 }
 
 var routes = rata.Routes{
+	{Name: "auth", Method: rata.POST, Path: "/api/v1/auth"},
+
 	{Name: "get_tasks", Method: rata.GET, Path: "/api/v1/tasks"},
 	{Name: "create_task", Method: rata.POST, Path: "/api/v1/tasks"},
 	{Name: "get_task", Method: rata.GET, Path: "/api/v1/tasks/:id"},
@@ -60,6 +65,8 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.log.Printf("authentication succeeded")
 
 	handlers := rata.Handlers{
+		"auth": &authHandler{a.log, a.authenticator},
+
 		"get_tasks":   &getTasksHandler{a.log, a.repo},
 		"create_task": &createTaskHandler{a.log, a.repo},
 		"get_task":    &getTaskHandler{a.log, a.repo},

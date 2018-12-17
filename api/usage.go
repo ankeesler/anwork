@@ -17,6 +17,11 @@ type extraRouteData struct {
 }
 
 var erd = map[string]extraRouteData{
+	"auth": extraRouteData{
+		description: "create (encrypted) authentication token",
+		outputType:  reflect.TypeOf(""),
+	},
+
 	"get_tasks": extraRouteData{
 		description: "get all tasks",
 		outputType:  reflect.SliceOf(reflect.TypeOf(task.Task{})),
@@ -64,6 +69,8 @@ func MarkdownUsage(output io.Writer) {
 			fmt.Fprintf(output, "* %s\n", extra.description)
 			fmt.Fprintf(output, "* input: `%s`\n", typeName(extra.inputType))
 			fmt.Fprintf(output, "* output: `%s`\n", typeName(extra.outputType))
+		} else {
+			panic(fmt.Sprintf("missing extraRouteData for '%s'", route.Name))
 		}
 	}
 }

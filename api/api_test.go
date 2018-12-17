@@ -98,8 +98,12 @@ func put(path string, body interface{}) (*http.Response, error) {
 func post(path, body interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
 
-	data, err := json.Marshal(body)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	var data []byte
+	if body != nil {
+		var err error
+		data, err = json.Marshal(body)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	}
 
 	buf := bytes.NewBuffer(data)
 	req, err := http.NewRequest(http.MethodPost, url, buf)

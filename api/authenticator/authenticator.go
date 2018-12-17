@@ -14,3 +14,7 @@ func New() *Authenticator {
 func (a *Authenticator) Authenticate(r *http.Request) error {
 	return nil
 }
+
+func (a *Authenticator) Token(r *http.Request) (string, error) {
+	return "", nil
+}
