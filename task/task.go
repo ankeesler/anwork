@@ -1,4 +1,4 @@
-// This package contains all of the task-related declarations in the anwork project.
+// Package task contains the domain objects for anwork: Task's and Event's.
 //
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present."
@@ -6,34 +6,19 @@
 // Every Task is in one of a number of different State's: Ready, Blocked, Running, or Finished. A
 // Task also has a priority which describes its relative importance to all other Task's.
 //
-// A Manager is an interface through which Task's can be created, read, updated, and deleted.
-//
-// A Manager also keeps track of the changes that are made to the Task's it oversees. It keeps a list
-// of things (Event's) that happen to a Manager (i.e., a note is added, a Task is created, a Task is
-// updated, etc.).
+// An Event is something that happened to a Task.
 package task
 
 // A State describes the status of some Task.
-type State int
+type State string
 
 // These are the states that a Task could be in.
 const (
-	StateReady    State = 0
-	StateBlocked  State = 1
-	StateRunning  State = 2
-	StateFinished State = 3
+	StateReady    State = "Ready"
+	StateBlocked        = "Blocked"
+	StateRunning        = "Running"
+	StateFinished       = "Finished"
 )
-
-// These are the names of the State's that a Task can occupy, indexed by the State integer value.
-var StateNames = [...]string{
-	"Ready",
-	"Blocked",
-	"Running",
-	"Finished",
-}
-
-// This is the default priority that a Task gets when created.
-const DefaultPriority = 10
 
 // A Task is something that someone is working on. It could be something like "mow the lawn" or "buy
 // sister a holiday present." A Task also has a priority which describes its relative importance to
@@ -45,9 +30,6 @@ type Task struct {
 	// This is a unique ID. Every Task has a different ID.
 	ID int `json:"id"`
 
-	// This is a description of the Task.
-	Description string `json:"description"`
-
 	// This is when the Task was created, represented by the number of seconds since January 1, 1970.
 	StartDate int64 `json:"startDate"`
 
@@ -55,7 +37,32 @@ type Task struct {
 	Priority int `json:"priority"`
 
 	// This is the State of the Task. See State* for possible values. A Task can go through any
-	// number of State changes over the course of its life. All Tasks start out in the StateReady
-	// State.
+	// number of State changes over the course of its life.
 	State State `json:"state"`
+}
+
+// An EventType describes the type of Event that took place in the Manager.
+type EventType int
+
+// These are the types of Event's that can occur.
+const (
+	EventTypeCreate = iota
+	EventTypeDelete
+	EventTypeSetState
+	EventTypeNote
+	EventTypeSetPriority
+)
+
+// An Event is something that took place. Each Event is associated with only one Task.
+type Event struct {
+	// Unique identifier for the Event.
+	ID int
+	// A string description of the Event.
+	Title string `json:"title"`
+	// The time that the Event took place, represented by the number of seconds since January 1, 1970.
+	Date int64 `json:"date"`
+	// The type of Event.
+	Type EventType `json:"type"`
+	// The ID of the Task to which this Event refers.
+	TaskID int `json:"taskid"`
 }

@@ -1,104 +1,100 @@
-// This package contains an implementation of the anwork HTTP API.
-//
-// Here is the ANWORK API. All of the payloads are JSON formatted. All error responses
-// shall contain a payload of api.ErrorResponse.
-//   Show a list of links for this API:
-//   GET /api -> return a map[string]map[string]string with links to the API endpoints
-//
-//   Get all of the current tasks:
-//   GET  /api/v1/tasks -> returns an array of task.Task's
-//
-//   Create a new task:
-//   POST /api/v1/tasks api.CreateRequest -> returns the created task.Task
-//
-//   Get the details about a task:
-//   GET /api/v1/tasks/:id -> returns the task.Task
-//
-//   Update a task's state or priority or name:
-//   PUT /api/v1/tasks/:id api.UpdateTaskRequest
-//
-//   Delete a task:
-//   DELETE /api/v1/tasks/:id
-//
-//   Get all of the events:
-//   GET /api/v1/events -> returns an array of task.Event's
-//
-//   Create a new event:
-//   POST /api/v1/events api.AddEventRequest
-//
-//   Get the details about an event:
-//   GET /api/v1/events/:startTime -> returns the task.Event that occurred at that time
-//
-//   Delete an event:
-//   DELETE /api/v1/events/:startTime
+// Package api provides an http.Handler that will serve the ANWORK API.
 package api
 
 import (
-	"context"
+	"encoding/json"
 	"log"
-	"net"
 	"net/http"
 
 	"github.com/ankeesler/anwork/task"
+	"github.com/tedsuo/rata"
 )
 
-type Api struct {
-	address string
-	factory task.ManagerFactory
-	log     *log.Logger
+//go:generate counterfeiter . Authenticator
+
+// Authenticator is an object that performs authentication for the ANWORK API.
+type Authenticator interface {
+	// Authenticate performs auth on an http.Request. If it passes, it should
+	// return a nil error. If it fails, it should return an error.
+	Authenticate(req *http.Request) error
 }
 
-func New(address string, factory task.ManagerFactory, log *log.Logger) *Api {
-	return &Api{address: address, factory: factory, log: log}
+type api struct {
+	log           *log.Logger
+	repo          task.Repo
+	authenticator Authenticator
 }
 
-// Run the API server. When the call returns, the server will be set up. The
-// caller should use the provided context to determine when the server should be
-// torn down.
-func (a *Api) Run(ctx context.Context) error {
-	a.log.Printf("API server starting on %s", a.address)
+var routes = rata.Routes{
+	{Name: "get_tasks", Method: rata.GET, Path: "/api/v1/tasks"},
+	{Name: "create_task", Method: rata.POST, Path: "/api/v1/tasks"},
+	{Name: "get_task", Method: rata.GET, Path: "/api/v1/tasks/:id"},
+	{Name: "update_task", Method: rata.PUT, Path: "/api/v1/tasks/:id"},
+	{Name: "delete_task", Method: rata.DELETE, Path: "/api/v1/tasks/:id"},
 
-	server, err := a.makeServer()
-	if err != nil {
-		a.log.Printf("failed to make server: %s", err.Error())
-		return err
-	}
-
-	listener, err := net.Listen("tcp", a.address)
-	if err != nil {
-		a.log.Printf("failed to listen on address %s: %s", a.address, err.Error())
-		return err
-	}
-
-	go func() {
-		<-ctx.Done()
-		err = listener.Close()
-		if err != nil {
-			a.log.Printf("failed to close listener socket: %s", err.Error())
-		}
-
-		a.log.Printf("listener closed")
-	}()
-
-	go server.Serve(listener)
-
-	return nil
+	{Name: "get_events", Method: rata.GET, Path: "/api/v1/events"},
+	{Name: "create_event", Method: rata.POST, Path: "/api/v1/events"},
+	{Name: "get_event", Method: rata.GET, Path: "/api/v1/events/:id"},
+	{Name: "delete_event", Method: rata.DELETE, Path: "/api/v1/events/:id"},
 }
 
-func (a *Api) makeServer() (*http.Server, error) {
-	manager, err := a.factory.Create()
+// New creates an http.Handler that will perform the ANWORK API functionality.
+func New(log *log.Logger, repo task.Repo, authenticator Authenticator) http.Handler {
+	return &api{
+		log:           log,
+		repo:          repo,
+		authenticator: authenticator,
+	}
+}
+
+func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.log.Printf("handling %s %s", r.Method, r.URL.Path)
+
+	if err := a.authenticator.Authenticate(r); err != nil {
+		respondWithError(a.log, w, http.StatusForbidden, err)
+		return
+	}
+	a.log.Printf("authentication succeeded")
+
+	handlers := rata.Handlers{
+		"get_tasks":   &getTasksHandler{a.log, a.repo},
+		"create_task": &createTaskHandler{a.log, a.repo},
+		"get_task":    &getTaskHandler{a.log, a.repo},
+		"update_task": &updateTaskHandler{a.log, a.repo},
+		"delete_task": &deleteTaskHandler{a.log, a.repo},
+
+		"get_events":   &getEventsHandler{a.log, a.repo},
+		"create_event": &createEventHandler{a.log, a.repo},
+		"get_event":    &getEventHandler{a.log, a.repo},
+		"delete_event": &deleteEventHandler{a.log, a.repo},
+	}
+	router, err := rata.NewRouter(routes, handlers)
 	if err != nil {
-		return nil, err
+		respondWithError(a.log, w, http.StatusInternalServerError, err)
+		return
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("/", newFrontPageHandler(a.log))
-	mux.Handle("/api", NewNavHandler(a.log))
-	mux.Handle("/api/v1/health", NewHealthHandler(a.log))
-	mux.Handle("/api/v1/tasks", NewTasksHandler(manager, a.log))
-	mux.Handle("/api/v1/tasks/", NewTaskIDHandler(manager, a.log))
-	mux.Handle("/api/v1/events", NewEventsHandler(manager, a.log))
-	mux.Handle("/api/v1/events/", NewEventIDHandler(manager, a.log))
+	router.ServeHTTP(w, r)
+}
 
-	return &http.Server{Handler: mux}, nil
+func respondWithError(log *log.Logger, w http.ResponseWriter, statusCode int, err error) {
+	respond(log, w, statusCode, Error{Message: err.Error()})
+}
+
+func respond(log *log.Logger, w http.ResponseWriter, statusCode int, body interface{}) {
+	log.Printf("responding with %d: %+v", statusCode, body)
+
+	var bytes []byte = []byte{}
+	var jsonErr error
+	if body != nil {
+		bytes, jsonErr = json.Marshal(body)
+	}
+
+	if jsonErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(jsonErr.Error()))
+	} else {
+		w.WriteHeader(statusCode)
+		w.Write(bytes)
+	}
 }

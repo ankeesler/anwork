@@ -14,11 +14,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/api/client"
-	"github.com/ankeesler/anwork/runner"
+	"github.com/ankeesler/anwork/manager"
+	runner "github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task"
-	"github.com/ankeesler/anwork/task/local"
-	"github.com/ankeesler/anwork/task/remote"
+	"github.com/ankeesler/anwork/task/fs"
 )
 
 var (
@@ -100,16 +101,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	var factory task.ManagerFactory
+	var repo task.Repo
 	if address, ok := useApi(); ok {
-		client := client.New(fmt.Sprintf("http://%s", address))
-		factory = remote.NewManagerFactory(client)
+		repo = client.New(fmt.Sprintf("%s", address))
 	} else {
-		factory = local.NewManagerFactory(root.String(), context)
+		repo = fs.New(filepath.Join(root.String(), context))
 	}
 
-	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate},
-		factory, os.Stdout, &dw)
+	clock := clock.NewClock()
+	m := manager.New(repo, clock)
+
+	r := runner.New(&runner.BuildInfo{Hash: buildHash, Date: buildDate}, m, os.Stdout, &dw)
 	if err := r.Run(flags.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)

@@ -1,3 +1,5 @@
+// Package runner contains the code for driving the anwork command line interface.
+//
 // A Runner is an object that can run the various pieces of anwork functionality, e.g.,
 // create tasks, show tasks, print out version information, etc.
 package runner
@@ -7,7 +9,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/ankeesler/anwork/task"
+	"github.com/ankeesler/anwork/manager"
 )
 
 // Print the usage of every anwork runner command to the provided output writer.
@@ -49,17 +51,17 @@ type BuildInfo struct {
 // create tasks, show tasks, print out version information, etc.
 type Runner struct {
 	buildInfo                 *BuildInfo
-	factory                   task.ManagerFactory
+	manager                   manager.Manager
 	stdoutWriter, debugWriter io.Writer
 }
 
-// Create a new Runner. The task.ManagerFactory argument will be used to create a
-// manager for use by the Runner. The Runner will write its regular output to
-// the stdoutWriter and its debug output to the debugWriter.
-func New(buildInfo *BuildInfo, factory task.ManagerFactory, stdoutWriter, debugWriter io.Writer) *Runner {
+// New creates a new Runner. The manager.Manager will be used to perform the task
+// operations. The Runner will write its regular output to the stdoutWriter and its
+// debug output to the debugWriter.
+func New(buildInfo *BuildInfo, manager manager.Manager, stdoutWriter, debugWriter io.Writer) *Runner {
 	return &Runner{
 		buildInfo:    buildInfo,
-		factory:      factory,
+		manager:      manager,
 		stdoutWriter: stdoutWriter,
 		debugWriter:  debugWriter,
 	}
@@ -79,16 +81,10 @@ func (a *Runner) Run(args []string) error {
 			cmd.Name, args[1:], cmd.Args)
 	}
 
-	manager, err := a.factory.Create()
-	if err != nil {
-		return fmt.Errorf("Could not create manager: %s", err.Error())
-	}
-	a.debug("Manager is %s\n", manager)
+	a.debug("Manager is %s\n", a.manager)
 
-	if err := cmd.Action(cmd, args, a.stdoutWriter, manager, a.buildInfo); err != nil {
+	if err := cmd.Action(cmd, args, a.stdoutWriter, a.manager, a.buildInfo); err != nil {
 		return fmt.Errorf("Command '%s' failed: %s", args[0], err.Error())
-	} else if err := a.factory.Save(manager); err != nil {
-		return fmt.Errorf("Could not save manager: %s", err.Error())
 	}
 
 	return nil

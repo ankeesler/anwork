@@ -1,28 +1,148 @@
-// TODO: run the client tests against the real API!
 package client_test
 
 import (
 	"net/http"
 
 	"github.com/ankeesler/anwork/api"
-	apiclient "github.com/ankeesler/anwork/api/client"
-	"github.com/ankeesler/anwork/task"
+	clientpkg "github.com/ankeesler/anwork/api/client"
+	taskpkg "github.com/ankeesler/anwork/task"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
 
-var _ = Describe("Manager", func() {
+var _ = Describe("Client", func() {
 	var (
+		client taskpkg.Repo
 		server *ghttp.Server
-		client *apiclient.Client
+
+		tasks  []*taskpkg.Task
+		events []*taskpkg.Event
 	)
+
+	testBadURL := func(clientFunc func(c taskpkg.Repo) error) {
+		It("returns error on bad URL", func() {
+			c := clientpkg.New("here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd")
+			Expect(clientFunc(c)).NotTo(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(0))
+		})
+	}
+
+	testFailedRequest := func(clientFunc func(c taskpkg.Repo) error) {
+		It("returns error on failed request", func() {
+			c := clientpkg.New("asdf")
+			Expect(clientFunc(c)).NotTo(Succeed())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(0))
+		})
+	}
+
+	test4xxResponse := func(clientFunc func(c taskpkg.Repo) error) {
+		Context("on 4xx response", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWith(http.StatusMethodNotAllowed, nil),
+				))
+			})
+
+			It("returns error on 4xx response containing status", func() {
+				err := clientFunc(client)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("405 Method Not Allowed"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+	}
+
+	test5xxResponse := func(clientFunc func(c taskpkg.Repo) error) {
+		Context("on 5xx response", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWithJSONEncoded(
+						http.StatusInternalServerError,
+						api.Error{Message: "some message"},
+						http.Header{"Content-Type": {"application/json"}},
+					),
+				))
+			})
+
+			It("returns error on 5xx response containing status and message", func() {
+				err := clientFunc(client)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("500 Internal Server Error"))
+				Expect(err.Error()).To(ContainSubstring("some message"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+
+			Context("when payload is not api.Error", func() {
+				BeforeEach(func() {
+					server.SetHandler(0, ghttp.CombineHandlers(
+						ghttp.RespondWithJSONEncoded(
+							http.StatusInternalServerError,
+							"here is something",
+							http.Header{"Content-Type": {"application/json"}},
+						),
+					))
+				})
+
+				It("returns error on 5xx response containing status and ???", func() {
+					err := clientFunc(client)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("500 Internal Server Error"))
+					Expect(err.Error()).To(ContainSubstring("???"))
+
+					Expect(server.ReceivedRequests()).To(HaveLen(1))
+				})
+			})
+		})
+	}
+
+	testAllCommonFailures := func(clientFunc func(c taskpkg.Repo) error) {
+		testBadURL(clientFunc)
+		testFailedRequest(clientFunc)
+		test4xxResponse(clientFunc)
+		test5xxResponse(clientFunc)
+	}
+
+	testBad2xxResponseBody := func(clientFunc func(c taskpkg.Repo) error) {
+		Context("when the response payload is invalid", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWithJSONEncoded(
+						http.StatusOK,
+						"bad payload",
+						http.Header{"Content-Type": {"application/json"}},
+					),
+				))
+			})
+
+			It("returns an error", func() {
+				_, err := client.Tasks()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad payload"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+	}
 
 	BeforeEach(func() {
 		server = ghttp.NewServer()
-		server.Writer = GinkgoWriter
+		client = clientpkg.New(server.Addr())
 
-		client = apiclient.New(server.URL())
+		tasks = []*taskpkg.Task{
+			&taskpkg.Task{Name: "task-a", ID: 1},
+			&taskpkg.Task{Name: "task-b", ID: 2},
+			&taskpkg.Task{Name: "task-c", ID: 3},
+		}
+		events = []*taskpkg.Event{
+			&taskpkg.Event{Title: "event-a", ID: 1},
+			&taskpkg.Event{Title: "event-b", ID: 2},
+			&taskpkg.Event{Title: "event-c", ID: 3},
+		}
 	})
 
 	AfterEach(func() {
@@ -32,610 +152,392 @@ var _ = Describe("Manager", func() {
 	Describe("CreateTask", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("POST", "/api/v1/tasks"),
-				ghttp.VerifyJSONRepresenting(api.CreateRequest{Name: "a"}),
+				ghttp.VerifyRequest(http.MethodPost, "/api/v1/tasks"),
+				ghttp.VerifyJSONRepresenting(tasks[0]),
 				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-				ghttp.RespondWith(http.StatusCreated, nil),
+				ghttp.RespondWith(
+					http.StatusCreated,
+					nil,
+					http.Header{"Location": {"/api/v1/tasks/10"}}),
 			))
 		})
 
-		It("successfully can create tasks via a POST to /api/v1/tasks", func() {
-			Expect(client.CreateTask("a")).To(Succeed())
+		It("POSTs to /api/v1/tasks", func() {
+			task := tasks[0]
+			Expect(client.CreateTask(task)).To(Succeed())
+
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		Context("when the request returns a failure", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/api/v1/tasks"),
-					ghttp.VerifyJSONRepresenting(api.CreateRequest{Name: "a"}),
-					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-					ghttp.RespondWithJSONEncoded(
-						http.StatusBadRequest,
-						api.ErrorResponse{Message: "failed to create task"},
-					),
-				))
-			})
+		It("sets the provided task's ID to the newly allocated ID", func() {
+			task := tasks[0]
+			Expect(client.CreateTask(task)).To(Succeed())
 
-			It("prints the failure message", func() {
-				Expect(client.CreateTask("a")).To(MatchError("failed to create task"))
-			})
+			Expect(task.ID).To(Equal(10))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		Context("when the request returns a failure with no payload", func() {
+		Context("when the returned location is invalid", func() {
 			BeforeEach(func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/api/v1/tasks"),
-					ghttp.VerifyJSONRepresenting(api.CreateRequest{Name: "a"}),
+					ghttp.VerifyRequest(http.MethodPost, "/api/v1/tasks"),
+					ghttp.VerifyJSONRepresenting(tasks[0]),
 					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
+					ghttp.RespondWith(
+						http.StatusCreated,
+						nil,
+						http.Header{"Location": {"/api/v1/tasks/tuna"}}),
 				))
-			})
-
-			It("prints the failure message", func() {
-				Expect(client.CreateTask("a")).To(MatchError("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
 			})
 
 			It("returns an error", func() {
-				Expect(client.CreateTask("a")).NotTo(Succeed())
+				task := tasks[0]
+				err := client.CreateTask(task)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("could not parse ID from Location response header: /api/v1/tasks/tuna"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
 			})
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			return c.CreateTask(tasks[0])
+		})
+	})
+
+	Describe("Tasks", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					tasks,
+					http.Header{"Content-Type": {"application/json"}},
+				),
+			))
+		})
+
+		It("gets the tasks from the server", func() {
+			rspTasks, err := client.Tasks()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rspTasks).To(Equal(tasks))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		testBad2xxResponseBody(func(c taskpkg.Repo) error {
+			_, err := c.Tasks()
+			return err
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			_, err := c.Tasks()
+			return err
+		})
+	})
+
+	Describe("FindTaskByID", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks/10"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					tasks[0],
+					http.Header{"Content-Type": {"application/json"}},
+				),
+			))
+		})
+
+		It("finds a task by ID", func() {
+			task, err := client.FindTaskByID(10)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(task).To(Equal(tasks[0]))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("on 404 not found response", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWith(http.StatusNotFound, nil),
+				))
+			})
+
+			It("returns nil, nil", func() {
+				task, err := client.FindTaskByID(10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(task).To(BeNil())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+
+		testBad2xxResponseBody(func(c taskpkg.Repo) error {
+			_, err := c.FindTaskByID(10)
+			return err
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			_, err := c.FindTaskByID(10)
+			return err
+		})
+	})
+
+	Describe("FindTaskByName", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks", "name=task-a"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					[]*taskpkg.Task{tasks[0]},
+					http.Header{"Content-Type": {"application/json"}},
+				),
+			))
+		})
+
+		It("finds a task by name", func() {
+			task, err := client.FindTaskByName("task-a")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(task).To(Equal(tasks[0]))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("when the server responds with an empty array of tasks", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWithJSONEncoded(
+						http.StatusOK,
+						[]*taskpkg.Task{},
+						http.Header{"Content-Type": {"application/json"}}),
+				))
+			})
+
+			It("returns nil, nil", func() {
+				task, err := client.FindTaskByName("task-a")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(task).To(BeNil())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+
+		testBad2xxResponseBody(func(c taskpkg.Repo) error {
+			_, err := c.FindTaskByName("task-a")
+			return err
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			_, err := c.FindTaskByName("task-a")
+			return err
+		})
+	})
+
+	Describe("UpdateTask", func() {
+		var task taskpkg.Task
+		BeforeEach(func() {
+			task = *tasks[0]
+			task.Name = "updated-task-a"
+
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest(http.MethodPut, "/api/v1/tasks/1"),
+				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+				ghttp.VerifyJSONRepresenting(task),
+				ghttp.RespondWith(http.StatusNoContent, nil),
+			))
+		})
+
+		It("updates a task", func() {
+			err := client.UpdateTask(&task)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			return c.UpdateTask(&task)
 		})
 	})
 
 	Describe("DeleteTask", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
+				ghttp.VerifyRequest(http.MethodDelete, "/api/v1/tasks/10"),
 				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
 
-		It("successfully can delete tasks via a DELETE to /api/v1/tasks/:id", func() {
-			Expect(client.DeleteTask(1)).To(Succeed())
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-		})
-
-		Context("when the request returns no payload", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusBadRequest, nil),
-				))
-			})
-
-			It("prints the failure message", func() {
-				err := client.DeleteTask(1)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the request returns a failure", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/api/v1/tasks/1"),
-					ghttp.RespondWithJSONEncoded(
-						http.StatusBadRequest,
-						api.ErrorResponse{Message: "failed to delete task"},
-					),
-				))
-			})
-
-			It("prints the failure message", func() {
-				Expect(client.DeleteTask(1)).To(MatchError("failed to delete task"))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("returns an error", func() {
-				Expect(client.DeleteTask(1)).NotTo(Succeed())
-			})
-		})
-	})
-
-	Describe("GetTasks", func() {
-		var tasks []*task.Task
-
-		BeforeEach(func() {
-			tasks = []*task.Task{
-				&task.Task{Name: "task-a", ID: 1},
-				&task.Task{Name: "task-b", ID: 2},
-				&task.Task{Name: "task-c", ID: 3},
-			}
-			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/api/v1/tasks"),
-				ghttp.VerifyHeaderKV("Accept", "application/json"),
-				ghttp.RespondWithJSONEncoded(http.StatusOK, tasks),
-			))
-		})
-
-		It("returns the tasks via a GET to /api/v1/tasks endpoint", func() {
-			actualTasks, err := client.GetTasks()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualTasks).ToNot(BeNil())
-			Expect(actualTasks).To(Equal(tasks))
+		It("deletes a task by ID", func() {
+			tasks[0].ID = 10
+			Expect(client.DeleteTask(tasks[0])).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		Context("when the response has a weird payload", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/tasks"),
-					ghttp.VerifyHeaderKV("Accept", "application/json"),
-					ghttp.RespondWith(http.StatusOK, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTasks()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("unexpected response: "))
-			})
-		})
-
-		Context("when the response has a weird status", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/tasks"),
-					ghttp.VerifyHeaderKV("Accept", "application/json"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTasks()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response status: 500 Internal Server Error"))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTasks()
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-
-	Describe("GetTask", func() {
-		var expectedTask *task.Task
-
-		BeforeEach(func() {
-			expectedTask = &task.Task{Name: "task-a", ID: 1}
-			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/api/v1/tasks/1"),
-				ghttp.VerifyHeaderKV("Accept", "application/json"),
-				ghttp.RespondWithJSONEncoded(http.StatusOK, expectedTask),
-			))
-		})
-
-		It("returns the task via a GET to /api/v1/tasks/:id endpoint", func() {
-			actualTask, err := client.GetTask(1)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualTask).ToNot(BeNil())
-			Expect(actualTask).To(Equal(expectedTask))
-
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-		})
-
-		Context("when the response has a weird payload", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/tasks/1"),
-					ghttp.VerifyHeaderKV("Accept", "application/json"),
-					ghttp.RespondWith(http.StatusOK, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTask(1)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the response is a weird status", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/tasks/1"),
-					ghttp.VerifyHeaderKV("Accept", "application/json"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTask(1)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response status: 500 Internal Server Error"))
-			})
-		})
-
-		Context("when the task does not exist", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/tasks/1"),
-					ghttp.VerifyHeaderKV("Accept", "application/json"),
-					ghttp.RespondWith(http.StatusNotFound, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTask(1)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unknown task with ID 1"))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetTask(1)
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-
-	Describe("UpdatePriority", func() {
-		BeforeEach(func() {
-			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-				ghttp.VerifyJSONRepresenting(api.UpdateTaskRequest{Priority: 10}),
-				ghttp.RespondWith(http.StatusNoContent, nil),
-			))
-		})
-
-		It("updates the task via a PUT to /api/v1/tasks/:id endpoint", func() {
-			Expect(client.UpdatePriority(1, 10)).To(Succeed())
-
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-		})
-
-		Context("when the task does not exist", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusNotFound, nil),
-				))
-			})
-
-			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
-				err := client.UpdatePriority(1, 10)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unknown task with ID 1"))
-			})
-		})
-
-		Context("when the error payload is weird", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
-				err := client.UpdatePriority(1, 10)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("returns an error", func() {
-				Expect(client.UpdatePriority(1, 1234)).NotTo(Succeed())
-			})
-		})
-	})
-
-	Describe("UpdateState", func() {
-		BeforeEach(func() {
-			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-				ghttp.VerifyJSONRepresenting(api.UpdateTaskRequest{State: task.StateRunning}),
-				ghttp.RespondWith(http.StatusNoContent, nil),
-			))
-		})
-
-		It("updates the task via a PUT to /api/v1/tasks/:id endpoint", func() {
-			Expect(client.UpdateState(1, task.StateRunning)).To(Succeed())
-
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-		})
-
-		Context("when the task does not exist", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusNotFound, nil),
-				))
-			})
-
-			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
-				err := client.UpdateState(1, task.StateRunning)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unknown task with ID 1"))
-			})
-		})
-
-		Context("when the error payload is weird", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
-				err := client.UpdateState(1, task.StateRunning)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("...panics, I guess?", func() {
-				Expect(client.UpdateState(1, task.StateReady)).NotTo(Succeed())
-			})
-		})
-	})
-
-	Describe("UpdateName", func() {
-		BeforeEach(func() {
-			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-				ghttp.VerifyJSONRepresenting(api.UpdateTaskRequest{Name: "new-name"}),
-				ghttp.RespondWith(http.StatusNoContent, nil),
-			))
-		})
-
-		It("updates the task via a PUT to /api/v1/tasks/:id endpoint", func() {
-			Expect(client.UpdateName(1, "new-name")).To(Succeed())
-
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-		})
-
-		Context("when the task does not exist", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusNotFound, nil),
-				))
-			})
-
-			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
-				err := client.UpdateName(1, "new-name")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unknown task with ID 1"))
-			})
-		})
-
-		Context("when the error payload is weird", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/api/v1/tasks/1"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error after hitting the /api/v1/tasks/:id endpoint", func() {
-				err := client.UpdateName(1, "new-name")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("returns an error", func() {
-				Expect(client.UpdateName(1, "new-name")).NotTo(Succeed())
-			})
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			tasks[0].ID = 10
+			return c.DeleteTask(tasks[0])
 		})
 	})
 
 	Describe("CreateEvent", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("POST", "/api/v1/events"),
+				ghttp.VerifyRequest(http.MethodPost, "/api/v1/events"),
+				ghttp.VerifyJSONRepresenting(events[0]),
 				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-				ghttp.VerifyJSONRepresenting(api.AddEventRequest{
-					Title:  "event-a",
-					Type:   task.EventTypeNote,
-					Date:   12345,
-					TaskID: 5,
-				}),
-				ghttp.RespondWithJSONEncoded(http.StatusNoContent, nil),
+				ghttp.RespondWith(
+					http.StatusCreated,
+					nil,
+					http.Header{"Location": {"/api/v1/events/10"}}),
 			))
 		})
 
-		It("creates the event with the start time provided", func() {
-			Expect(client.CreateEvent("event-a", task.EventTypeNote, 12345, 5)).To(Succeed())
+		It("POSTs to /api/v1/events", func() {
+			event := events[0]
+			Expect(client.CreateEvent(event)).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		Context("when the response has a weird status", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/api/v1/events"),
-					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-					ghttp.VerifyJSONRepresenting(api.AddEventRequest{
-						Title:  "event-a",
-						Type:   task.EventTypeNote,
-						Date:   12345,
-						TaskID: 5,
-					}),
-					ghttp.RespondWithJSONEncoded(http.StatusInternalServerError, api.ErrorResponse{
-						Message: "failed to create event",
-					}),
-				))
-			})
+		It("sets the provided event's ID to the newly allocated ID", func() {
+			event := events[0]
+			Expect(client.CreateEvent(event)).To(Succeed())
 
-			It("returns the error in the payload", func() {
-				err := client.CreateEvent("event-a", task.EventTypeNote, 12345, 5)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to create event"))
-			})
+			Expect(event.ID).To(Equal(10))
 
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		Context("when the response has a weird payload", func() {
+		Context("when the returned location is invalid", func() {
 			BeforeEach(func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/api/v1/events"),
+					ghttp.VerifyRequest(http.MethodPost, "/api/v1/events"),
+					ghttp.VerifyJSONRepresenting(events[0]),
 					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
-					ghttp.VerifyJSONRepresenting(api.AddEventRequest{
-						Title:  "event-a",
-						Type:   task.EventTypeNote,
-						Date:   12345,
-						TaskID: 5,
-					}),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
+					ghttp.RespondWith(
+						http.StatusCreated,
+						nil,
+						http.Header{"Location": {"/api/v1/events/tuna"}}),
 				))
 			})
 
 			It("returns an error", func() {
-				err := client.CreateEvent("event-a", task.EventTypeNote, 12345, 5)
+				event := events[0]
+				err := client.CreateEvent(event)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Unexpected response payload: "))
+				Expect(err).To(MatchError("could not parse ID from Location response header: /api/v1/events/tuna"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
 			})
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			return c.CreateEvent(events[0])
+		})
+	})
+
+	Describe("Events", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest(http.MethodGet, "/api/v1/events"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					events,
+					http.Header{"Content-Type": {"application/json"}},
+				),
+			))
+		})
+
+		It("gets the events from the server", func() {
+			rspEvents, err := client.Events()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rspEvents).To(Equal(events))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		testBad2xxResponseBody(func(c taskpkg.Repo) error {
+			_, err := c.Events()
+			return err
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			_, err := c.Events()
+			return err
+		})
+	})
+
+	Describe("FindEventByID", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest(http.MethodGet, "/api/v1/events/10"),
+				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					events[0],
+					http.Header{"Content-Type": {"application/json"}}),
+			))
+		})
+
+		It("gets the event by ID", func() {
+			event, err := client.FindEventByID(10)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(event).To(Equal(events[0]))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		Context("on 404 not found response", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.RespondWith(http.StatusNotFound, nil),
+				))
+			})
+
+			It("returns nil, nil", func() {
+				event, err := client.FindEventByID(10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(event).To(BeNil())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+
+		testBad2xxResponseBody(func(c taskpkg.Repo) error {
+			_, err := c.FindEventByID(10)
+			return err
+		})
+
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			_, err := c.FindEventByID(10)
+			return err
 		})
 	})
 
 	Describe("DeleteEvent", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("DELETE", "/api/v1/events/12345"),
-				ghttp.RespondWithJSONEncoded(http.StatusNoContent, nil),
+				ghttp.VerifyRequest(http.MethodDelete, "/api/v1/events/10"),
+				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
 
-		It("deletes the event with the start time provided", func() {
-			Expect(client.DeleteEvent(12345)).To(Succeed())
+		It("deletes an event by ID", func() {
+			events[0].ID = 10
+			Expect(client.DeleteEvent(events[0])).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		Context("when the response has a weird status", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/api/v1/events/12345"),
-					ghttp.RespondWithJSONEncoded(http.StatusInternalServerError, api.ErrorResponse{Message: "failed to delete event"}),
-				))
-			})
-
-			It("returns the error in the payload", func() {
-				Expect(client.DeleteEvent(12345)).To(MatchError("failed to delete event"))
-			})
-
-		})
-
-		Context("when the response has a weird payload", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/api/v1/events/12345"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				err := client.DeleteEvent(12345)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Unexpected response payload: "))
-			})
-
-		})
-	})
-
-	Describe("GetEvents", func() {
-		var events []*task.Event
-
-		BeforeEach(func() {
-			events = []*task.Event{
-				&task.Event{Title: "event-a", TaskID: 1},
-				&task.Event{Title: "event-b", TaskID: 2},
-				&task.Event{Title: "event-c", TaskID: 3},
-			}
-			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/api/v1/events"),
-				ghttp.VerifyHeaderKV("Accept", "application/json"),
-				ghttp.RespondWithJSONEncoded(http.StatusOK, events),
-			))
-		})
-
-		It("gets all events via a GET to the /api/v1/events endpoint", func() {
-			actualEvents, err := client.GetEvents()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualEvents).To(Equal(events))
-
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-		})
-
-		Context("when the response payload is bogus", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/events"),
-					ghttp.RespondWith(http.StatusOK, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetEvents()
-				Expect(err).To(MatchError("Unexpected response payload: "))
-			})
-		})
-
-		Context("when the response status is wrong", func() {
-			BeforeEach(func() {
-				server.SetHandler(0, ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/v1/events"),
-					ghttp.RespondWith(http.StatusInternalServerError, nil),
-				))
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetEvents()
-				Expect(err).To(MatchError("Unexpected response status: 500 Internal Server Error"))
-			})
-		})
-
-		Context("when the request fails", func() {
-			BeforeEach(func() {
-				server.Close()
-			})
-
-			It("returns an error", func() {
-				_, err := client.GetEvents()
-				Expect(err).To(HaveOccurred())
-			})
+		testAllCommonFailures(func(c taskpkg.Repo) error {
+			events[0].ID = 10
+			return c.DeleteEvent(events[0])
 		})
 	})
 })

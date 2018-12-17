@@ -3,9 +3,9 @@ package runner_test
 import (
 	"errors"
 
+	"github.com/ankeesler/anwork/manager/managerfakes"
 	"github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task"
-	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -14,16 +14,12 @@ import (
 var _ = Describe("AnworkRunner", func() {
 	var (
 		r                         *runner.Runner
-		factory                   *taskfakes.FakeManagerFactory
+		manager                   *managerfakes.FakeManager
 		stdoutWriter, debugWriter *gbytes.Buffer
-		manager                   *taskfakes.FakeManager
 	)
 
 	BeforeEach(func() {
-		manager = &taskfakes.FakeManager{}
-
-		factory = &taskfakes.FakeManagerFactory{}
-		factory.CreateReturnsOnCall(0, manager, nil)
+		manager = &managerfakes.FakeManager{}
 
 		stdoutWriter = gbytes.NewBuffer()
 		debugWriter = gbytes.NewBuffer()
@@ -32,33 +28,14 @@ var _ = Describe("AnworkRunner", func() {
 			Hash: "whatever",
 			Date: "don't care",
 		}
-		r = runner.New(bi, factory, stdoutWriter, debugWriter)
+		r = runner.New(bi, manager, stdoutWriter, debugWriter)
 	})
 
 	Context("when a valid command is issued and returns successfully", func() {
-		It("tells the factory to save the manager", func() {
-			err := r.Run([]string{"create", "task-a"})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(factory.SaveCallCount()).To(Equal(1))
-			Expect(factory.SaveArgsForCall(0)).To(Equal(manager))
-		})
-
 		It("writes a helpful debug message", func() {
 			err := r.Run([]string{"create", "task-a"})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(debugWriter).To(gbytes.Say("Manager is"))
-		})
-
-		Context("when the factory fails to save the manager", func() {
-			BeforeEach(func() {
-				factory.SaveReturnsOnCall(0, errors.New("some error"))
-			})
-
-			It("returns a helpful error message", func() {
-				err := r.Run([]string{"create", "task-a"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Could not save manager: some error"))
-			})
 		})
 	})
 
@@ -74,7 +51,7 @@ var _ = Describe("AnworkRunner", func() {
 
 	Context("when a command takes an optional argument", func() {
 		BeforeEach(func() {
-			manager.FindByNameReturnsOnCall(0, &task.Task{})
+			manager.FindByNameReturnsOnCall(0, &task.Task{}, nil)
 		})
 
 		It("allows the optional argument not to be passed", func() {
@@ -111,18 +88,6 @@ var _ = Describe("AnworkRunner", func() {
 		})
 	})
 
-	Context("when the factory fails to create a manager", func() {
-		BeforeEach(func() {
-			factory.CreateReturnsOnCall(0, nil, errors.New("some error"))
-		})
-
-		It("returns a helpful error", func() {
-			err := r.Run([]string{"create", "task-a"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Could not create manager: some error"))
-		})
-	})
-
 	Context("when shortcut commands are passed", func() {
 		Context("when the shortcut command is invalid", func() {
 			It("fails with an unknown command error", func() {
@@ -133,7 +98,7 @@ var _ = Describe("AnworkRunner", func() {
 		})
 		Context("when the shortcut command is valid", func() {
 			It("runs the commands as expected", func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "some-task"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "some-task"}, nil)
 				err := r.Run([]string{"sr", "some-task"})
 				Expect(err).NotTo(HaveOccurred())
 			})

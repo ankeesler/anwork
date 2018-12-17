@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/ankeesler/anwork/manager/managerfakes"
 	"github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task"
-	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -17,16 +17,12 @@ import (
 var _ = Describe("Command", func() {
 	var (
 		r                         *runner.Runner
-		factory                   *taskfakes.FakeManagerFactory
 		stdoutWriter, debugWriter *gbytes.Buffer
-		manager                   *taskfakes.FakeManager
+		manager                   *managerfakes.FakeManager
 	)
 
 	BeforeEach(func() {
-		manager = &taskfakes.FakeManager{}
-
-		factory = &taskfakes.FakeManagerFactory{}
-		factory.CreateReturns(manager, nil)
+		manager = &managerfakes.FakeManager{}
 
 		stdoutWriter = gbytes.NewBuffer()
 		debugWriter = gbytes.NewBuffer()
@@ -35,7 +31,7 @@ var _ = Describe("Command", func() {
 			Hash: "abc123",
 			Date: "February 22, 1992",
 		}
-		r = runner.New(bi, factory, stdoutWriter, debugWriter)
+		r = runner.New(bi, manager, stdoutWriter, debugWriter)
 	})
 
 	Describe("version", func() {
@@ -137,7 +133,7 @@ var _ = Describe("Command", func() {
 					Date:   tenDaysAgo.Unix(),
 					TaskID: 10,
 				},
-			})
+			}, nil)
 		})
 
 		It("shows the tasks that have been completed in the provided number of days", func() {
@@ -201,7 +197,7 @@ var _ = Describe("Command", func() {
 		Context("when the manager successfully deletes the task", func() {
 			BeforeEach(func() {
 				manager.DeleteReturnsOnCall(0, nil)
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("successfully deletes existing tasks", func() {
@@ -211,10 +207,23 @@ var _ = Describe("Command", func() {
 			})
 		})
 
+		Context("when the manager fails to find the task", func() {
+			BeforeEach(func() {
+				manager.DeleteReturnsOnCall(0, nil)
+				manager.FindByNameReturnsOnCall(0, nil, errors.New("some find error"))
+			})
+
+			It("returns the error", func() {
+				err := r.Run([]string{"delete", "task-a"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some find error"))
+			})
+		})
+
 		Context("when a task spec is passed", func() {
 			BeforeEach(func() {
 				manager.DeleteReturnsOnCall(0, nil)
-				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("parses the task spec and deletes the correct task", func() {
@@ -233,7 +242,7 @@ var _ = Describe("Command", func() {
 
 			Context("when the task spec is not a valid task ID", func() {
 				BeforeEach(func() {
-					manager.FindByIDReturnsOnCall(0, nil)
+					manager.FindByIDReturnsOnCall(0, nil, nil)
 				})
 
 				It("returns a helpful error", func() {
@@ -247,7 +256,7 @@ var _ = Describe("Command", func() {
 		Context("when the manager fails to delete the task", func() {
 			BeforeEach(func() {
 				manager.DeleteReturnsOnCall(0, errors.New("some delete error"))
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("returns the error that manager returned", func() {
@@ -273,7 +282,7 @@ var _ = Describe("Command", func() {
 					&task.Task{Name: "task-b"},
 					&task.Task{Name: "task-c"},
 				}
-				manager.TasksReturnsOnCall(0, tasks)
+				manager.TasksReturnsOnCall(0, tasks, nil)
 			})
 
 			Context("when the manager successfully deletes each task", func() {
@@ -311,7 +320,18 @@ var _ = Describe("Command", func() {
 					Expect(manager.DeleteArgsForCall(2)).To(Equal("task-c"))
 				})
 			})
+		})
 
+		Context("when the manager fails to get the tasks", func() {
+			BeforeEach(func() {
+				manager.TasksReturnsOnCall(0, nil, errors.New("some error"))
+			})
+
+			It("returns the error", func() {
+				err := r.Run([]string{"delete-all"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some error"))
+			})
 		})
 	})
 
@@ -356,14 +376,14 @@ var _ = Describe("Command", func() {
 						State: task.StateFinished,
 					},
 				}
-				manager.TasksReturnsOnCall(0, tasks)
-				manager.FindByNameStub = func(name string) *task.Task {
+				manager.TasksReturnsOnCall(0, tasks, nil)
+				manager.FindByNameStub = func(name string) (*task.Task, error) {
 					for _, t := range tasks {
 						if t.Name == name {
-							return t
+							return t, nil
 						}
 					}
-					return nil
+					return nil, nil
 				}
 			})
 			It("just prints out the task underneath their states in order", func() {
@@ -401,6 +421,7 @@ State: READY`
 						State:    task.StateReady,
 						Priority: 3,
 					},
+					nil,
 				)
 			})
 
@@ -425,7 +446,7 @@ State: READY`
 
 			Context("when the task spec is not a valid task ID", func() {
 				BeforeEach(func() {
-					manager.FindByIDReturnsOnCall(0, nil)
+					manager.FindByIDReturnsOnCall(0, nil, nil)
 				})
 
 				It("returns a helpful error", func() {
@@ -434,13 +455,37 @@ State: READY`
 					Expect(err.Error()).To(ContainSubstring("unknown task ID in task spec: 1"))
 				})
 			})
+
+			Context("when we fail to get the task", func() {
+				BeforeEach(func() {
+					manager.FindByIDReturnsOnCall(0, nil, errors.New("some find task"))
+				})
+
+				It("returns a helpful error", func() {
+					err := r.Run([]string{"show", "@1"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("some find task"))
+				})
+			})
+		})
+
+		Context("when tasks fails", func() {
+			BeforeEach(func() {
+				manager.TasksReturnsOnCall(0, nil, errors.New("some error"))
+			})
+
+			It("it returns the error", func() {
+				err := r.Run([]string{"show"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some error"))
+			})
 		})
 	})
 
 	Describe("note", func() {
 		Context("when the task exists", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("adds a note to the task", func() {
@@ -452,9 +497,21 @@ State: READY`
 			})
 		})
 
+		Context("when we fail to find the task", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, nil, errors.New("some find error"))
+			})
+
+			It("returns the error", func() {
+				err := r.Run([]string{"note", "task-a", "tuna"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some find error"))
+			})
+		})
+
 		Context("when the manager fails to add a note", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 				manager.NoteReturnsOnCall(0, errors.New("task does not exist"))
 			})
 
@@ -467,7 +524,7 @@ State: READY`
 
 		Context("when a task spec is passed", func() {
 			BeforeEach(func() {
-				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("parses the task spec and adds a note to the correct task", func() {
@@ -490,7 +547,7 @@ State: READY`
 
 			Context("when the task spec is not a valid task ID", func() {
 				BeforeEach(func() {
-					manager.FindByIDReturnsOnCall(0, nil)
+					manager.FindByIDReturnsOnCall(0, nil, nil)
 				})
 
 				It("returns a helpful error", func() {
@@ -505,7 +562,7 @@ State: READY`
 	Describe("set-priority", func() {
 		Context("when the task exists", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("sets the priority on the task", func() {
@@ -517,9 +574,21 @@ State: READY`
 			})
 		})
 
+		Context("when we fail to find the task", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, nil, errors.New("some find error"))
+			})
+
+			It("returns the error", func() {
+				err := r.Run([]string{"set-priority", "task-a", "10"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some find error"))
+			})
+		})
+
 		Context("when the manager fails to set the priority", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 				manager.SetPriorityReturnsOnCall(0, errors.New("task does not exist"))
 			})
 
@@ -532,7 +601,7 @@ State: READY`
 
 		Context("when the second argument is not a number", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("displays the error to the user", func() {
@@ -544,7 +613,7 @@ State: READY`
 
 		Context("when a task spec is passed", func() {
 			BeforeEach(func() {
-				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("parses the task spec and sets the priority on the task", func() {
@@ -567,7 +636,7 @@ State: READY`
 
 			Context("when the task spec is not a valid task ID", func() {
 				BeforeEach(func() {
-					manager.FindByIDReturnsOnCall(0, nil)
+					manager.FindByIDReturnsOnCall(0, nil, nil)
 				})
 
 				It("returns a helpful error", func() {
@@ -581,7 +650,7 @@ State: READY`
 
 	Describe("set-<state>", func() {
 		BeforeEach(func() {
-			manager.FindByNameReturns(&task.Task{Name: "task-a"})
+			manager.FindByNameReturns(&task.Task{Name: "task-a"}, nil)
 		})
 
 		It("sets the state correctly for all valid states", func() {
@@ -602,6 +671,18 @@ State: READY`
 			}
 		})
 
+		Context("when we fail to find the task", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, nil, errors.New("some find error"))
+			})
+
+			It("returns the error", func() {
+				err := r.Run([]string{"set-running", "task-a"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some find error"))
+			})
+		})
+
 		Context("when manager.SetState returns an error", func() {
 			BeforeEach(func() {
 				manager.SetStateReturns(errors.New("failed to set state"))
@@ -616,7 +697,7 @@ State: READY`
 
 		Context("when the task does not exist", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturns(nil)
+				manager.FindByNameReturns(nil, nil)
 			})
 
 			It("prints the error to the user", func() {
@@ -628,7 +709,7 @@ State: READY`
 
 		Context("when a task spec is passed", func() {
 			BeforeEach(func() {
-				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"})
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a"}, nil)
 			})
 
 			It("parses the task spec and sets the state on the task", func() {
@@ -638,7 +719,7 @@ State: READY`
 
 				name, state := manager.SetStateArgsForCall(0)
 				Expect(name).To(Equal("task-a"))
-				Expect(state).To(Equal(task.StateRunning))
+				Expect(state).To(Equal(task.State(task.StateRunning)))
 			})
 
 			Context("when the task spec is totally bogus", func() {
@@ -651,7 +732,7 @@ State: READY`
 
 			Context("when the task spec is not a valid task ID", func() {
 				BeforeEach(func() {
-					manager.FindByIDReturnsOnCall(0, nil)
+					manager.FindByIDReturnsOnCall(0, nil, nil)
 				})
 
 				It("returns a helpful error", func() {
@@ -682,7 +763,9 @@ State: READY`
 					TaskID: 5,
 					Title:  "event-d",
 				},
-			})
+			},
+				nil,
+			)
 		})
 
 		Context("when no task name is passed", func() {
@@ -695,13 +778,27 @@ State: READY`
 			})
 		})
 
+		Context("when events fails", func() {
+			BeforeEach(func() {
+				manager.EventsReturnsOnCall(0, nil, errors.New("some error"))
+			})
+
+			It("returns the error", func() {
+				err := r.Run([]string{"journal"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some error"))
+			})
+		})
+
 		Context("when task name is passed", func() {
 
 			Context("when the task does exist", func() {
 				BeforeEach(func() {
 					manager.FindByNameReturnsOnCall(0, &task.Task{
 						ID: 1,
-					})
+					},
+						nil,
+					)
 				})
 
 				It("prints the journal entries associated with that task", func() {
@@ -718,11 +815,23 @@ State: READY`
 					Expect(err.Error()).To(ContainSubstring("unknown task: not-a-real-task"))
 				})
 			})
+
+			Context("when we fail to find the task", func() {
+				BeforeEach(func() {
+					manager.FindByNameReturnsOnCall(0, nil, errors.New("some find error"))
+				})
+
+				It("prints an error", func() {
+					err := r.Run([]string{"journal", "not-a-real-task"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("some find error"))
+				})
+			})
 		})
 
 		Context("when a task spec is passed", func() {
 			BeforeEach(func() {
-				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a", ID: 1})
+				manager.FindByIDReturnsOnCall(0, &task.Task{Name: "task-a", ID: 1}, nil)
 				manager.EventsReturnsOnCall(0, []*task.Event{
 					&task.Event{
 						TaskID: 1,
@@ -740,7 +849,9 @@ State: READY`
 						TaskID: 5,
 						Title:  "event-d",
 					},
-				})
+				},
+					nil,
+				)
 			})
 
 			It("parses the task spec and displays the journal", func() {
@@ -761,7 +872,7 @@ State: READY`
 
 			Context("when the task spec is not a valid task ID", func() {
 				BeforeEach(func() {
-					manager.FindByIDReturnsOnCall(0, nil)
+					manager.FindByIDReturnsOnCall(0, nil, nil)
 				})
 
 				It("returns a helpful error", func() {
@@ -788,7 +899,7 @@ State: READY`
 					&task.Task{Name: "task-b", State: task.StateBlocked},
 					&task.Task{Name: "task-c", State: task.StateFinished},
 				}
-				manager.TasksReturnsOnCall(0, tasks)
+				manager.TasksReturnsOnCall(0, tasks, nil)
 			})
 
 			Context("when the manager deletes stuff happily", func() {
@@ -827,7 +938,7 @@ State: READY`
 	Describe("rename", func() {
 		Context("the manager succeeds", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a", State: task.StateFinished})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a", State: task.StateFinished}, nil)
 				manager.RenameReturnsOnCall(0, nil)
 			})
 
@@ -846,7 +957,7 @@ State: READY`
 
 		Context("when the manager fails", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a", State: task.StateFinished})
+				manager.FindByNameReturnsOnCall(0, &task.Task{Name: "task-a", State: task.StateFinished}, nil)
 				manager.RenameReturnsOnCall(0, errors.New("some rename error"))
 			})
 
@@ -857,9 +968,21 @@ State: READY`
 			})
 		})
 
+		Context("when we fail to find the task", func() {
+			BeforeEach(func() {
+				manager.FindByNameReturnsOnCall(0, nil, errors.New("some find error"))
+			})
+
+			It("returns an error", func() {
+				err := r.Run([]string{"rename", "task-a", "task-d"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some find error"))
+			})
+		})
+
 		Context("when the from task is invalid", func() {
 			BeforeEach(func() {
-				manager.FindByNameReturnsOnCall(0, nil)
+				manager.FindByNameReturnsOnCall(0, nil, nil)
 			})
 
 			It("calls delete on each finished task", func() {

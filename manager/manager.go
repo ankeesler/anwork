@@ -7,7 +7,8 @@ import (
 	"sort"
 
 	"code.cloudfoundry.org/clock"
-	"github.com/ankeesler/anwork/task2"
+	"github.com/ankeesler/anwork/task"
+	taskpkg "github.com/ankeesler/anwork/task"
 	multierror "github.com/hashicorp/go-multierror"
 )
 
@@ -23,9 +24,9 @@ type Manager interface {
 	Delete(name string) error
 
 	// Find a task with an ID.
-	FindByID(id int) (*task2.Task, error)
+	FindByID(id int) (*taskpkg.Task, error)
 	// Find a task with a name.
-	FindByName(name string) (*task2.Task, error)
+	FindByName(name string) (*taskpkg.Task, error)
 
 	// Get all of the Tasks contained in this manager, ordered from highest priority (lowest integer
 	// value) to lowest priority (highest integer value).
@@ -33,17 +34,17 @@ type Manager interface {
 	// When multiple tasks have the same priority, the Task's will be ordered by their (unique) ID in
 	// ascending order. This means that the older Task's will come first. This is a conscious decision.
 	// The Task's that have been around the longest are assumed to need to be completed first.
-	Tasks() ([]*task2.Task, error)
+	Tasks() ([]*taskpkg.Task, error)
 
 	// Add a note for a task.
 	Note(name, note string) error
 	// Set the priority of a task.
 	SetPriority(name string, priority int) error
 	// Set the state of a task.
-	SetState(name string, state task2.State) error
+	SetState(name string, state taskpkg.State) error
 
 	// Get the events associated with this manager.
-	Events() ([]*task2.Event, error)
+	Events() ([]*taskpkg.Event, error)
 
 	// Perform a factory reset, e.g., make this manager new again.
 	Reset() error
@@ -54,20 +55,20 @@ type Manager interface {
 
 const defaultPriority = 10
 
-const defaultState = task2.StateReady
+const defaultState = taskpkg.StateReady
 
 type manager struct {
-	repo  task2.Repo
+	repo  taskpkg.Repo
 	clock clock.Clock
 }
 
 // New creates a new Manager that will use a task.Repo for CRUD task.Task operations.
-func New(repo task2.Repo, clock clock.Clock) Manager {
+func New(repo taskpkg.Repo, clock clock.Clock) Manager {
 	return &manager{repo: repo, clock: clock}
 }
 
 func (m *manager) Create(name string) error {
-	task := task2.Task{
+	task := taskpkg.Task{
 		Name:      name,
 		StartDate: m.clock.Now().Unix(),
 		Priority:  defaultPriority,
@@ -77,38 +78,38 @@ func (m *manager) Create(name string) error {
 		return err
 	}
 
-	return m.repo.CreateEvent(&task2.Event{
+	return m.repo.CreateEvent(&taskpkg.Event{
 		Title:  fmt.Sprintf("Created task '%s'", name),
 		Date:   m.clock.Now().Unix(),
-		Type:   task2.EventTypeCreate,
+		Type:   taskpkg.EventTypeCreate,
 		TaskID: task.ID,
 	})
 }
 
 func (m *manager) Delete(name string) error {
-	return m.doWithTask(name, func(task *task2.Task) error {
+	return m.doWithTask(name, func(task *taskpkg.Task) error {
 		if err := m.repo.DeleteTask(task); err != nil {
 			return err
 		}
 
-		return m.repo.CreateEvent(&task2.Event{
+		return m.repo.CreateEvent(&taskpkg.Event{
 			Title:  fmt.Sprintf("Deleted task '%s'", name),
 			Date:   m.clock.Now().Unix(),
-			Type:   task2.EventTypeDelete,
+			Type:   taskpkg.EventTypeDelete,
 			TaskID: task.ID,
 		})
 	})
 }
 
-func (m *manager) FindByID(id int) (*task2.Task, error) {
+func (m *manager) FindByID(id int) (*taskpkg.Task, error) {
 	return m.repo.FindTaskByID(id)
 }
 
-func (m *manager) FindByName(name string) (*task2.Task, error) {
+func (m *manager) FindByName(name string) (*taskpkg.Task, error) {
 	return m.repo.FindTaskByName(name)
 }
 
-func (m *manager) Tasks() ([]*task2.Task, error) {
+func (m *manager) Tasks() ([]*taskpkg.Task, error) {
 	tasks, err := m.repo.Tasks()
 	if err != nil {
 		return nil, err
@@ -126,52 +127,52 @@ func (m *manager) Tasks() ([]*task2.Task, error) {
 }
 
 func (m *manager) Note(name, note string) error {
-	return m.doWithTask(name, func(task *task2.Task) error {
-		return m.repo.CreateEvent(&task2.Event{
+	return m.doWithTask(name, func(task *taskpkg.Task) error {
+		return m.repo.CreateEvent(&taskpkg.Event{
 			Title:  fmt.Sprintf("Note added to task '%s': %s", name, note),
 			Date:   m.clock.Now().Unix(),
-			Type:   task2.EventTypeNote,
+			Type:   taskpkg.EventTypeNote,
 			TaskID: task.ID,
 		})
 	})
 }
 
 func (m *manager) SetPriority(name string, priority int) error {
-	return m.doWithTask(name, func(task *task2.Task) error {
+	return m.doWithTask(name, func(task *taskpkg.Task) error {
 		oldPriority := task.Priority
 		task.Priority = priority
 		if err := m.repo.UpdateTask(task); err != nil {
 			return err
 		}
 
-		return m.repo.CreateEvent(&task2.Event{
+		return m.repo.CreateEvent(&taskpkg.Event{
 			Title: fmt.Sprintf("Set priority on task '%s' from %d to %d",
 				name, oldPriority, priority),
 			Date:   m.clock.Now().Unix(),
-			Type:   task2.EventTypeSetPriority,
+			Type:   taskpkg.EventTypeSetPriority,
 			TaskID: task.ID,
 		})
 	})
 }
 
-func (m *manager) SetState(name string, state task2.State) error {
-	return m.doWithTask(name, func(task *task2.Task) error {
+func (m *manager) SetState(name string, state task.State) error {
+	return m.doWithTask(name, func(task *task.Task) error {
 		oldState := task.State
 		task.State = state
 		if err := m.repo.UpdateTask(task); err != nil {
 			return err
 		}
 
-		return m.repo.CreateEvent(&task2.Event{
+		return m.repo.CreateEvent(&taskpkg.Event{
 			Title:  fmt.Sprintf("Set state on task '%s' from %s to %s", name, oldState, state),
 			Date:   m.clock.Now().Unix(),
-			Type:   task2.EventTypeSetState,
+			Type:   taskpkg.EventTypeSetState,
 			TaskID: task.ID,
 		})
 	})
 }
 
-func (m *manager) Events() ([]*task2.Event, error) {
+func (m *manager) Events() ([]*task.Event, error) {
 	return m.repo.Events()
 }
 
@@ -201,13 +202,13 @@ func (m *manager) Reset() error {
 }
 
 func (m *manager) Rename(from, to string) error {
-	return m.doWithTask(from, func(task *task2.Task) error {
+	return m.doWithTask(from, func(task *task.Task) error {
 		task.Name = to
 		return m.repo.UpdateTask(task)
 	})
 }
 
-func (m *manager) doWithTask(name string, do func(*task2.Task) error) error {
+func (m *manager) doWithTask(name string, do func(*task.Task) error) error {
 	task, err := m.repo.FindTaskByName(name)
 	if err != nil {
 		return err

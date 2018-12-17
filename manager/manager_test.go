@@ -6,22 +6,22 @@ import (
 
 	"code.cloudfoundry.org/clock/fakeclock"
 	managerpkg "github.com/ankeesler/anwork/manager"
-	"github.com/ankeesler/anwork/task2"
-	"github.com/ankeesler/anwork/task2/task2fakes"
+	taskpkg "github.com/ankeesler/anwork/task"
+	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Manager", func() {
 	var (
-		repo    *task2fakes.FakeRepo
+		repo    *taskfakes.FakeRepo
 		now     time.Time
 		clock   *fakeclock.FakeClock
 		manager managerpkg.Manager
 	)
 
 	BeforeEach(func() {
-		repo = &task2fakes.FakeRepo{}
+		repo = &taskfakes.FakeRepo{}
 
 		now = time.Now()
 		clock = fakeclock.NewFakeClock(now)
@@ -31,7 +31,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		BeforeEach(func() {
-			repo.CreateTaskStub = func(task *task2.Task) error {
+			repo.CreateTaskStub = func(task *taskpkg.Task) error {
 				task.ID = 10
 				return nil
 			}
@@ -41,11 +41,11 @@ var _ = Describe("Manager", func() {
 			Expect(manager.Create("task-a")).To(Succeed())
 
 			Expect(repo.CreateTaskCallCount()).To(Equal(1))
-			Expect(*repo.CreateTaskArgsForCall(0)).To(Equal(task2.Task{
+			Expect(*repo.CreateTaskArgsForCall(0)).To(Equal(taskpkg.Task{
 				Name:      "task-a",
 				StartDate: now.Unix(),
-				Priority:  10,               // default
-				State:     task2.StateReady, // default
+				Priority:  10,                 // default
+				State:     taskpkg.StateReady, // default
 				ID:        10,
 			}))
 		})
@@ -54,10 +54,10 @@ var _ = Describe("Manager", func() {
 			Expect(manager.Create("task-a")).To(Succeed())
 
 			Expect(repo.CreateEventCallCount()).To(Equal(1))
-			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&taskpkg.Event{
 				Title:  "Created task 'task-a'",
 				Date:   now.Unix(),
-				Type:   task2.EventTypeCreate,
+				Type:   taskpkg.EventTypeCreate,
 				TaskID: 10,
 			}))
 		})
@@ -74,7 +74,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Delete", func() {
 		BeforeEach(func() {
-			repo.FindTaskByNameReturnsOnCall(0, &task2.Task{Name: "task-a", ID: 10}, nil)
+			repo.FindTaskByNameReturnsOnCall(0, &taskpkg.Task{Name: "task-a", ID: 10}, nil)
 		})
 
 		It("find the task and then deletes it", func() {
@@ -84,7 +84,7 @@ var _ = Describe("Manager", func() {
 			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
 
 			Expect(repo.DeleteTaskCallCount()).To(Equal(1))
-			Expect(repo.DeleteTaskArgsForCall(0)).To(Equal(&task2.Task{
+			Expect(repo.DeleteTaskArgsForCall(0)).To(Equal(&taskpkg.Task{
 				Name: "task-a",
 				ID:   10,
 			}))
@@ -94,10 +94,10 @@ var _ = Describe("Manager", func() {
 			Expect(manager.Delete("task-a")).To(Succeed())
 
 			Expect(repo.CreateEventCallCount()).To(Equal(1))
-			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&taskpkg.Event{
 				Title:  "Deleted task 'task-a'",
 				Date:   now.Unix(),
-				Type:   task2.EventTypeDelete,
+				Type:   taskpkg.EventTypeDelete,
 				TaskID: 10,
 			}))
 		})
@@ -140,9 +140,9 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("FindByID", func() {
-		var task *task2.Task
+		var task *taskpkg.Task
 		BeforeEach(func() {
-			task = &task2.Task{Name: "task-a"}
+			task = &taskpkg.Task{Name: "task-a"}
 			repo.FindTaskByIDReturnsOnCall(0, task, nil)
 		})
 
@@ -181,9 +181,9 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("FindByName", func() {
-		var task *task2.Task
+		var task *taskpkg.Task
 		BeforeEach(func() {
-			task = &task2.Task{Name: "task-a"}
+			task = &taskpkg.Task{Name: "task-a"}
 			repo.FindTaskByNameReturnsOnCall(0, task, nil)
 		})
 
@@ -222,12 +222,12 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("Tasks", func() {
-		var tasks []*task2.Task
+		var tasks []*taskpkg.Task
 		BeforeEach(func() {
-			tasks = []*task2.Task{
-				&task2.Task{Name: "task-a"},
-				&task2.Task{Name: "task-b"},
-				&task2.Task{Name: "task-c"},
+			tasks = []*taskpkg.Task{
+				&taskpkg.Task{Name: "task-a"},
+				&taskpkg.Task{Name: "task-b"},
+				&taskpkg.Task{Name: "task-c"},
 			}
 			repo.TasksReturnsOnCall(0, tasks, nil)
 		})
@@ -254,13 +254,13 @@ var _ = Describe("Manager", func() {
 
 		Context("when the priorities change", func() {
 			BeforeEach(func() {
-				tasks = []*task2.Task{
-					&task2.Task{Name: "task-a", Priority: 40, ID: 1},
-					&task2.Task{Name: "task-b", Priority: 30, ID: 2},
-					&task2.Task{Name: "task-c", Priority: 20, ID: 3},
-					&task2.Task{Name: "task-d", Priority: 30, ID: 4},
+				tasks = []*taskpkg.Task{
+					&taskpkg.Task{Name: "task-a", Priority: 40, ID: 1},
+					&taskpkg.Task{Name: "task-b", Priority: 30, ID: 2},
+					&taskpkg.Task{Name: "task-c", Priority: 20, ID: 3},
+					&taskpkg.Task{Name: "task-d", Priority: 30, ID: 4},
 				}
-				tasksCopied := make([]*task2.Task, len(tasks))
+				tasksCopied := make([]*taskpkg.Task, len(tasks))
 				copy(tasksCopied, tasks)
 				repo.TasksReturnsOnCall(0, tasksCopied, nil)
 			})
@@ -279,7 +279,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Note", func() {
 		BeforeEach(func() {
-			repo.FindTaskByNameReturnsOnCall(0, &task2.Task{Name: "task-a", ID: 10}, nil)
+			repo.FindTaskByNameReturnsOnCall(0, &taskpkg.Task{Name: "task-a", ID: 10}, nil)
 		})
 
 		It("creates an event with type note", func() {
@@ -289,10 +289,10 @@ var _ = Describe("Manager", func() {
 			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
 
 			Expect(repo.CreateEventCallCount()).To(Equal(1))
-			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&taskpkg.Event{
 				Title:  "Note added to task 'task-a': here is a note",
 				Date:   clock.Now().Unix(),
-				Type:   task2.EventTypeNote,
+				Type:   taskpkg.EventTypeNote,
 				TaskID: 10,
 			}))
 		})
@@ -337,11 +337,11 @@ var _ = Describe("Manager", func() {
 	Describe("SetPriority", func() {
 		BeforeEach(func() {
 			repo.FindTaskByNameReturnsOnCall(0,
-				&task2.Task{
+				&taskpkg.Task{
 					Name:      "task-a",
 					ID:        10,
 					Priority:  20,
-					State:     task2.StateRunning,
+					State:     taskpkg.StateRunning,
 					StartDate: 123,
 				},
 				nil)
@@ -354,19 +354,19 @@ var _ = Describe("Manager", func() {
 			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
 
 			Expect(repo.CreateEventCallCount()).To(Equal(1))
-			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&taskpkg.Event{
 				Title:  "Set priority on task 'task-a' from 20 to 30",
 				Date:   clock.Now().Unix(),
-				Type:   task2.EventTypeSetPriority,
+				Type:   taskpkg.EventTypeSetPriority,
 				TaskID: 10,
 			}))
 
 			Expect(repo.UpdateTaskCallCount()).To(Equal(1))
-			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&task2.Task{
+			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&taskpkg.Task{
 				Name:      "task-a",
 				ID:        10,
 				Priority:  30,
-				State:     task2.StateRunning,
+				State:     taskpkg.StateRunning,
 				StartDate: 123,
 			}))
 		})
@@ -423,36 +423,36 @@ var _ = Describe("Manager", func() {
 	Describe("SetState", func() {
 		BeforeEach(func() {
 			repo.FindTaskByNameReturnsOnCall(0,
-				&task2.Task{
+				&taskpkg.Task{
 					Name:      "task-a",
 					ID:        10,
 					Priority:  20,
-					State:     task2.StateRunning,
+					State:     taskpkg.StateRunning,
 					StartDate: 123,
 				},
 				nil)
 		})
 
 		It("updates the task and adds an event saying the state was updated", func() {
-			Expect(manager.SetState("task-a", task2.StateBlocked)).To(Succeed())
+			Expect(manager.SetState("task-a", taskpkg.StateBlocked)).To(Succeed())
 
 			Expect(repo.FindTaskByNameCallCount()).To(Equal(1))
 			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
 
 			Expect(repo.CreateEventCallCount()).To(Equal(1))
-			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&task2.Event{
+			Expect(repo.CreateEventArgsForCall(0)).To(Equal(&taskpkg.Event{
 				Title:  "Set state on task 'task-a' from Running to Blocked",
 				Date:   clock.Now().Unix(),
-				Type:   task2.EventTypeSetState,
+				Type:   taskpkg.EventTypeSetState,
 				TaskID: 10,
 			}))
 
 			Expect(repo.UpdateTaskCallCount()).To(Equal(1))
-			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&task2.Task{
+			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&taskpkg.Task{
 				Name:      "task-a",
 				ID:        10,
 				Priority:  20,
-				State:     task2.StateBlocked,
+				State:     taskpkg.StateBlocked,
 				StartDate: 123,
 			}))
 		})
@@ -463,7 +463,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the error", func() {
-				err := manager.SetState("task-a", task2.StateBlocked)
+				err := manager.SetState("task-a", taskpkg.StateBlocked)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("some find by name error"))
 			})
@@ -475,7 +475,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the error", func() {
-				err := manager.SetState("task-a", task2.StateBlocked)
+				err := manager.SetState("task-a", taskpkg.StateBlocked)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("unknown task with name 'task-a'"))
 			})
@@ -487,7 +487,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the error", func() {
-				err := manager.SetState("task-a", task2.StateBlocked)
+				err := manager.SetState("task-a", taskpkg.StateBlocked)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("some update task error"))
 			})
@@ -499,7 +499,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the error", func() {
-				err := manager.SetState("task-a", task2.StateBlocked)
+				err := manager.SetState("task-a", taskpkg.StateBlocked)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("some create event error"))
 			})
@@ -507,12 +507,12 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("Events", func() {
-		var events []*task2.Event
+		var events []*taskpkg.Event
 		BeforeEach(func() {
-			events = []*task2.Event{
-				&task2.Event{Title: "event-a"},
-				&task2.Event{Title: "event-b"},
-				&task2.Event{Title: "event-c"},
+			events = []*taskpkg.Event{
+				&taskpkg.Event{Title: "event-a"},
+				&taskpkg.Event{Title: "event-b"},
+				&taskpkg.Event{Title: "event-c"},
 			}
 			repo.EventsReturnsOnCall(0, events, nil)
 		})
@@ -539,22 +539,22 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("Reset", func() {
-		var tasks []*task2.Task
+		var tasks []*taskpkg.Task
 		var tasksSize int
-		var events []*task2.Event
+		var events []*taskpkg.Event
 		var eventsSize int
 		BeforeEach(func() {
-			tasks = []*task2.Task{
-				&task2.Task{Name: "task-a", ID: 1},
-				&task2.Task{Name: "task-b", ID: 2},
-				&task2.Task{Name: "task-c", ID: 3},
+			tasks = []*taskpkg.Task{
+				&taskpkg.Task{Name: "task-a", ID: 1},
+				&taskpkg.Task{Name: "task-b", ID: 2},
+				&taskpkg.Task{Name: "task-c", ID: 3},
 			}
 			tasksSize = len(tasks)
 			repo.TasksReturnsOnCall(0, tasks, nil)
-			events = []*task2.Event{
-				&task2.Event{Title: "task-a", ID: 1},
-				&task2.Event{Title: "task-b", ID: 2},
-				&task2.Event{Title: "task-c", ID: 3},
+			events = []*taskpkg.Event{
+				&taskpkg.Event{Title: "task-a", ID: 1},
+				&taskpkg.Event{Title: "task-b", ID: 2},
+				&taskpkg.Event{Title: "task-c", ID: 3},
 			}
 			eventsSize = len(events)
 			repo.EventsReturnsOnCall(0, events, nil)
@@ -642,11 +642,11 @@ var _ = Describe("Manager", func() {
 	Describe("Rename", func() {
 		BeforeEach(func() {
 			repo.FindTaskByNameReturnsOnCall(0,
-				&task2.Task{
+				&taskpkg.Task{
 					Name:      "task-a",
 					ID:        10,
 					Priority:  20,
-					State:     task2.StateRunning,
+					State:     taskpkg.StateRunning,
 					StartDate: 123,
 				},
 				nil)
@@ -659,11 +659,11 @@ var _ = Describe("Manager", func() {
 			Expect(repo.FindTaskByNameArgsForCall(0)).To(Equal("task-a"))
 
 			Expect(repo.UpdateTaskCallCount()).To(Equal(1))
-			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&task2.Task{
+			Expect(repo.UpdateTaskArgsForCall(0)).To(Equal(&taskpkg.Task{
 				Name:      "new-task-a",
 				ID:        10,
 				Priority:  20,
-				State:     task2.StateRunning,
+				State:     taskpkg.StateRunning,
 				StartDate: 123,
 			}))
 		})

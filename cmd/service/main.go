@@ -1,14 +1,15 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 
 	"github.com/ankeesler/anwork/api"
-	"github.com/ankeesler/anwork/task/local"
+	"github.com/ankeesler/anwork/api/authenticator"
+	"github.com/ankeesler/anwork/task/fs"
+	"github.com/tedsuo/ifrit"
+	"github.com/tedsuo/ifrit/http_server"
 )
 
 func main() {
@@ -19,17 +20,15 @@ func main() {
 		address = ":12345"
 	}
 
-	factory := local.NewManagerFactory("/tmp", "default-context")
 	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Lshortfile)
-	api := api.New(address, factory, log)
+	repo := fs.New("/tmp/default-context")
+	authenticator := authenticator.New()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	if err := api.Run(ctx); err != nil {
-		log.Fatalf("ERROR! api.Run() returned: %s", err.Error())
-	}
-	defer cancel()
+	log.Printf("hey")
 
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt)
-	<-c
+	runner := http_server.New(address, api.New(log, repo, authenticator))
+	process := ifrit.Invoke(runner)
+	log.Printf("running")
+
+	log.Fatal(<-process.Wait())
 }

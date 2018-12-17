@@ -1,96 +1,168 @@
 package api_test
 
 import (
-	"context"
+	"bytes"
+	"encoding/json"
 	"errors"
-	"io"
+	"fmt"
+	"io/ioutil"
 	"log"
-	"net"
+	"net/http"
+	"os"
 
 	"github.com/ankeesler/anwork/api"
+	"github.com/ankeesler/anwork/api/apifakes"
+	taskpkg "github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
+	"github.com/tedsuo/ifrit"
+	"github.com/tedsuo/ifrit/http_server"
 )
 
 var _ = Describe("API", func() {
 	var (
-		factory *taskfakes.FakeManagerFactory
-		a       *api.Api
+		repo          *taskfakes.FakeRepo
+		authenticator *apifakes.FakeAuthenticator
 
-		logWriter *gbytes.Buffer
-
-		ctx, cancel = context.WithCancel(context.Background())
+		process ifrit.Process
 	)
 
 	BeforeEach(func() {
-		factory = &taskfakes.FakeManagerFactory{}
-		manager := &taskfakes.FakeManager{}
-		factory.CreateReturnsOnCall(0, manager, nil)
+		repo = &taskfakes.FakeRepo{}
+		authenticator = &apifakes.FakeAuthenticator{}
 
-		logWriter = gbytes.NewBuffer()
-		l := log.New(io.MultiWriter(logWriter, GinkgoWriter), "api_test.go log: ", log.Ldate|log.Ltime|log.Lshortfile)
-
-		a = api.New(address, factory, l)
+		a := api.New(log.New(GinkgoWriter, "api-test: ", 0), repo, authenticator)
+		runner := http_server.New("127.0.0.1:12345", a)
+		process = ifrit.Invoke(runner)
 	})
 
-	Context("when creating a manager fails", func() {
-		BeforeEach(func() {
-			factory.CreateReturnsOnCall(0, nil, errors.New("some factory error"))
-		})
-
-		It("returns the error", func() {
-			Expect(a.Run(ctx)).To(MatchError("some factory error"))
-		})
-
-		It("logs an error", func() {
-			a.Run(ctx)
-			Eventually(logWriter).Should(gbytes.Say("failed to make server:"))
-		})
+	AfterEach(func() {
+		process.Signal(os.Kill)
+		Eventually(process.Wait()).Should(Receive())
 	})
 
-	Context("when listening on the address fails", func() {
-		var listener net.Listener
-
+	Context("failed authentication", func() {
 		BeforeEach(func() {
-			var err error
-			listener, err = net.Listen("tcp", address)
+			authenticator.AuthenticateReturnsOnCall(0, errors.New("some auth error"))
+		})
+
+		It("returns an error and a 403", func() {
+			rsp, err := get("")
 			Expect(err).NotTo(HaveOccurred())
-		})
+			defer rsp.Body.Close()
 
-		AfterEach(func() {
-			Expect(listener.Close()).To(Succeed())
-		})
-
-		It("returns an error", func() {
-			err := a.Run(ctx)
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("logs an error", func() {
-			a.Run(ctx)
-			Eventually(logWriter).Should(gbytes.Say("failed to listen on address %s:", address))
+			Expect(rsp.StatusCode).To(Equal(http.StatusForbidden))
+			assertError(rsp, "some auth error")
 		})
 	})
 
-	Describe("Run", func() {
-		BeforeEach(func() {
-			Expect(a.Run(ctx)).To(Succeed())
-		})
-
-		AfterEach(func() {
-			cancel()
-			Eventually(logWriter).Should(gbytes.Say("listener closed"))
-		})
-
-		It("starts a server on the provided address", func() {
-			_, err := get("/")
+	Context("path not found", func() {
+		It("returns a 404", func() {
+			rsp, err := get("/alskjdnflkajnsdflkajsndf")
 			Expect(err).NotTo(HaveOccurred())
-		})
+			defer rsp.Body.Close()
 
-		It("logs that it started", func() {
-			Eventually(logWriter).Should(gbytes.Say("API server starting on %s", address))
+			Expect(rsp.StatusCode).To(Equal(http.StatusNotFound))
+		})
+	})
+
+	Context("method not allowed", func() {
+		It("returns a 405", func() {
+			rsp, err := deletee("/api/v1/tasks")
+			Expect(err).NotTo(HaveOccurred())
+			defer rsp.Body.Close()
+
+			Expect(rsp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
 		})
 	})
 })
+
+func get(path string) (*http.Response, error) {
+	return http.Get(fmt.Sprintf("http://127.0.0.1:12345%s", path))
+}
+
+func put(path string, body interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
+
+	data, err := json.Marshal(body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	buf := bytes.NewBuffer(data)
+	req, err := http.NewRequest(http.MethodPut, url, buf)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return http.DefaultClient.Do(req)
+}
+
+func post(path, body interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
+
+	data, err := json.Marshal(body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	buf := bytes.NewBuffer(data)
+	req, err := http.NewRequest(http.MethodPost, url, buf)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return http.DefaultClient.Do(req)
+}
+
+func deletee(path string) (*http.Response, error) {
+	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
+
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return http.DefaultClient.Do(req)
+}
+
+func assertError(rsp *http.Response, message string) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	var errMsg api.Error
+	ExpectWithOffset(1, json.Unmarshal(bytes, &errMsg)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, errMsg.Message).To(Equal(message))
+}
+
+func assertTasks(rsp *http.Response, tasks []*taskpkg.Task) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	actualTasks := make([]*taskpkg.Task, 1)
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualTasks)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualTasks).To(Equal(tasks))
+}
+
+func assertTask(rsp *http.Response, task *taskpkg.Task) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	var actualTask taskpkg.Task
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualTask)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualTask).To(Equal(*task))
+}
+
+func assertEvents(rsp *http.Response, tasks []*taskpkg.Event) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	actualEvents := make([]*taskpkg.Event, 1)
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualEvents)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualEvents).To(Equal(tasks))
+}
+
+func assertEvent(rsp *http.Response, task *taskpkg.Event) {
+	bytes, err := ioutil.ReadAll(rsp.Body)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	var actualEvent taskpkg.Event
+	ExpectWithOffset(1, json.Unmarshal(bytes, &actualEvent)).NotTo(HaveOccurred())
+
+	ExpectWithOffset(1, actualEvent).To(Equal(*task))
+}
