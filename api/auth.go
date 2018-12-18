@@ -11,7 +11,7 @@ type authHandler struct {
 }
 
 func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	token, err := a.authenticator.Token(r)
+	token, err := a.authenticator.Token()
 	if err != nil {
 		respondWithError(a.log, w, http.StatusInternalServerError, err)
 		return

@@ -2,17 +2,16 @@
 package apifakes
 
 import (
-	http "net/http"
 	sync "sync"
 
 	api "github.com/ankeesler/anwork/api"
 )
 
 type FakeAuthenticator struct {
-	AuthenticateStub        func(*http.Request) error
+	AuthenticateStub        func(string) error
 	authenticateMutex       sync.RWMutex
 	authenticateArgsForCall []struct {
-		arg1 *http.Request
+		arg1 string
 	}
 	authenticateReturns struct {
 		result1 error
@@ -20,10 +19,9 @@ type FakeAuthenticator struct {
 	authenticateReturnsOnCall map[int]struct {
 		result1 error
 	}
-	TokenStub        func(*http.Request) (string, error)
+	TokenStub        func() (string, error)
 	tokenMutex       sync.RWMutex
 	tokenArgsForCall []struct {
-		arg1 *http.Request
 	}
 	tokenReturns struct {
 		result1 string
@@ -37,11 +35,11 @@ type FakeAuthenticator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAuthenticator) Authenticate(arg1 *http.Request) error {
+func (fake *FakeAuthenticator) Authenticate(arg1 string) error {
 	fake.authenticateMutex.Lock()
 	ret, specificReturn := fake.authenticateReturnsOnCall[len(fake.authenticateArgsForCall)]
 	fake.authenticateArgsForCall = append(fake.authenticateArgsForCall, struct {
-		arg1 *http.Request
+		arg1 string
 	}{arg1})
 	fake.recordInvocation("Authenticate", []interface{}{arg1})
 	fake.authenticateMutex.Unlock()
@@ -61,13 +59,13 @@ func (fake *FakeAuthenticator) AuthenticateCallCount() int {
 	return len(fake.authenticateArgsForCall)
 }
 
-func (fake *FakeAuthenticator) AuthenticateCalls(stub func(*http.Request) error) {
+func (fake *FakeAuthenticator) AuthenticateCalls(stub func(string) error) {
 	fake.authenticateMutex.Lock()
 	defer fake.authenticateMutex.Unlock()
 	fake.AuthenticateStub = stub
 }
 
-func (fake *FakeAuthenticator) AuthenticateArgsForCall(i int) *http.Request {
+func (fake *FakeAuthenticator) AuthenticateArgsForCall(i int) string {
 	fake.authenticateMutex.RLock()
 	defer fake.authenticateMutex.RUnlock()
 	argsForCall := fake.authenticateArgsForCall[i]
@@ -97,16 +95,15 @@ func (fake *FakeAuthenticator) AuthenticateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAuthenticator) Token(arg1 *http.Request) (string, error) {
+func (fake *FakeAuthenticator) Token() (string, error) {
 	fake.tokenMutex.Lock()
 	ret, specificReturn := fake.tokenReturnsOnCall[len(fake.tokenArgsForCall)]
 	fake.tokenArgsForCall = append(fake.tokenArgsForCall, struct {
-		arg1 *http.Request
-	}{arg1})
-	fake.recordInvocation("Token", []interface{}{arg1})
+	}{})
+	fake.recordInvocation("Token", []interface{}{})
 	fake.tokenMutex.Unlock()
 	if fake.TokenStub != nil {
-		return fake.TokenStub(arg1)
+		return fake.TokenStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -121,17 +118,10 @@ func (fake *FakeAuthenticator) TokenCallCount() int {
 	return len(fake.tokenArgsForCall)
 }
 
-func (fake *FakeAuthenticator) TokenCalls(stub func(*http.Request) (string, error)) {
+func (fake *FakeAuthenticator) TokenCalls(stub func() (string, error)) {
 	fake.tokenMutex.Lock()
 	defer fake.tokenMutex.Unlock()
 	fake.TokenStub = stub
-}
-
-func (fake *FakeAuthenticator) TokenArgsForCall(i int) *http.Request {
-	fake.tokenMutex.RLock()
-	defer fake.tokenMutex.RUnlock()
-	argsForCall := fake.tokenArgsForCall[i]
-	return argsForCall.arg1
 }
 
 func (fake *FakeAuthenticator) TokenReturns(result1 string, result2 error) {

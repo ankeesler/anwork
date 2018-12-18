@@ -17,12 +17,12 @@ const Version = 1
 
 // Authenticator is an object that performs authentication for the ANWORK API.
 type Authenticator interface {
-	// Authenticate performs auth on an http.Request. If it passes, it should
+	// Authenticate performs auth on a token string. If it passes, it should
 	// return a nil error. If it fails, it should return an error.
-	Authenticate(req *http.Request) error
+	Authenticate(token string) error
 	// Generate a token for authentication. This token should probably be used
 	// in the Authenticate method.
-	Token(req *http.Request) (string, error)
+	Token() (string, error)
 }
 
 type api struct {
@@ -58,7 +58,7 @@ func New(log *log.Logger, repo task.Repo, authenticator Authenticator) http.Hand
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.log.Printf("handling %s %s", r.Method, r.URL.Path)
 
-	if err := a.authenticator.Authenticate(r); err != nil {
+	if err := a.authenticate(r); err != nil {
 		respondWithError(a.log, w, http.StatusForbidden, err)
 		return
 	}
@@ -85,6 +85,10 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	router.ServeHTTP(w, r)
+}
+
+func (a *api) authenticate(r *http.Request) error {
+	return a.authenticator.Authenticate("")
 }
 
 func respondWithError(log *log.Logger, w http.ResponseWriter, statusCode int, err error) {
