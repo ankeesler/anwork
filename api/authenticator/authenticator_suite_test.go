@@ -167,3 +167,17 @@ func generateUnencryptedToken(secret []byte) string {
 
 	return token
 }
+
+func parseClaims(token string, privateKey *rsa.PrivateKey, secret []byte) jwt.Claims {
+	parsed, err := jwt.ParseSignedAndEncrypted(token)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	nested, err := parsed.Decrypt(privateKey)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	out := jwt.Claims{}
+	err = nested.Claims(secret, &out)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return out
+}

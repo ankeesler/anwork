@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"code.cloudfoundry.org/clock"
+	jose "gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -16,13 +18,19 @@ import (
 // This implementation uses JWT tokens according to RFC 7519. Then tokens are
 // both encrypted and signed, according to RFC 7516 and 7515.
 type Authenticator struct {
+	clock clock.Clock
+
 	privateKey *rsa.PrivateKey
 	secret     []byte
 }
 
 // New creates a new Authenticator with a privateKey and a secret.
-func New(privateKey *rsa.PrivateKey, secret []byte) *Authenticator {
-	return &Authenticator{privateKey: privateKey, secret: secret}
+func New(clock clock.Clock, privateKey *rsa.PrivateKey, secret []byte) *Authenticator {
+	return &Authenticator{
+		clock:      clock,
+		privateKey: privateKey,
+		secret:     secret,
+	}
 }
 
 func (a *Authenticator) Authenticate(token string) error {
@@ -44,7 +52,7 @@ func (a *Authenticator) Authenticate(token string) error {
 	if err := out.Validate(jwt.Expected{
 		Issuer:  "anwork",
 		Subject: "andrew",
-		Time:    time.Now(),
+		Time:    a.clock.Now(),
 	}); err != nil {
 		return fmt.Errorf("invalid claims: %s", err.Error())
 	}
@@ -53,5 +61,40 @@ func (a *Authenticator) Authenticate(token string) error {
 }
 
 func (a *Authenticator) Token() (string, error) {
-	return "", nil
+	// TODO: what signing algorithm should we be using?
+	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: a.secret}
+	signerOptions := (&jose.SignerOptions{}).WithType("JWT")
+	signer, err := jose.NewSigner(signingKey, signerOptions)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: what encryption algorithm should we be using?
+	encrypterOptions := (&jose.EncrypterOptions{}).WithType("JWT").WithContentType("JWT")
+	enc, err := jose.NewEncrypter(
+		jose.A256GCM,
+		jose.Recipient{
+			Algorithm: jose.RSA_OAEP_256,
+			Key:       &a.privateKey.PublicKey,
+		},
+		encrypterOptions,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	now := a.clock.Now()
+	claims := jwt.Claims{
+		Issuer:    "anwork",
+		Subject:   "andrew",
+		Expiry:    jwt.NewNumericDate(now.Add(time.Second * 1)),
+		NotBefore: jwt.NewNumericDate(now),
+		IssuedAt:  jwt.NewNumericDate(now),
+	}
+	token, err := jwt.SignedAndEncrypted(signer, enc).Claims(claims).CompactSerialize()
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

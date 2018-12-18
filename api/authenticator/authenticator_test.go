@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"code.cloudfoundry.org/clock/fakeclock"
 	"github.com/ankeesler/anwork/api/authenticator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,15 +16,19 @@ var _ = Describe("Authenticator", func() {
 	var (
 		a *authenticator.Authenticator
 
+		clock *fakeclock.FakeClock
+
 		privateKey *rsa.PrivateKey
 		secret     []byte
 	)
 
 	BeforeEach(func() {
+		clock = fakeclock.NewFakeClock(time.Now())
+
 		privateKey = getPrivateKey()
 		secret = getSecret()
 
-		a = authenticator.New(privateKey, secret)
+		a = authenticator.New(clock, privateKey, secret)
 	})
 
 	Describe("Authenticate", func() {
@@ -95,6 +100,22 @@ var _ = Describe("Authenticator", func() {
 			testInvalidClaim("expired (exp)", func(claims *jwt.Claims) {
 				claims.Expiry = jwt.NewNumericDate(time.Now().Add(time.Hour * -24))
 			})
+		})
+	})
+
+	Describe("Token", func() {
+		It("returns an encrypted and signed token with the correct claims", func() {
+			token, err := a.Token()
+			Expect(err).NotTo(HaveOccurred())
+
+			claims := parseClaims(token, privateKey, secret)
+			Expect(claims).To(Equal(jwt.Claims{
+				Issuer:    "anwork",
+				Subject:   "andrew",
+				Expiry:    jwt.NewNumericDate(clock.Now().Add(time.Second * 1)),
+				NotBefore: jwt.NewNumericDate(clock.Now()),
+				IssuedAt:  jwt.NewNumericDate(clock.Now()),
+			}))
 		})
 	})
 })
