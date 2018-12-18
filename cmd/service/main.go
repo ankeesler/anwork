@@ -22,7 +22,7 @@ func main() {
 
 	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Lshortfile)
 	repo := fs.New("/tmp/default-context")
-	authenticator := authenticator.New()
+	authenticator := authenticator.NullAuthenticator{}
 
 	log.Printf("hey")
 

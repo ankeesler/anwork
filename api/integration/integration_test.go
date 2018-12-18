@@ -32,8 +32,10 @@ var _ = Describe("Repo", func() {
 		repo := fs.New(filepath.Join(dir, "test-context"))
 
 		privateKey := generatePrivateKey()
+		_ = privateKey
 		secret := generateSecret()
-		authenticator := authenticator.New(privateKey, secret)
+		_ = secret
+		authenticator := authenticator.NullAuthenticator{}
 
 		a := api.New(log.New(GinkgoWriter, "api-test: ", 0), repo, authenticator)
 		runner := http_server.New("127.0.0.1:12345", a)
