@@ -107,7 +107,7 @@ func generateValidTokenWithClaims(secret []byte, claims jwt.Claims) string {
 	token, err := jwt.Signed(signer).Claims(claims).CompactSerialize()
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	return token
+	return fmt.Sprintf("bearer %s", token)
 }
 
 func generateEncryptedToken(publicKey *rsa.PublicKey, secret []byte) string {
@@ -132,7 +132,7 @@ func generateEncryptedToken(publicKey *rsa.PublicKey, secret []byte) string {
 	token, err := jwt.SignedAndEncrypted(signer, enc).Claims(claims).CompactSerialize()
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	return token
+	return fmt.Sprintf("bearer %s", token)
 }
 
 func parseClaims(token string, privateKey *rsa.PrivateKey, secret []byte) jwt.Claims {

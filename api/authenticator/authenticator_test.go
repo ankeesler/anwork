@@ -43,15 +43,15 @@ var _ = Describe("Authenticator", func() {
 			It("fails with an error message of sorts", func() {
 				err := a.Authenticate("")
 				Expect(err).To(HaveOccurred())
-				// TODO
+				Expect(err).To(MatchError("invalid empty token"))
 			})
 		})
 
 		Context("the token is incorrectly formatted", func() {
 			It("fails with an error message of sorts", func() {
-				err := a.Authenticate("bearerasdfasdfasdf")
+				err := a.Authenticate("wrong")
 				Expect(err).To(HaveOccurred())
-				// TODO
+				Expect(err.Error()).To(Equal("invalid token format; expected bearer <jwt>, got wrong"))
 			})
 		})
 
@@ -59,7 +59,7 @@ var _ = Describe("Authenticator", func() {
 			It("fails with an error message of sorts", func() {
 				err := a.Authenticate("tuna asdfasdfasdf")
 				Expect(err).To(HaveOccurred())
-				// TODO
+				Expect(err.Error()).To(Equal("invalid token type; expected bearer, got tuna"))
 			})
 		})
 

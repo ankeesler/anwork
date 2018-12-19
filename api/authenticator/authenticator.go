@@ -4,8 +4,10 @@ package authenticator
 
 import (
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"code.cloudfoundry.org/clock"
@@ -41,7 +43,18 @@ func New(clock clock.Clock, rand io.Reader, publicKey *rsa.PublicKey, secret []b
 }
 
 func (a *Authenticator) Authenticate(token string) error {
-	parsed, err := jwt.ParseSigned(token)
+	if token == "" {
+		return errors.New("invalid empty token")
+	}
+
+	tokenSplit := strings.Split(token, " ")
+	if len(tokenSplit) != 2 {
+		return fmt.Errorf("invalid token format; expected bearer <jwt>, got %s", token)
+	} else if expected, got := "bearer", tokenSplit[0]; got != expected {
+		return fmt.Errorf("invalid token type; expected %s, got %s", expected, got)
+	}
+
+	parsed, err := jwt.ParseSigned(tokenSplit[1])
 	if err != nil {
 		return fmt.Errorf("could not parse token: %s", err.Error())
 	}
