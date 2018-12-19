@@ -1,22 +1,23 @@
 package api
 
 import (
-	"log"
 	"net/http"
+
+	"github.com/ankeesler/anwork/lag"
 )
 
 type authHandler struct {
-	log           *log.Logger
+	l             *lag.L
 	authenticator Authenticator
 }
 
-func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	token, err := a.authenticator.Token()
+func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	token, err := h.authenticator.Token()
 	if err != nil {
-		respondWithError(a.log, w, http.StatusInternalServerError, err)
+		respondWithError(h.l, w, http.StatusInternalServerError, err)
 		return
 	}
 
 	auth := Auth{Token: token}
-	respond(a.log, w, http.StatusOK, auth)
+	respond(h.l, w, http.StatusOK, auth)
 }

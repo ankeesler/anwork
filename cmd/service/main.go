@@ -11,6 +11,7 @@ import (
 
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/authenticator"
+	"github.com/ankeesler/anwork/lag"
 	"github.com/ankeesler/anwork/task/fs"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/http_server"
@@ -24,8 +25,9 @@ func main() {
 		address = ":12345"
 	}
 
-	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime|log.Lshortfile)
-	log.Printf("hey")
+	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime)
+	l := lag.New(log, lag.D)
+	l.P(lag.I, "hey")
 
 	repo := fs.New("/tmp/default-context")
 
@@ -35,9 +37,9 @@ func main() {
 	// authenticator := authenticator.New(clock, rand.Reader, publicKey, secret)
 	authenticator := authenticator.NullAuthenticator{}
 
-	runner := http_server.New(address, api.New(log, repo, authenticator))
+	runner := http_server.New(address, api.New(l, repo, authenticator))
 	process := ifrit.Invoke(runner)
-	log.Printf("running")
+	l.P(lag.I, "running")
 
 	log.Fatal(<-process.Wait())
 }
