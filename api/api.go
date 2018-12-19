@@ -3,8 +3,10 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/ankeesler/anwork/task"
 	"github.com/tedsuo/rata"
@@ -58,8 +60,8 @@ func New(log *log.Logger, repo task.Repo, authenticator Authenticator) http.Hand
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.log.Printf("handling %s %s", r.Method, r.URL.Path)
 
-	if err := a.authenticate(r); err != nil {
-		respondWithError(a.log, w, http.StatusForbidden, err)
+	if err, statusCode := a.authenticate(r); err != nil {
+		respondWithError(a.log, w, statusCode, err)
 		return
 	}
 	a.log.Printf("authentication succeeded")
@@ -87,8 +89,22 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.ServeHTTP(w, r)
 }
 
-func (a *api) authenticate(r *http.Request) error {
-	return a.authenticator.Authenticate("")
+func (a *api) authenticate(r *http.Request) (error, int) {
+	if r.URL.Path == "/api/v1/auth" {
+		return nil, 0
+	}
+
+	tokenData := r.Header.Get("Authorization")
+	if tokenData == "" {
+		return errors.New("missing authorization header"), http.StatusUnauthorized
+	}
+
+	splitData := strings.Split(tokenData, " ")
+	if len(splitData) != 2 || splitData[0] != "bearer" {
+		return errors.New("invalid authorization data"), http.StatusBadRequest
+	}
+
+	return a.authenticator.Authenticate(splitData[1]), http.StatusForbidden
 }
 
 func respondWithError(log *log.Logger, w http.ResponseWriter, statusCode int, err error) {

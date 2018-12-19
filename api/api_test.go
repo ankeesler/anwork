@@ -42,18 +42,97 @@ var _ = Describe("API", func() {
 		Eventually(process.Wait()).Should(Receive())
 	})
 
-	Context("failed authentication", func() {
-		BeforeEach(func() {
-			authenticator.AuthenticateReturnsOnCall(0, errors.New("some auth error"))
+	Context("authentication", func() {
+		It("doesn't call authenticate() on the /api/v1/auth endpoint", func() {
+			rsp, err := post("/api/v1/auth", nil)
+			Expect(err).NotTo(HaveOccurred())
+			defer rsp.Body.Close()
+
+			Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
 		})
 
-		It("returns an error and a 403", func() {
+		It("passes the bearer token to the authenticator", func() {
 			rsp, err := get("")
 			Expect(err).NotTo(HaveOccurred())
 			defer rsp.Body.Close()
 
-			Expect(rsp.StatusCode).To(Equal(http.StatusForbidden))
-			assertError(rsp, "some auth error")
+			Expect(authenticator.AuthenticateCallCount()).To(Equal(1))
+			Expect(authenticator.AuthenticateArgsForCall(0)).To(Equal("some-token"))
+		})
+
+		Context("no Authorization header is included in the request", func() {
+			It("fails with a 401 and an error message", func() {
+				url := fmt.Sprintf("http://127.0.0.1:12345")
+
+				req, err := http.NewRequest(http.MethodPut, url, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				rsp, err := http.DefaultClient.Do(req)
+				Expect(err).NotTo(HaveOccurred())
+				defer rsp.Body.Close()
+
+				Expect(rsp.StatusCode).To(Equal(http.StatusUnauthorized))
+				assertError(rsp, "missing authorization header")
+
+				Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("the token is incorrectly formatted", func() {
+			It("fails with a 400 and an error message", func() {
+				url := fmt.Sprintf("http://127.0.0.1:12345")
+
+				req, err := http.NewRequest(http.MethodPut, url, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				req.Header.Set("Authorization", "bearerasdfasdfasdf")
+
+				rsp, err := http.DefaultClient.Do(req)
+				Expect(err).NotTo(HaveOccurred())
+				defer rsp.Body.Close()
+
+				Expect(rsp.StatusCode).To(Equal(http.StatusBadRequest))
+				assertError(rsp, "invalid authorization data")
+
+				Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("the token is not of type bearer", func() {
+			It("fails with a 400 and an error message", func() {
+				url := fmt.Sprintf("http://127.0.0.1:12345")
+
+				req, err := http.NewRequest(http.MethodPut, url, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				req.Header.Set("Authorization", "pancake asdfasdfasdf")
+
+				rsp, err := http.DefaultClient.Do(req)
+				Expect(err).NotTo(HaveOccurred())
+				defer rsp.Body.Close()
+
+				Expect(rsp.StatusCode).To(Equal(http.StatusBadRequest))
+				assertError(rsp, "invalid authorization data")
+
+				Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("failed authentication", func() {
+			BeforeEach(func() {
+				authenticator.AuthenticateReturnsOnCall(0, errors.New("some auth error"))
+			})
+
+			It("returns an error and a 403", func() {
+				rsp, err := get("")
+				Expect(err).NotTo(HaveOccurred())
+				defer rsp.Body.Close()
+
+				Expect(rsp.StatusCode).To(Equal(http.StatusForbidden))
+				assertError(rsp, "some auth error")
+
+				Expect(authenticator.AuthenticateCallCount()).To(Equal(1))
+			})
 		})
 	})
 
@@ -79,23 +158,22 @@ var _ = Describe("API", func() {
 })
 
 func get(path string) (*http.Response, error) {
-	return http.Get(fmt.Sprintf("http://127.0.0.1:12345%s", path))
+	return do(http.MethodGet, path, nil)
 }
 
 func put(path string, body interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
-
-	data, err := json.Marshal(body)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-	buf := bytes.NewBuffer(data)
-	req, err := http.NewRequest(http.MethodPut, url, buf)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-	return http.DefaultClient.Do(req)
+	return do(http.MethodPut, path, body)
 }
 
-func post(path, body interface{}) (*http.Response, error) {
+func post(path string, body interface{}) (*http.Response, error) {
+	return do(http.MethodPost, path, body)
+}
+
+func deletee(path string) (*http.Response, error) {
+	return do(http.MethodDelete, path, nil)
+}
+
+func do(method, path string, body interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
 
 	var data []byte
@@ -106,17 +184,10 @@ func post(path, body interface{}) (*http.Response, error) {
 	}
 
 	buf := bytes.NewBuffer(data)
-	req, err := http.NewRequest(http.MethodPost, url, buf)
+	req, err := http.NewRequest(method, url, buf)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	return http.DefaultClient.Do(req)
-}
-
-func deletee(path string) (*http.Response, error) {
-	url := fmt.Sprintf("http://127.0.0.1:12345%s", path)
-
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	req.Header.Set("Authorization", "bearer some-token")
 
 	return http.DefaultClient.Do(req)
 }

@@ -18,28 +18,30 @@ var _ = Describe("Authenticator", func() {
 
 		clock *fakeclock.FakeClock
 
-		privateKey *rsa.PrivateKey
-		secret     []byte
+		publicKey *rsa.PublicKey
+		secret    []byte
 	)
 
 	BeforeEach(func() {
+		rand := dumbRandReader{}
+
 		clock = fakeclock.NewFakeClock(time.Now())
 
-		privateKey = getPrivateKey()
+		publicKey = getPublicKey()
 		secret = getSecret()
 
-		a = authenticator.New(clock, privateKey, secret)
+		a = authenticator.New(clock, rand, publicKey, secret)
 	})
 
 	Describe("Authenticate", func() {
-		It("validates the 'Authorization' header holds a real token", func() {
-			validToken := generateValidToken(privateKey, secret)
+		It("returns no error on a valid token", func() {
+			validToken := generateValidToken(secret)
 			Expect(a.Authenticate(validToken)).To(Succeed())
 		})
 
-		Context("on unencrypted token", func() {
+		Context("on encrypted token", func() {
 			It("returns an error", func() {
-				unencryptedToken := generateUnencryptedToken(secret)
+				unencryptedToken := generateEncryptedToken(publicKey, secret)
 
 				err := a.Authenticate(unencryptedToken)
 				Expect(err).To(HaveOccurred())
@@ -47,21 +49,10 @@ var _ = Describe("Authenticator", func() {
 			})
 		})
 
-		Context("on token encrypted with the wrong key", func() {
-			It("returns an error", func() {
-				wrongPrivateKey := getWrongPrivateKey()
-				wrongKeyToken := generateValidToken(wrongPrivateKey, secret)
-
-				err := a.Authenticate(wrongKeyToken)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(HavePrefix("could not decrypt token:"))
-			})
-		})
-
 		Context("on token signed with the wrong secret", func() {
 			It("returns an error", func() {
 				wrongSecret := getWrongSecret()
-				wrongKeyToken := generateValidToken(privateKey, wrongSecret)
+				wrongKeyToken := generateValidToken(wrongSecret)
 
 				err := a.Authenticate(wrongKeyToken)
 				Expect(err).To(HaveOccurred())
@@ -75,7 +66,7 @@ var _ = Describe("Authenticator", func() {
 					It("returns an error", func() {
 						claims := generateValidClaims()
 						invalidateClaimsFunc(&claims)
-						token := generateValidTokenWithClaims(privateKey, secret, claims)
+						token := generateValidTokenWithClaims(secret, claims)
 
 						err := a.Authenticate(token)
 						Expect(err).To(HaveOccurred())
@@ -108,11 +99,12 @@ var _ = Describe("Authenticator", func() {
 			token, err := a.Token()
 			Expect(err).NotTo(HaveOccurred())
 
+			privateKey := getPrivateKey()
 			claims := parseClaims(token, privateKey, secret)
 			Expect(claims).To(Equal(jwt.Claims{
 				Issuer:    "anwork",
 				Subject:   "andrew",
-				Expiry:    jwt.NewNumericDate(clock.Now().Add(time.Second * 1)),
+				Expiry:    jwt.NewNumericDate(clock.Now().Add(time.Hour)),
 				NotBefore: jwt.NewNumericDate(clock.Now()),
 				IssuedAt:  jwt.NewNumericDate(clock.Now()),
 			}))

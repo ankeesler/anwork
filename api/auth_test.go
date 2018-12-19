@@ -50,9 +50,9 @@ var _ = Describe("Tasks", func() {
 
 			Expect(rsp.StatusCode).To(Equal(http.StatusOK))
 
-			var token string
+			var token api.Auth
 			Expect(json.NewDecoder(rsp.Body).Decode(&token)).To(Succeed())
-			Expect(token).To(Equal("here is a token"))
+			Expect(token).To(Equal(api.Auth{Token: "here is a token"}))
 
 			Expect(authenticator.TokenCallCount()).To(Equal(1))
 		})

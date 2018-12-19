@@ -17,5 +17,6 @@ func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond(a.log, w, http.StatusOK, token)
+	auth := Auth{Token: token}
+	respond(a.log, w, http.StatusOK, auth)
 }
