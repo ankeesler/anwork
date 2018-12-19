@@ -51,71 +51,13 @@ var _ = Describe("API", func() {
 			Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
 		})
 
-		It("passes the bearer token to the authenticator", func() {
+		It("passes anything in the 'Authorization' header to the authenticator", func() {
 			rsp, err := get("")
 			Expect(err).NotTo(HaveOccurred())
 			defer rsp.Body.Close()
 
 			Expect(authenticator.AuthenticateCallCount()).To(Equal(1))
-			Expect(authenticator.AuthenticateArgsForCall(0)).To(Equal("some-token"))
-		})
-
-		Context("no Authorization header is included in the request", func() {
-			It("fails with a 401 and an error message", func() {
-				url := fmt.Sprintf("http://127.0.0.1:12345")
-
-				req, err := http.NewRequest(http.MethodPut, url, nil)
-				Expect(err).NotTo(HaveOccurred())
-
-				rsp, err := http.DefaultClient.Do(req)
-				Expect(err).NotTo(HaveOccurred())
-				defer rsp.Body.Close()
-
-				Expect(rsp.StatusCode).To(Equal(http.StatusUnauthorized))
-				assertError(rsp, "missing authorization header")
-
-				Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
-			})
-		})
-
-		Context("the token is incorrectly formatted", func() {
-			It("fails with a 400 and an error message", func() {
-				url := fmt.Sprintf("http://127.0.0.1:12345")
-
-				req, err := http.NewRequest(http.MethodPut, url, nil)
-				Expect(err).NotTo(HaveOccurred())
-
-				req.Header.Set("Authorization", "bearerasdfasdfasdf")
-
-				rsp, err := http.DefaultClient.Do(req)
-				Expect(err).NotTo(HaveOccurred())
-				defer rsp.Body.Close()
-
-				Expect(rsp.StatusCode).To(Equal(http.StatusBadRequest))
-				assertError(rsp, "invalid authorization data")
-
-				Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
-			})
-		})
-
-		Context("the token is not of type bearer", func() {
-			It("fails with a 400 and an error message", func() {
-				url := fmt.Sprintf("http://127.0.0.1:12345")
-
-				req, err := http.NewRequest(http.MethodPut, url, nil)
-				Expect(err).NotTo(HaveOccurred())
-
-				req.Header.Set("Authorization", "pancake asdfasdfasdf")
-
-				rsp, err := http.DefaultClient.Do(req)
-				Expect(err).NotTo(HaveOccurred())
-				defer rsp.Body.Close()
-
-				Expect(rsp.StatusCode).To(Equal(http.StatusBadRequest))
-				assertError(rsp, "invalid authorization data")
-
-				Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
-			})
+			Expect(authenticator.AuthenticateArgsForCall(0)).To(Equal("bearer some-token"))
 		})
 
 		Context("failed authentication", func() {

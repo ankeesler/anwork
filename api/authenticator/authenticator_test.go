@@ -39,6 +39,30 @@ var _ = Describe("Authenticator", func() {
 			Expect(a.Authenticate(validToken)).To(Succeed())
 		})
 
+		Context("on empty token", func() {
+			It("fails with an error message of sorts", func() {
+				err := a.Authenticate("")
+				Expect(err).To(HaveOccurred())
+				// TODO
+			})
+		})
+
+		Context("the token is incorrectly formatted", func() {
+			It("fails with an error message of sorts", func() {
+				err := a.Authenticate("bearerasdfasdfasdf")
+				Expect(err).To(HaveOccurred())
+				// TODO
+			})
+		})
+
+		Context("the token is not of type bearer", func() {
+			It("fails with an error message of sorts", func() {
+				err := a.Authenticate("tuna asdfasdfasdf")
+				Expect(err).To(HaveOccurred())
+				// TODO
+			})
+		})
+
 		Context("on encrypted token", func() {
 			It("returns an error", func() {
 				unencryptedToken := generateEncryptedToken(publicKey, secret)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -10,7 +9,6 @@ import (
 	"os"
 	"reflect"
 
-	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/authenticator"
 	"github.com/ankeesler/anwork/task/fs"
@@ -31,10 +29,11 @@ func main() {
 
 	repo := fs.New("/tmp/default-context")
 
-	clock := clock.NewClock()
-	publicKey := getPublicKey(log)
-	secret := getSecret(log)
-	authenticator := authenticator.New(clock, rand.Reader, publicKey, secret)
+	// clock := clock.NewClock()
+	// publicKey := getPublicKey(log)
+	// secret := getSecret(log)
+	// authenticator := authenticator.New(clock, rand.Reader, publicKey, secret)
+	authenticator := authenticator.NullAuthenticator{}
 
 	runner := http_server.New(address, api.New(log, repo, authenticator))
 	process := ifrit.Invoke(runner)
