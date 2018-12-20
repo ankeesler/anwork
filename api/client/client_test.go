@@ -5,6 +5,7 @@ import (
 
 	"github.com/ankeesler/anwork/api"
 	clientpkg "github.com/ankeesler/anwork/api/client"
+	"github.com/ankeesler/anwork/api/client/clientfakes"
 	taskpkg "github.com/ankeesler/anwork/task"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,6 +14,8 @@ import (
 
 var _ = Describe("Client", func() {
 	var (
+		cache *clientfakes.FakeCache
+
 		client taskpkg.Repo
 		server *ghttp.Server
 
@@ -22,19 +25,23 @@ var _ = Describe("Client", func() {
 
 	testBadURL := func(clientFunc func(c taskpkg.Repo) error) {
 		It("returns error on bad URL", func() {
-			c := clientpkg.New("here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd")
+			c := clientpkg.New("here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd", cache)
 			Expect(clientFunc(c)).NotTo(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(0))
+
+			Expect(cache.GetCallCount()).To(Equal(0))
 		})
 	}
 
 	testFailedRequest := func(clientFunc func(c taskpkg.Repo) error) {
 		It("returns error on failed request", func() {
-			c := clientpkg.New("asdf")
+			c := clientpkg.New("asdf", cache)
 			Expect(clientFunc(c)).NotTo(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(0))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 	}
 
@@ -52,6 +59,8 @@ var _ = Describe("Client", func() {
 				Expect(err.Error()).To(ContainSubstring("405 Method Not Allowed"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
 	}
@@ -75,6 +84,8 @@ var _ = Describe("Client", func() {
 				Expect(err.Error()).To(ContainSubstring("some message"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 
 			Context("when payload is not api.Error", func() {
@@ -95,6 +106,8 @@ var _ = Describe("Client", func() {
 					Expect(err.Error()).To(ContainSubstring("???"))
 
 					Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+					Expect(cache.GetCallCount()).To(Equal(1))
 				})
 			})
 		})
@@ -125,13 +138,18 @@ var _ = Describe("Client", func() {
 				Expect(err.Error()).To(ContainSubstring("bad payload"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
 	}
 
 	BeforeEach(func() {
+		cache = &clientfakes.FakeCache{}
+		cache.GetReturnsOnCall(0, "bearer some-token", true)
+
 		server = ghttp.NewServer()
-		client = clientpkg.New(server.Addr())
+		client = clientpkg.New(server.Addr(), cache)
 
 		tasks = []*taskpkg.Task{
 			&taskpkg.Task{Name: "task-a", ID: 1},
@@ -153,6 +171,7 @@ var _ = Describe("Client", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodPost, "/api/v1/tasks"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.VerifyJSONRepresenting(tasks[0]),
 				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
 				ghttp.RespondWith(
@@ -167,6 +186,8 @@ var _ = Describe("Client", func() {
 			Expect(client.CreateTask(task)).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		It("sets the provided task's ID to the newly allocated ID", func() {
@@ -176,6 +197,8 @@ var _ = Describe("Client", func() {
 			Expect(task.ID).To(Equal(10))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		Context("when the returned location is invalid", func() {
@@ -184,6 +207,7 @@ var _ = Describe("Client", func() {
 					ghttp.VerifyRequest(http.MethodPost, "/api/v1/tasks"),
 					ghttp.VerifyJSONRepresenting(tasks[0]),
 					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 					ghttp.RespondWith(
 						http.StatusCreated,
 						nil,
@@ -198,6 +222,8 @@ var _ = Describe("Client", func() {
 				Expect(err).To(MatchError("could not parse ID from Location response header: /api/v1/tasks/tuna"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
 
@@ -211,6 +237,7 @@ var _ = Describe("Client", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks"),
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
 					tasks,
@@ -225,6 +252,8 @@ var _ = Describe("Client", func() {
 			Expect(rspTasks).To(Equal(tasks))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		testBad2xxResponseBody(func(c taskpkg.Repo) error {
@@ -243,6 +272,7 @@ var _ = Describe("Client", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks/10"),
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
 					tasks[0],
@@ -257,6 +287,8 @@ var _ = Describe("Client", func() {
 			Expect(task).To(Equal(tasks[0]))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		Context("on 404 not found response", func() {
@@ -272,6 +304,8 @@ var _ = Describe("Client", func() {
 				Expect(task).To(BeNil())
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
 
@@ -291,6 +325,7 @@ var _ = Describe("Client", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks", "name=task-a"),
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
 					[]*taskpkg.Task{tasks[0]},
@@ -305,6 +340,8 @@ var _ = Describe("Client", func() {
 			Expect(task).To(Equal(tasks[0]))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		Context("when the server responds with an empty array of tasks", func() {
@@ -323,6 +360,8 @@ var _ = Describe("Client", func() {
 				Expect(task).To(BeNil())
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
 
@@ -346,6 +385,7 @@ var _ = Describe("Client", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodPut, "/api/v1/tasks/1"),
 				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.VerifyJSONRepresenting(task),
 				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
@@ -356,6 +396,8 @@ var _ = Describe("Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		testAllCommonFailures(func(c taskpkg.Repo) error {
@@ -367,6 +409,7 @@ var _ = Describe("Client", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodDelete, "/api/v1/tasks/10"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
@@ -376,6 +419,8 @@ var _ = Describe("Client", func() {
 			Expect(client.DeleteTask(tasks[0])).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		testAllCommonFailures(func(c taskpkg.Repo) error {
@@ -390,6 +435,7 @@ var _ = Describe("Client", func() {
 				ghttp.VerifyRequest(http.MethodPost, "/api/v1/events"),
 				ghttp.VerifyJSONRepresenting(events[0]),
 				ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWith(
 					http.StatusCreated,
 					nil,
@@ -419,6 +465,7 @@ var _ = Describe("Client", func() {
 					ghttp.VerifyRequest(http.MethodPost, "/api/v1/events"),
 					ghttp.VerifyJSONRepresenting(events[0]),
 					ghttp.VerifyHeaderKV("Content-Type", "application/json"),
+					ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 					ghttp.RespondWith(
 						http.StatusCreated,
 						nil,
@@ -446,6 +493,7 @@ var _ = Describe("Client", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodGet, "/api/v1/events"),
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
 					events,
@@ -460,6 +508,8 @@ var _ = Describe("Client", func() {
 			Expect(rspEvents).To(Equal(events))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		testBad2xxResponseBody(func(c taskpkg.Repo) error {
@@ -478,6 +528,7 @@ var _ = Describe("Client", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodGet, "/api/v1/events/10"),
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
 					events[0],
@@ -491,6 +542,8 @@ var _ = Describe("Client", func() {
 			Expect(event).To(Equal(events[0]))
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		Context("on 404 not found response", func() {
@@ -506,6 +559,8 @@ var _ = Describe("Client", func() {
 				Expect(event).To(BeNil())
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
 
@@ -524,6 +579,7 @@ var _ = Describe("Client", func() {
 		BeforeEach(func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodDelete, "/api/v1/events/10"),
+				ghttp.VerifyHeaderKV("Authorization", "bearer some-token"),
 				ghttp.RespondWith(http.StatusNoContent, nil),
 			))
 		})
@@ -533,6 +589,8 @@ var _ = Describe("Client", func() {
 			Expect(client.DeleteEvent(events[0])).To(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(cache.GetCallCount()).To(Equal(1))
 		})
 
 		testAllCommonFailures(func(c taskpkg.Repo) error {

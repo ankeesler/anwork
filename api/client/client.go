@@ -14,13 +14,26 @@ import (
 	"github.com/ankeesler/anwork/task"
 )
 
+//go:generate counterfeiter . Cache
+
+// Cache is a very simple interface for a string cache.
+type Cache interface {
+	// Get returns the string from the cache, if there is one. Iff there is
+	// no string in the cache, it will return "", false.
+	Get() (string, bool)
+	// Set sets the string in the cache.
+	Set(string)
+}
+
 type client struct {
+	tokenCache Cache
+
 	address string
 }
 
 // New returns a new API client pointed at an ANWORK API address.
-func New(address string) task.Repo {
-	return &client{address: address}
+func New(address string, cache Cache) task.Repo {
+	return &client{address: address, tokenCache: cache}
 }
 
 func (c *client) CreateTask(task *task.Task) error {
@@ -138,13 +151,17 @@ func (c *client) eventURL(id int) string {
 	return fmt.Sprintf("http://%s/api/v1/events/%d", c.address, id)
 }
 
+func (c *client) authURL() string {
+	return fmt.Sprintf("http://%s/api/v1/auth", c.address)
+}
+
 func (c *client) do(method, url string, input interface{}, output interface{}) error {
 	_, err := c.doExt(method, url, input, output)
 	return err
 }
 
 func (c *client) doExt(method, url string, input interface{}, output interface{}) (*http.Response, error) {
-	body, err := c.encodeBody(input)
+	body, err := encodeBody(input)
 	if err != nil {
 		return nil, err
 	}
@@ -161,22 +178,76 @@ func (c *client) doExt(method, url string, input interface{}, output interface{}
 		req.Header.Add("Accept", "application/json")
 	}
 
+	token, err := c.getToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", token)
+
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer rsp.Body.Close()
 
-	if c.is5xxStatus(rsp) {
-		return rsp, &badResponseError{code: rsp.Status, message: c.decodeError(rsp.Body)}
-	} else if c.is4xxStatus(rsp) {
+	if is5xxStatus(rsp) {
+		return rsp, &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+	} else if is4xxStatus(rsp) {
 		return rsp, &badResponseError{code: rsp.Status}
 	}
 
-	return rsp, c.decodeBody(rsp.Body, output)
+	return rsp, decodeBody(rsp.Body, output)
 }
 
-func (c *client) encodeBody(input interface{}) (io.Reader, error) {
+func (c *client) getToken() (string, error) {
+	if token, ok := c.tokenCache.Get(); ok {
+		return token, nil
+	}
+
+	token, err := c.reallyGetToken()
+	if err != nil {
+		return "", err
+	}
+	c.tokenCache.Set(token)
+
+	return token, nil
+}
+
+func (c *client) reallyGetToken() (string, error) {
+	req, err := http.NewRequest(http.MethodPost, c.authURL(), nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add("Accept", "application/json")
+
+	rsp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer rsp.Body.Close()
+
+	if is5xxStatus(rsp) {
+		return "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+	} else if is4xxStatus(rsp) {
+		return "", &badResponseError{code: rsp.Status}
+	}
+
+	var auth api.Auth
+	if err := decodeBody(rsp.Body, &auth); err != nil {
+		return "", err
+	}
+
+	decryptedToken := decryptToken(auth.Token)
+	return fmt.Sprintf("bearer %s", decryptedToken), nil
+}
+
+func decryptToken(token string) string {
+	// TODO: implement me!
+	return token
+}
+
+func encodeBody(input interface{}) (io.Reader, error) {
 	var body io.Reader
 	if input != nil {
 		data, err := json.Marshal(input)
@@ -189,7 +260,7 @@ func (c *client) encodeBody(input interface{}) (io.Reader, error) {
 	return body, nil
 }
 
-func (c *client) decodeBody(body io.Reader, output interface{}) error {
+func decodeBody(body io.Reader, output interface{}) error {
 	if output != nil {
 		bytes, err := ioutil.ReadAll(body)
 		if err != nil {
@@ -204,7 +275,7 @@ func (c *client) decodeBody(body io.Reader, output interface{}) error {
 	return nil
 }
 
-func (c *client) decodeError(body io.Reader) string {
+func decodeError(body io.Reader) string {
 	bodyData, err := ioutil.ReadAll(body)
 	if err != nil {
 		return fmt.Sprintf("??? (ReadAll: %s)", err.Error())
@@ -218,11 +289,11 @@ func (c *client) decodeError(body io.Reader) string {
 	return errMsg.Message
 }
 
-func (c *client) is4xxStatus(rsp *http.Response) bool {
+func is4xxStatus(rsp *http.Response) bool {
 	return rsp.StatusCode >= 400 && rsp.StatusCode < 500
 }
 
-func (c *client) is5xxStatus(rsp *http.Response) bool {
+func is5xxStatus(rsp *http.Response) bool {
 	return rsp.StatusCode >= 500 && rsp.StatusCode < 600
 }
 
