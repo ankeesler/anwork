@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/ankeesler/anwork/api"
-	"github.com/ankeesler/anwork/api/authenticator"
+	"github.com/ankeesler/anwork/api/auth"
 	"github.com/ankeesler/anwork/api/client"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/fs"
@@ -35,9 +35,9 @@ var _ = Describe("Repo", func() {
 		_ = privateKey
 		secret := generateSecret()
 		_ = secret
-		authenticator := authenticator.NullAuthenticator{}
+		auth := auth.NullAuth{}
 
-		a := api.New(log.New(GinkgoWriter, "api-test: ", 0), repo, authenticator)
+		a := api.New(log.New(GinkgoWriter, "api-test: ", 0), repo, auth)
 		runner := http_server.New("127.0.0.1:12345", a)
 		process = ifrit.Invoke(runner)
 	})

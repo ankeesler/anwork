@@ -1,6 +1,4 @@
-// Package authenticator provides an implementation of an authentication mechanism
-// for the ANWORK API.
-package authenticator
+package auth
 
 import (
 	"crypto/rsa"
@@ -13,26 +11,34 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-// Authenticator uses an RSA public key and a random byte-string secret to
-// generate tokens and prove their authenticity. This Authenticator generates
+// Server uses an RSA public key and a random byte-string secret to
+// generate tokens and prove their authenticity. This Server generates
 // tokens encrypted with the RSA public key and expects users to hold the
 // matching RSA private key to decrypt the tokens. The Authenticate() method
 // expects the token to be decrypted.
 //
 // This implementation uses JWT tokens according to RFC 7519. Then tokens are
 // both encrypted and signed, according to RFC 7516 and 7515.
-type Authenticator struct {
+type Server struct {
 	clock clock.Clock
 	rand  io.Reader
 
 	publicKey *rsa.PublicKey
 	secret    []byte
+
+	currentJTI string
 }
 
-// New creates a new Authenticator with a publicKey and a secret. It will use
-// the provided rand to populate the JWT ID (jti) field of the JWT.
-func New(clock clock.Clock, rand io.Reader, publicKey *rsa.PublicKey, secret []byte) *Authenticator {
-	return &Authenticator{
+// NewServer creates a new Server with a publicKey and a secret. It will use
+// the provided clock to fill in the time-related claims of the JWT and the
+// rand to populate the JWT ID (jti) field of the JWT.
+func NewServer(
+	clock clock.Clock,
+	rand io.Reader,
+	publicKey *rsa.PublicKey,
+	secret []byte,
+) *Server {
+	return &Server{
 		clock:     clock,
 		rand:      rand,
 		publicKey: publicKey,
@@ -40,21 +46,26 @@ func New(clock clock.Clock, rand io.Reader, publicKey *rsa.PublicKey, secret []b
 	}
 }
 
-func (a *Authenticator) Authenticate(token string) error {
+func (s *Server) Authenticate(token string) error {
 	parsed, err := jwt.ParseSigned(token)
 	if err != nil {
 		return fmt.Errorf("could not parse token: %s", err.Error())
 	}
 
 	claims := jwt.Claims{}
-	if err := parsed.Claims(a.secret, &claims); err != nil {
+	if err := parsed.Claims(s.secret, &claims); err != nil {
 		return fmt.Errorf("could not get claims: %s", err.Error())
+	}
+
+	if len(s.currentJTI) == 0 {
+		return fmt.Errorf("null jti")
 	}
 
 	if err := claims.Validate(jwt.Expected{
 		Issuer:  "anwork",
 		Subject: "andrew",
-		Time:    a.clock.Now(),
+		Time:    s.clock.Now(),
+		ID:      s.currentJTI,
 	}); err != nil {
 		return fmt.Errorf("invalid claims: %s", err.Error())
 	}
@@ -62,9 +73,9 @@ func (a *Authenticator) Authenticate(token string) error {
 	return nil
 }
 
-func (a *Authenticator) Token() (string, error) {
+func (s *Server) Token() (string, error) {
 	// TODO: what signing algorithm should we be using?
-	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: a.secret}
+	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: s.secret}
 	signerOptions := (&jose.SignerOptions{}).WithType("JWT")
 	signer, err := jose.NewSigner(signingKey, signerOptions)
 	if err != nil {
@@ -77,29 +88,30 @@ func (a *Authenticator) Token() (string, error) {
 		jose.A256GCM,
 		jose.Recipient{
 			Algorithm: jose.RSA_OAEP_256,
-			Key:       a.publicKey,
+			Key:       s.publicKey,
 		},
 		encrypterOptions,
 	)
 	if err != nil {
 		return "", fmt.Errorf("could not create encrypter: %s", err.Error())
 	}
-
 	// TODO: how big should this be?
 	r := make([]byte, 32)
-	if n, err := a.rand.Read(r); n != 32 {
-		return "", fmt.Errorf("could not get 32 random bytes: got %d", n)
+	if n, err := s.rand.Read(r); n != len(r) {
+		return "", fmt.Errorf("could not get %d random bytes: got %d", len(r), n)
 	} else if err != nil {
-		return "", fmt.Errorf("could not get 32 random bytes: %s", err.Error())
+		return "", fmt.Errorf("could not get %d random bytes: %s", len(r), err.Error())
 	}
 
-	now := a.clock.Now()
+	now := s.clock.Now()
+	s.currentJTI = string(r)
 	claims := jwt.Claims{
 		Issuer:    "anwork",
 		Subject:   "andrew",
 		Expiry:    jwt.NewNumericDate(now.Add(time.Hour)),
 		NotBefore: jwt.NewNumericDate(now),
 		IssuedAt:  jwt.NewNumericDate(now),
+		ID:        s.currentJTI,
 	}
 	token, err := jwt.SignedAndEncrypted(signer, enc).Claims(claims).CompactSerialize()
 	if err != nil {

@@ -1,4 +1,4 @@
-package authenticator_test
+package auth_test
 
 import (
 	"crypto/rsa"
@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock/fakeclock"
-	"github.com/ankeesler/anwork/api/authenticator"
+	"github.com/ankeesler/anwork/api/auth"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-var _ = Describe("Authenticator", func() {
+var _ = Describe("Server", func() {
 	var (
-		a *authenticator.Authenticator
+		s *auth.Server
 
 		clock *fakeclock.FakeClock
 
@@ -30,20 +30,35 @@ var _ = Describe("Authenticator", func() {
 		publicKey = getPublicKey()
 		secret = getSecret()
 
-		a = authenticator.New(clock, rand, publicKey, secret)
+		s = auth.NewServer(clock, rand, publicKey, secret)
 	})
 
 	Describe("Authenticate", func() {
-		It("returns no error on a valid token", func() {
-			validToken := generateValidToken(secret)
-			Expect(a.Authenticate(validToken)).To(Succeed())
+		Context("when Token() has been called", func() {
+			BeforeEach(func() {
+				_, err := s.Token() // generate token to set currentJTI
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("returns no error on a valid token", func() {
+				validToken := generateValidToken(secret)
+				Expect(s.Authenticate(validToken)).To(Succeed())
+			})
+		})
+
+		Context("when Token() has not been called yet", func() {
+			It("returns an error", func() {
+				validToken := generateValidToken(secret)
+				err := s.Authenticate(validToken)
+				Expect(err).To(MatchError("null jti"))
+			})
 		})
 
 		Context("on encrypted token", func() {
 			It("returns an error", func() {
 				unencryptedToken := generateEncryptedToken(publicKey, secret)
 
-				err := a.Authenticate(unencryptedToken)
+				err := s.Authenticate(unencryptedToken)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(HavePrefix("could not parse token:"))
 			})
@@ -54,7 +69,7 @@ var _ = Describe("Authenticator", func() {
 				wrongSecret := getWrongSecret()
 				wrongKeyToken := generateValidToken(wrongSecret)
 
-				err := a.Authenticate(wrongKeyToken)
+				err := s.Authenticate(wrongKeyToken)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(HavePrefix("could not get claims"))
 			})
@@ -64,11 +79,14 @@ var _ = Describe("Authenticator", func() {
 			testInvalidClaim := func(which string, invalidateClaimsFunc func(*jwt.Claims)) {
 				Context(fmt.Sprintf("%s is wrong", which), func() {
 					It("returns an error", func() {
+						_, err := s.Token() // generate token to set currentJTI
+						Expect(err).NotTo(HaveOccurred())
+
 						claims := generateValidClaims()
 						invalidateClaimsFunc(&claims)
 						token := generateValidTokenWithClaims(secret, claims)
 
-						err := a.Authenticate(token)
+						err = s.Authenticate(token)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(HavePrefix("invalid claims"))
 						Expect(err.Error()).To(ContainSubstring(which))
@@ -91,12 +109,16 @@ var _ = Describe("Authenticator", func() {
 			testInvalidClaim("expired (exp)", func(claims *jwt.Claims) {
 				claims.Expiry = jwt.NewNumericDate(time.Now().Add(time.Hour * -24))
 			})
+
+			testInvalidClaim("ID claim (jti)", func(claims *jwt.Claims) {
+				claims.ID = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+			})
 		})
 	})
 
 	Describe("Token", func() {
 		It("returns an encrypted and signed token with the correct claims", func() {
-			token, err := a.Token()
+			token, err := s.Token()
 			Expect(err).NotTo(HaveOccurred())
 
 			privateKey := getPrivateKey()
@@ -107,6 +129,7 @@ var _ = Describe("Authenticator", func() {
 				Expiry:    jwt.NewNumericDate(clock.Now().Add(time.Hour)),
 				NotBefore: jwt.NewNumericDate(clock.Now()),
 				IssuedAt:  jwt.NewNumericDate(clock.Now()),
+				ID:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // see dumbRandReader
 			}))
 		})
 	})
