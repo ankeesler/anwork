@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock"
-	jose "gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -24,7 +23,11 @@ type Client struct {
 }
 
 // New creates a new Client.
-func NewClient(clock clock.Clock, privateKey *rsa.PrivateKey, secret []byte) *Client {
+func NewClient(
+	clock clock.Clock,
+	privateKey *rsa.PrivateKey,
+	secret []byte,
+) *Client {
 	return &Client{clock: clock, privateKey: privateKey, secret: secret}
 }
 
@@ -52,12 +55,9 @@ func (c *Client) Validate(token string) (string, error) {
 		return "", fmt.Errorf("invalid claims: %s", err.Error())
 	}
 
-	// TODO: what signing algorithm should we be using?
-	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: c.secret}
-	signerOptions := (&jose.SignerOptions{}).WithType("JWT")
-	signer, err := jose.NewSigner(signingKey, signerOptions)
+	signer, err := signer(c.secret)
 	if err != nil {
-		return "", fmt.Errorf("could not create signer: %s", err.Error())
+		return "", err
 	}
 
 	return jwt.Signed(signer).Claims(claims).CompactSerialize()

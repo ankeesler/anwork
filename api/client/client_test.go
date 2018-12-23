@@ -14,7 +14,8 @@ import (
 
 var _ = Describe("Client", func() {
 	var (
-		cache *clientfakes.FakeCache
+		authenticator *clientfakes.FakeAuthenticator
+		cache         *clientfakes.FakeCache
 
 		client taskpkg.Repo
 		server *ghttp.Server
@@ -25,7 +26,12 @@ var _ = Describe("Client", func() {
 
 	testBadURL := func(clientFunc func(c taskpkg.Repo) error) {
 		It("returns error on bad URL", func() {
-			c := clientpkg.New("here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd", cache)
+			c := clientpkg.New(
+				makeLogger(),
+				"here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd",
+				authenticator,
+				cache,
+			)
 			Expect(clientFunc(c)).NotTo(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(0))
@@ -36,7 +42,12 @@ var _ = Describe("Client", func() {
 
 	testFailedRequest := func(clientFunc func(c taskpkg.Repo) error) {
 		It("returns error on failed request", func() {
-			c := clientpkg.New("asdf", cache)
+			c := clientpkg.New(
+				makeLogger(),
+				"asdf",
+				authenticator,
+				cache,
+			)
 			Expect(clientFunc(c)).NotTo(Succeed())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(0))
@@ -145,11 +156,18 @@ var _ = Describe("Client", func() {
 	}
 
 	BeforeEach(func() {
+		authenticator = &clientfakes.FakeAuthenticator{}
+
 		cache = &clientfakes.FakeCache{}
 		cache.GetReturnsOnCall(0, "bearer some-token", true)
 
 		server = ghttp.NewServer()
-		client = clientpkg.New(server.Addr(), cache)
+		client = clientpkg.New(
+			makeLogger(),
+			server.Addr(),
+			authenticator,
+			cache,
+		)
 
 		tasks = []*taskpkg.Task{
 			&taskpkg.Task{Name: "task-a", ID: 1},

@@ -2,12 +2,12 @@ package auth
 
 import (
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
 
 	"code.cloudfoundry.org/clock"
-	jose "gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -74,27 +74,16 @@ func (s *Server) Authenticate(token string) error {
 }
 
 func (s *Server) Token() (string, error) {
-	// TODO: what signing algorithm should we be using?
-	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: s.secret}
-	signerOptions := (&jose.SignerOptions{}).WithType("JWT")
-	signer, err := jose.NewSigner(signingKey, signerOptions)
+	signer, err := signer(s.secret)
 	if err != nil {
-		return "", fmt.Errorf("could not create signer: %s", err.Error())
+		return "", err
 	}
 
-	// TODO: what encryption algorithm should we be using?
-	encrypterOptions := (&jose.EncrypterOptions{}).WithType("JWT").WithContentType("JWT")
-	enc, err := jose.NewEncrypter(
-		jose.A256GCM,
-		jose.Recipient{
-			Algorithm: jose.RSA_OAEP_256,
-			Key:       s.publicKey,
-		},
-		encrypterOptions,
-	)
+	encrypter, err := encrypter(s.publicKey)
 	if err != nil {
-		return "", fmt.Errorf("could not create encrypter: %s", err.Error())
+		return "", err
 	}
+
 	// TODO: how big should this be?
 	r := make([]byte, 32)
 	if n, err := s.rand.Read(r); n != len(r) {
@@ -104,7 +93,7 @@ func (s *Server) Token() (string, error) {
 	}
 
 	now := s.clock.Now()
-	s.currentJTI = string(r)
+	s.currentJTI = hex.EncodeToString(r)
 	claims := jwt.Claims{
 		Issuer:    "anwork",
 		Subject:   "andrew",
@@ -113,7 +102,7 @@ func (s *Server) Token() (string, error) {
 		IssuedAt:  jwt.NewNumericDate(now),
 		ID:        s.currentJTI,
 	}
-	token, err := jwt.SignedAndEncrypted(signer, enc).Claims(claims).CompactSerialize()
+	token, err := jwt.SignedAndEncrypted(signer, encrypter).Claims(claims).CompactSerialize()
 	if err != nil {
 		return "", fmt.Errorf("could not sign and encrypt: %s", err.Error())
 	}

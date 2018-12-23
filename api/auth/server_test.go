@@ -2,6 +2,7 @@ package auth_test
 
 import (
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -129,7 +130,7 @@ var _ = Describe("Server", func() {
 				Expiry:    jwt.NewNumericDate(clock.Now().Add(time.Hour)),
 				NotBefore: jwt.NewNumericDate(clock.Now()),
 				IssuedAt:  jwt.NewNumericDate(clock.Now()),
-				ID:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // see dumbRandReader
+				ID:        hex.EncodeToString([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")), // see dumbRandReader
 			}))
 		})
 	})

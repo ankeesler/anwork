@@ -3,6 +3,7 @@ package auth_test
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"testing"
@@ -132,7 +133,7 @@ func generateValidClaims() jwt.Claims {
 		Expiry:    jwt.NewNumericDate(now.Add(time.Second * 1)),
 		NotBefore: jwt.NewNumericDate(now),
 		IssuedAt:  jwt.NewNumericDate(now),
-		ID:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // 32 a's, see dumbRandReader
+		ID:        hex.EncodeToString([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")), // 32 a's, see dumbRandReader
 	}
 	return claims
 }

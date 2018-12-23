@@ -58,13 +58,13 @@ func New(log *log.Logger, repo task.Repo, authenticator Authenticator) http.Hand
 }
 
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.log.Printf("handling %s %s", r.Method, r.URL.Path)
+	a.log.Printf("api: handling %s %s", r.Method, r.URL.Path)
 
 	if err, statusCode := a.authenticate(r); err != nil {
 		respondWithError(a.log, w, statusCode, err)
 		return
 	}
-	a.log.Printf("authentication succeeded")
+	a.log.Printf("api: authentication succeeded")
 
 	handlers := rata.Handlers{
 		"auth": &authHandler{a.log, a.authenticator},
@@ -112,7 +112,7 @@ func respondWithError(log *log.Logger, w http.ResponseWriter, statusCode int, er
 }
 
 func respond(log *log.Logger, w http.ResponseWriter, statusCode int, body interface{}) {
-	log.Printf("responding with %d: %+v", statusCode, body)
+	log.Printf("api: responding with %d: %+v", statusCode, body)
 
 	var bytes []byte = []byte{}
 	var jsonErr error

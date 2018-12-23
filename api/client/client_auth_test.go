@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/ankeesler/anwork/api"
@@ -15,17 +16,25 @@ import (
 
 var _ = Describe("Client", func() {
 	var (
-		cache *clientfakes.FakeCache
+		authenticator *clientfakes.FakeAuthenticator
+		cache         *clientfakes.FakeCache
 
 		client taskpkg.Repo
 		server *ghttp.Server
 	)
 
 	BeforeEach(func() {
+		authenticator = &clientfakes.FakeAuthenticator{}
 		cache = &clientfakes.FakeCache{}
 
 		server = ghttp.NewServer()
-		client = clientpkg.New(server.Addr(), cache)
+
+		client = clientpkg.New(
+			makeLogger(),
+			server.Addr(),
+			authenticator,
+			cache,
+		)
 	})
 
 	AfterEach(func() {
@@ -39,7 +48,7 @@ var _ = Describe("Client", func() {
 				ghttp.VerifyHeaderKV("Accept", "application/json"),
 				ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
-					api.Auth{Token: "some-token"},
+					api.Auth{Token: "some-encrypted-token"},
 					http.Header{"Content-Type": {"application/json"}},
 				),
 			))
@@ -53,6 +62,8 @@ var _ = Describe("Client", func() {
 					http.Header{"Content-Type": {"application/json"}},
 				),
 			))
+
+			authenticator.ValidateReturnsOnCall(0, "some-token", nil)
 		})
 
 		It("reaches out to the /api/v1/auth endpoint and caches the token", func() {
@@ -61,16 +72,26 @@ var _ = Describe("Client", func() {
 
 			Expect(server.ReceivedRequests()).To(HaveLen(2))
 
+			Expect(authenticator.ValidateCallCount()).To(Equal(1))
+			Expect(authenticator.ValidateArgsForCall(0)).To(Equal("some-encrypted-token"))
+
 			Expect(cache.SetCallCount()).To(Equal(1))
 			Expect(cache.SetArgsForCall(0)).To(Equal("bearer some-token"))
 		})
 
 		Context("on bad URL", func() {
 			It("returns an error", func() {
-				_, err := clientpkg.New("here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd", cache).Tasks()
+				_, err := clientpkg.New(
+					makeLogger(),
+					"here is a bad url i mean i am sure this is bad/://aff;a;f/a;'a';sd",
+					authenticator,
+					cache,
+				).Tasks()
 				Expect(err).To(HaveOccurred())
 
 				Expect(server.ReceivedRequests()).To(HaveLen(0))
+
+				Expect(authenticator.ValidateCallCount()).To(Equal(0))
 
 				Expect(cache.GetCallCount()).To(Equal(0))
 			})
@@ -78,10 +99,17 @@ var _ = Describe("Client", func() {
 
 		Context("on a failed request", func() {
 			It("returns an error", func() {
-				_, err := clientpkg.New("asdf", cache).Tasks()
+				_, err := clientpkg.New(
+					makeLogger(),
+					"asdf",
+					authenticator,
+					cache,
+				).Tasks()
 				Expect(err).To(HaveOccurred())
 
 				Expect(server.ReceivedRequests()).To(HaveLen(0))
+
+				Expect(authenticator.ValidateCallCount()).To(Equal(0))
 
 				Expect(cache.GetCallCount()).To(Equal(1))
 			})
@@ -106,6 +134,8 @@ var _ = Describe("Client", func() {
 				Expect(err.Error()).To(ContainSubstring("400 Bad Request"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(authenticator.ValidateCallCount()).To(Equal(0))
 
 				Expect(cache.GetCallCount()).To(Equal(1))
 			})
@@ -132,6 +162,8 @@ var _ = Describe("Client", func() {
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
 
+				Expect(authenticator.ValidateCallCount()).To(Equal(0))
+
 				Expect(cache.GetCallCount()).To(Equal(1))
 			})
 		})
@@ -155,6 +187,36 @@ var _ = Describe("Client", func() {
 				Expect(err.Error()).To(ContainSubstring("bad payload"))
 
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(authenticator.ValidateCallCount()).To(Equal(0))
+
+				Expect(cache.GetCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("when validation of token fails", func() {
+			BeforeEach(func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest(http.MethodPost, "/api/v1/auth"),
+					ghttp.VerifyHeaderKV("Accept", "application/json"),
+					ghttp.RespondWithJSONEncoded(
+						http.StatusOK,
+						api.Auth{Token: "some-token"},
+						http.Header{"Content-Type": {"application/json"}},
+					),
+				))
+
+				authenticator.ValidateReturnsOnCall(0, "", errors.New("some validate error"))
+			})
+
+			It("returns an error", func() {
+				_, err := client.Tasks()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("some validate error"))
+
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+				Expect(authenticator.ValidateCallCount()).To(Equal(1))
 
 				Expect(cache.GetCallCount()).To(Equal(1))
 			})
@@ -182,6 +244,8 @@ var _ = Describe("Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
+
+			Expect(authenticator.ValidateCallCount()).To(Equal(0))
 
 			Expect(cache.SetCallCount()).To(Equal(0))
 		})

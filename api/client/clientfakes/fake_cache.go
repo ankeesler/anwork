@@ -2,16 +2,17 @@
 package clientfakes
 
 import (
-	"sync"
+	sync "sync"
 
-	"github.com/ankeesler/anwork/api/client"
+	client "github.com/ankeesler/anwork/api/client"
 )
 
 type FakeCache struct {
 	GetStub        func() (string, bool)
 	getMutex       sync.RWMutex
-	getArgsForCall []struct{}
-	getReturns     struct {
+	getArgsForCall []struct {
+	}
+	getReturns struct {
 		result1 string
 		result2 bool
 	}
@@ -31,7 +32,8 @@ type FakeCache struct {
 func (fake *FakeCache) Get() (string, bool) {
 	fake.getMutex.Lock()
 	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
-	fake.getArgsForCall = append(fake.getArgsForCall, struct{}{})
+	fake.getArgsForCall = append(fake.getArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Get", []interface{}{})
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
@@ -40,7 +42,8 @@ func (fake *FakeCache) Get() (string, bool) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.getReturns.result1, fake.getReturns.result2
+	fakeReturns := fake.getReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeCache) GetCallCount() int {
@@ -49,7 +52,15 @@ func (fake *FakeCache) GetCallCount() int {
 	return len(fake.getArgsForCall)
 }
 
+func (fake *FakeCache) GetCalls(stub func() (string, bool)) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = stub
+}
+
 func (fake *FakeCache) GetReturns(result1 string, result2 bool) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
 	fake.GetStub = nil
 	fake.getReturns = struct {
 		result1 string
@@ -58,6 +69,8 @@ func (fake *FakeCache) GetReturns(result1 string, result2 bool) {
 }
 
 func (fake *FakeCache) GetReturnsOnCall(i int, result1 string, result2 bool) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
 	fake.GetStub = nil
 	if fake.getReturnsOnCall == nil {
 		fake.getReturnsOnCall = make(map[int]struct {
@@ -89,10 +102,17 @@ func (fake *FakeCache) SetCallCount() int {
 	return len(fake.setArgsForCall)
 }
 
+func (fake *FakeCache) SetCalls(stub func(string)) {
+	fake.setMutex.Lock()
+	defer fake.setMutex.Unlock()
+	fake.SetStub = stub
+}
+
 func (fake *FakeCache) SetArgsForCall(i int) string {
 	fake.setMutex.RLock()
 	defer fake.setMutex.RUnlock()
-	return fake.setArgsForCall[i].arg1
+	argsForCall := fake.setArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeCache) Invocations() map[string][][]interface{} {

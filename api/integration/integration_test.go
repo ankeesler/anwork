@@ -1,14 +1,18 @@
 package integration_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 
+	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/auth"
 	"github.com/ankeesler/anwork/api/client"
+	"github.com/ankeesler/anwork/api/client/cache"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/fs"
 	. "github.com/onsi/ginkgo"
@@ -19,7 +23,12 @@ import (
 
 var _ = Describe("Repo", func() {
 	var (
-		dir string
+		dir       string
+		cacheFile string
+
+		l          *log.Logger
+		privateKey *rsa.PrivateKey
+		secret     []byte
 
 		process ifrit.Process
 	)
@@ -31,15 +40,21 @@ var _ = Describe("Repo", func() {
 
 		repo := fs.New(filepath.Join(dir, "test-context"))
 
-		privateKey := generatePrivateKey()
-		_ = privateKey
-		secret := generateSecret()
-		_ = secret
-		auth := auth.NullAuth{}
+		l = log.New(GinkgoWriter, "api-test: ", 0)
+		privateKey = generatePrivateKey()
+		secret = generateSecret()
+		auth := auth.NewServer(
+			clock.NewClock(),
+			rand.Reader,
+			&privateKey.PublicKey,
+			secret,
+		)
 
-		a := api.New(log.New(GinkgoWriter, "api-test: ", 0), repo, auth)
+		a := api.New(l, repo, auth)
 		runner := http_server.New("127.0.0.1:12345", a)
 		process = ifrit.Invoke(runner)
+
+		cacheFile = filepath.Join(dir, "cache")
 	})
 
 	AfterEach(func() {
@@ -50,6 +65,11 @@ var _ = Describe("Repo", func() {
 	})
 
 	task.RunRepoTests(func() task.Repo {
-		return client.New("127.0.0.1:12345")
+		return client.New(
+			l,
+			"127.0.0.1:12345",
+			auth.NewClient(clock.NewClock(), privateKey, secret),
+			cache.New(cacheFile),
+		)
 	})
 })
