@@ -53,6 +53,14 @@ var _ = Describe("API", func() {
 			Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
 		})
 
+		It("doesn't call authenticate() on the /api/v1/health endpoint", func() {
+			rsp, err := post("/api/v1/health", nil)
+			Expect(err).NotTo(HaveOccurred())
+			defer rsp.Body.Close()
+
+			Expect(authenticator.AuthenticateCallCount()).To(Equal(0))
+		})
+
 		It("passes the bearer token to the authenticator", func() {
 			rsp, err := get("")
 			Expect(err).NotTo(HaveOccurred())

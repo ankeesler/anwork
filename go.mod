@@ -14,4 +14,5 @@ require (
 	github.com/tedsuo/rata v1.0.0
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9 // indirect
 	gopkg.in/square/go-jose.v2 v2.2.1
+	gopkg.in/yaml.v2 v2.2.2
 )

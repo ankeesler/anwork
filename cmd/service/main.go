@@ -52,6 +52,9 @@ func getPublicKey(log *log.Logger) *rsa.PublicKey {
 	}
 
 	block, _ := pem.Decode([]byte(publicKeyPEMBytes))
+	if block == nil {
+		log.Fatal("ANWORK_API_PUBLIC_KEY is in an invalid format")
+	}
 	if expected := "PUBLIC KEY"; block.Type != expected {
 		log.Fatalf("unexpected PEM type: got %s, expected %s", block.Type, expected)
 	}

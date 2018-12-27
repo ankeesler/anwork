@@ -21,6 +21,10 @@ var erd = map[string]extraRouteData{
 		description: "create (encrypted) authentication token",
 		outputType:  reflect.TypeOf(""),
 	},
+	"health": extraRouteData{
+		description: "test the health of the API",
+		outputType:  reflect.TypeOf(""),
+	},
 
 	"get_tasks": extraRouteData{
 		description: "get all tasks",

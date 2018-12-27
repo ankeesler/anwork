@@ -35,6 +35,7 @@ type api struct {
 
 var routes = rata.Routes{
 	{Name: "auth", Method: rata.POST, Path: "/api/v1/auth"},
+	{Name: "health", Method: rata.GET, Path: "/api/v1/health"},
 
 	{Name: "get_tasks", Method: rata.GET, Path: "/api/v1/tasks"},
 	{Name: "create_task", Method: rata.POST, Path: "/api/v1/tasks"},
@@ -67,7 +68,8 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.l.P(lag.I, "api: authentication succeeded")
 
 	handlers := rata.Handlers{
-		"auth": &authHandler{a.l, a.authenticator},
+		"auth":   &authHandler{a.l, a.authenticator},
+		"health": &healthHandler{a.l},
 
 		"get_tasks":   &getTasksHandler{a.l, a.repo},
 		"create_task": &createTaskHandler{a.l, a.repo},
@@ -90,7 +92,7 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *api) authenticate(r *http.Request) (error, int) {
-	if r.URL.Path == "/api/v1/auth" {
+	if r.URL.Path == "/api/v1/auth" || r.URL.Path == "/api/v1/health" {
 		return nil, 0
 	}
 
