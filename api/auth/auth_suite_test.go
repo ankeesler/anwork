@@ -1,8 +1,9 @@
-package authenticator_test
+package auth_test
 
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"testing"
@@ -42,17 +43,46 @@ ZViCq9g/2eWGFWsaQUQDRLVdg250sQN8dwE9wDpFK6+Qpo9RswR3HC2GSArrjvZC
 ARrcccXc/A1zWGGb0iPcMZhENRBN9+TWEGbuFT7Wu0/nd55bLOMLJAk=
 -----END RSA PRIVATE KEY-----`
 
+const privateKey2PEM = `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEA5cuz4AmE812LSImRk+fI05BRb9LeiiHGS1ENeexXcyruQaZp
+u0xSeQ+PX9XjMiyI5SzkECZkLmdFvkD1Cy+G8DGwA34JZotoKUnrKVrHAV73fe0U
+NraK5Dj9iwVx4EIcvbQfidhq3tXp0EumQZLGjpyDXdAkfJSmnElYLgNDGw1GbFap
+VXL6lM5KgyKzkEailNOIB25jgjeuLwVxboyXCerQW7IqL2hZnfDTqUvFo7fPDbRI
+DO2AnFNjHuLH5nveSV4hxvByyRM8eewVNSaKcGlcJi+snz/Vi7XP4Y+wcrCjmJRY
+BuWaHn54Y/S/j5vwMfX0eBm8F1QQ1YcntfziPwIDAQABAoIBAAxjT94bBUTNXS3a
+5LMxgp0NIabCmmad7X+v7ecNu6UkwlVdsEN9mNCX6yXCdQ4GYpbgNac9OpdZz+Oy
+wsMIm+Ck/RUjHUSe7U2Ug43mK+ZCBVuPhVBxxMkK3Xg6IepyBfSgGjcnKJO8um8V
+NPBCBlw3yckr6Fui89xnA87vNBXoJiVeRe/8paEOfMZs9DAIJDDYQvzOSd0wiuP3
+Ve9zPgIBxFuswJKFGMl/vY4byBzJuC+GKRmB79XOegerSoV5QTUYRuk5vOANHc7d
+IKk8xTD5XnIYbsETiCgBm+ts6OB6NvgkFunedpty+UW3GSKkpurjL0QRuXmXmgzF
+e8o9DjkCgYEA9kVOvP3FsSDS23OB5AGl4XDyocqW6VMWtUwHj9S4HF8qgbeKztq2
+RJR3OWE/KfRzy/6vrdmtOA5gEEN7u9liv82YPtjFeGswyaOvW8BZQXVKk96txh8Z
+pIq+EGQ0al1ZJCqXajW0scFYrJlld9VBZcwsYpP8eImweQIkRU1TyAsCgYEA7t/F
+0V5fkMZcQIxZ1Az5SLaTmNiJm2iPUo4Nd5ug7VpDy4eYvPyb0JeHunbn////d45g
+girqZNUVUa/nSXEJRgVpSFZj7IrPZuHoanLi/e5mMni3YvMMqzRJRT9qd+hWc3Kx
+kSTtVzvGK2NZq72zxTIdwcS9bsnrf7341dIsSx0CgYByWvyVBcIm3fcLsDdAiQNe
+C/Se7FPnRI3m4cchIsXbZtV2JqRuKWE5tzcljeKmuLyMnVc2gz3MKeCxrKRoNimE
+pxNrG32WzS96cmebU1Ye7zgSMfS/avGdVk+rjNxKB8683Ioy531gjUd/3jsfygb0
+Hjr+C3nQ/x7TEguFosKkwQKBgAtnobE6WUO3RMZMLSnDqM9A8FEW3ZMO7fDaGWiB
+hLBwY9Y+1hsH0ISoB3HupWsClPbnVFJCrEg+KDNrO5a1D+VI8triTQkJI5fc51TV
+wWKwVC7Ktq7BvfQanfjxayroa+A9NJ8ibTaCAxclOi3J8+BRYTxUIVs9xsGll1DW
+JQk9AoGBAIjushDIoTELY/s0Q4ReZHuhXkVJLqVREgUBAunk6Ooh6YnqitUwYugv
+kUJPbNNtqr5ED56nL/iSWhV9Xfnuf9J5h5663eNVhw6f/b8U6U/sGPRUx91PAIqb
+7XsAfC/HqIRNC8Cj6isHjFE2tov4BcicrMACPtWAXDVM7jGQ5muB
+-----END RSA PRIVATE KEY-----`
+
 type dumbRandReader struct{}
 
 func (drr dumbRandReader) Read(data []byte) (int, error) {
-	as := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	copy(data, []byte(as))
-	return len(as), nil
+	for i := range data {
+		data[i] = 'a'
+	}
+	return len(data), nil
 }
 
-func TestAuthenticator(t *testing.T) {
+func TestAuth(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Authenticator Suite")
+	RunSpecs(t, "Auth Suite")
 }
 
 func getPrivateKey() *rsa.PrivateKey {
@@ -73,6 +103,20 @@ func getPublicKey() *rsa.PublicKey {
 	return &getPrivateKey().PublicKey
 }
 
+func getPrivateKey2() *rsa.PrivateKey {
+	block, extra := pem.Decode([]byte(privateKey2PEM))
+	if expected := "RSA PRIVATE KEY"; block.Type != expected {
+		message := fmt.Sprintf("unexpected PEM type: got %s, expected %s", block.Type, expected)
+		Fail(message)
+	}
+	ExpectWithOffset(1, extra).To(HaveLen(0))
+
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return privateKey
+}
+
 func getSecret() []byte {
 	return []byte("tuna-fish-marlin")
 }
@@ -89,7 +133,7 @@ func generateValidClaims() jwt.Claims {
 		Expiry:    jwt.NewNumericDate(now.Add(time.Second * 1)),
 		NotBefore: jwt.NewNumericDate(now),
 		IssuedAt:  jwt.NewNumericDate(now),
-		ID:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // 32 a's, see dumbRandReader
+		ID:        hex.EncodeToString([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")), // 32 a's, see dumbRandReader
 	}
 	return claims
 }
@@ -107,7 +151,7 @@ func generateValidTokenWithClaims(secret []byte, claims jwt.Claims) string {
 	token, err := jwt.Signed(signer).Claims(claims).CompactSerialize()
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	return fmt.Sprintf("bearer %s", token)
+	return token
 }
 
 func generateEncryptedToken(publicKey *rsa.PublicKey, secret []byte) string {
@@ -132,7 +176,34 @@ func generateEncryptedToken(publicKey *rsa.PublicKey, secret []byte) string {
 	token, err := jwt.SignedAndEncrypted(signer, enc).Claims(claims).CompactSerialize()
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	return fmt.Sprintf("bearer %s", token)
+	return token
+}
+
+func generateEncryptedValidTokenWithClaims(
+	publicKey *rsa.PublicKey,
+	secret []byte,
+	claims jwt.Claims,
+) string {
+	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: secret}
+	signerOptions := (&jose.SignerOptions{}).WithType("JWT")
+	signer, err := jose.NewSigner(signingKey, signerOptions)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	encrypterOptions := (&jose.EncrypterOptions{}).WithType("JWT").WithContentType("JWT")
+	enc, err := jose.NewEncrypter(
+		jose.A256GCM,
+		jose.Recipient{
+			Algorithm: jose.RSA_OAEP_256,
+			Key:       publicKey,
+		},
+		encrypterOptions,
+	)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	token, err := jwt.SignedAndEncrypted(signer, enc).Claims(claims).CompactSerialize()
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+	return token
 }
 
 func parseClaims(token string, privateKey *rsa.PrivateKey, secret []byte) jwt.Claims {

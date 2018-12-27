@@ -3,7 +3,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/ankeesler/anwork/lag"
 	"github.com/ankeesler/anwork/task"
@@ -56,13 +58,13 @@ func New(l *lag.L, repo task.Repo, authenticator Authenticator) http.Handler {
 }
 
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.l.P(lag.I, "handling %s %s", r.Method, r.URL.Path)
+	a.l.P(lag.I, "api: handling %s %s", r.Method, r.URL.Path)
 
 	if err, statusCode := a.authenticate(r); err != nil {
 		respondWithError(a.l, w, statusCode, err)
 		return
 	}
-	a.l.P(lag.I, "authentication succeeded")
+	a.l.P(lag.I, "api: authentication succeeded")
 
 	handlers := rata.Handlers{
 		"auth": &authHandler{a.l, a.authenticator},
@@ -92,8 +94,17 @@ func (a *api) authenticate(r *http.Request) (error, int) {
 		return nil, 0
 	}
 
-	token := r.Header.Get("Authorization")
-	return a.authenticator.Authenticate(token), http.StatusForbidden
+	tokenData := r.Header.Get("Authorization")
+	if tokenData == "" {
+		return errors.New("missing authorization header"), http.StatusUnauthorized
+	}
+
+	splitData := strings.Split(tokenData, " ")
+	if len(splitData) != 2 || splitData[0] != "bearer" {
+		return errors.New("invalid authorization data"), http.StatusBadRequest
+	}
+
+	return a.authenticator.Authenticate(splitData[1]), http.StatusForbidden
 }
 
 func respondWithError(l *lag.L, w http.ResponseWriter, statusCode int, err error) {
@@ -101,7 +112,7 @@ func respondWithError(l *lag.L, w http.ResponseWriter, statusCode int, err error
 }
 
 func respond(l *lag.L, w http.ResponseWriter, statusCode int, body interface{}) {
-	l.P(lag.I, "responding with %d: %+v", statusCode, body)
+	l.P(lag.I, "api: responding with %d: %+v", statusCode, body)
 
 	var bytes []byte = []byte{}
 	var jsonErr error

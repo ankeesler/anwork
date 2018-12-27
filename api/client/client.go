@@ -1,26 +1,56 @@
 package client
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
+	"log"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task"
 )
 
+//go:generate counterfeiter . Cache
+//go:generate counterfeiter . Authenticator
+
+// Authenticator is an object that can perform validation on a JWT
+// token.
+type Authenticator interface {
+	// Validate takes an encrypted JWT, decrypts it, cryptographically verifies
+	// it, and then returns the decrypted JWT.
+	Validate(token string) (string, error)
+}
+
+// Cache is a very simple interface for a string cache.
+type Cache interface {
+	// Get returns the string from the cache, if there is one. Iff there is
+	// no string in the cache, it will return "", false.
+	Get() (string, bool)
+	// Set sets the string in the cache.
+	Set(string)
+}
+
 type client struct {
+	log *log.Logger
+
+	authenticator Authenticator
+	tokenCache    Cache
+
 	address string
 }
 
 // New returns a new API client pointed at an ANWORK API address.
-func New(address string) task.Repo {
-	return &client{address: address}
+func New(
+	log *log.Logger,
+	address string,
+	authenticator Authenticator,
+	cache Cache,
+) task.Repo {
+	return &client{
+		log:           log,
+		address:       address,
+		authenticator: authenticator,
+		tokenCache:    cache,
+	}
 }
 
 func (c *client) CreateTask(task *task.Task) error {
@@ -138,13 +168,17 @@ func (c *client) eventURL(id int) string {
 	return fmt.Sprintf("http://%s/api/v1/events/%d", c.address, id)
 }
 
+func (c *client) authURL() string {
+	return fmt.Sprintf("http://%s/api/v1/auth", c.address)
+}
+
 func (c *client) do(method, url string, input interface{}, output interface{}) error {
 	_, err := c.doExt(method, url, input, output)
 	return err
 }
 
 func (c *client) doExt(method, url string, input interface{}, output interface{}) (*http.Response, error) {
-	body, err := c.encodeBody(input)
+	body, err := encodeBody(input)
 	if err != nil {
 		return nil, err
 	}
@@ -161,79 +195,80 @@ func (c *client) doExt(method, url string, input interface{}, output interface{}
 		req.Header.Add("Accept", "application/json")
 	}
 
+	token, err := c.getToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("bearer %s", token))
+
+	c.log.Printf("req %s %s", req.Method, req.URL)
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer rsp.Body.Close()
+	c.log.Printf("rsp %s", rsp.Status)
 
-	if c.is5xxStatus(rsp) {
-		return rsp, &badResponseError{code: rsp.Status, message: c.decodeError(rsp.Body)}
-	} else if c.is4xxStatus(rsp) {
+	if is5xxStatus(rsp) {
+		return rsp, &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+	} else if is4xxStatus(rsp) {
 		return rsp, &badResponseError{code: rsp.Status}
 	}
 
-	return rsp, c.decodeBody(rsp.Body, output)
+	return rsp, decodeBody(rsp.Body, output)
 }
 
-func (c *client) encodeBody(input interface{}) (io.Reader, error) {
-	var body io.Reader
-	if input != nil {
-		data, err := json.Marshal(input)
-		if err != nil {
-			return nil, err
+func (c *client) getToken() (string, error) {
+	if encryptedToken, ok := c.tokenCache.Get(); ok {
+		if decryptedToken, err := c.authenticator.Validate(encryptedToken); err != nil {
+			c.log.Printf("api/client: invalid token in cache: %s", err.Error())
+		} else {
+			return decryptedToken, nil
 		}
-
-		body = bytes.NewBuffer(data)
-	}
-	return body, nil
-}
-
-func (c *client) decodeBody(body io.Reader, output interface{}) error {
-	if output != nil {
-		bytes, err := ioutil.ReadAll(body)
-		if err != nil {
-			return err
-		}
-
-		if err := json.Unmarshal(bytes, output); err != nil {
-			return fmt.Errorf("cannot unmarshal response body (%s): '%s'", err.Error(), string(bytes))
-		}
+	} else {
+		c.log.Printf("api/client: token cache miss")
 	}
 
-	return nil
-}
-
-func (c *client) decodeError(body io.Reader) string {
-	bodyData, err := ioutil.ReadAll(body)
+	encryptedToken, decryptedToken, err := c.reallyGetToken()
 	if err != nil {
-		return fmt.Sprintf("??? (ReadAll: %s)", err.Error())
+		return "", err
 	}
+	c.tokenCache.Set(encryptedToken)
 
-	errMsg := api.Error{}
-	if err := json.Unmarshal(bodyData, &errMsg); err != nil {
-		return fmt.Sprintf("??? (Unmarshal: %s)", err.Error())
-	}
-
-	return errMsg.Message
+	return decryptedToken, nil
 }
 
-func (c *client) is4xxStatus(rsp *http.Response) bool {
-	return rsp.StatusCode >= 400 && rsp.StatusCode < 500
-}
-
-func (c *client) is5xxStatus(rsp *http.Response) bool {
-	return rsp.StatusCode >= 500 && rsp.StatusCode < 600
-}
-
-func parseID(location string, id *int) bool {
-	segments := strings.Split(location, "/")
-	idS := segments[len(segments)-1]
-	idN, err := strconv.Atoi(idS)
+func (c *client) reallyGetToken() (string, string, error) {
+	req, err := http.NewRequest(http.MethodPost, c.authURL(), nil)
 	if err != nil {
-		return false
+		return "", "", err
 	}
 
-	*id = idN
-	return true
+	req.Header.Add("Accept", "application/json")
+
+	c.log.Printf("api/client: req %s %s", req.Method, req.URL)
+	rsp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer rsp.Body.Close()
+	c.log.Printf("api/client: rsp %s", rsp.Status)
+
+	if is5xxStatus(rsp) {
+		return "", "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+	} else if is4xxStatus(rsp) {
+		return "", "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+	}
+
+	var auth api.Auth
+	if err := decodeBody(rsp.Body, &auth); err != nil {
+		return "", "", err
+	}
+
+	decryptedToken, err := c.authenticator.Validate(auth.Token)
+	if err != nil {
+		return "", "", err
+	}
+
+	return auth.Token, decryptedToken, nil
 }

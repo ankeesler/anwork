@@ -9,13 +9,19 @@
 package main
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
 	"code.cloudfoundry.org/clock"
+	"github.com/ankeesler/anwork/api/auth"
 	"github.com/ankeesler/anwork/api/client"
+	"github.com/ankeesler/anwork/api/client/cache"
 	"github.com/ankeesler/anwork/manager"
 	runner "github.com/ankeesler/anwork/runner"
 	"github.com/ankeesler/anwork/task"
@@ -101,9 +107,11 @@ func main() {
 		os.Exit(0)
 	}
 
+	l := log.New(ioutil.Discard, "ANWORK: ", log.Ldate|log.Ltime|log.Lshortfile)
+
 	var repo task.Repo
 	if address, ok := useApi(); ok {
-		repo = client.New(fmt.Sprintf("%s", address))
+		repo = client.New(l, address, wireAuth(l), wireCache(l))
 	} else {
 		repo = fs.New(filepath.Join(root.String(), context))
 	}
@@ -120,4 +128,40 @@ func main() {
 
 func useApi() (string, bool) {
 	return os.LookupEnv("ANWORK_API_ADDRESS")
+}
+
+func wireAuth(l *log.Logger) *auth.Client {
+	privateKeyData, ok := os.LookupEnv("ANWORK_API_PRIVATE_KEY")
+	if !ok {
+		l.Fatal("must set ANWORK_API_PRIVATE_KEY")
+	}
+
+	block, _ := pem.Decode([]byte(privateKeyData))
+	if expected := "RSA PRIVATE KEY"; block.Type != expected {
+		l.Fatalf("unexpected PEM type: got %s, expected %s", block.Type, expected)
+	}
+
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		l.Fatalf("failed to parse private key: %s", err.Error())
+	}
+
+	secret, ok := os.LookupEnv("ANWORK_API_SECRET")
+	if !ok {
+		l.Fatal("must set ANWORK_API_SECRET")
+	}
+
+	return auth.NewClient(clock.NewClock(), privateKey, []byte(secret))
+}
+
+func wireCache(l *log.Logger) *cache.Cache {
+	var dir string
+	if homeDir, ok := os.LookupEnv("HOME"); ok {
+		dir = filepath.Join(homeDir, ".anwork")
+		os.MkdirAll(dir, 0755)
+	} else {
+		dir = "."
+	}
+
+	return cache.New(filepath.Join(dir, "token-cache"))
 }
