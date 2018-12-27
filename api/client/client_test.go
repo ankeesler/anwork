@@ -157,9 +157,10 @@ var _ = Describe("Client", func() {
 
 	BeforeEach(func() {
 		authenticator = &clientfakes.FakeAuthenticator{}
+		authenticator.ValidateReturnsOnCall(0, "some-token", nil)
 
 		cache = &clientfakes.FakeCache{}
-		cache.GetReturnsOnCall(0, "bearer some-token", true)
+		cache.GetReturnsOnCall(0, "some-cached-token", true)
 
 		server = ghttp.NewServer()
 		client = clientpkg.New(

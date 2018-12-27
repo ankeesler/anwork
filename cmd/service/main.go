@@ -12,7 +12,7 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	"github.com/ankeesler/anwork/api"
-	"github.com/ankeesler/anwork/api/authenticator"
+	"github.com/ankeesler/anwork/api/auth"
 	"github.com/ankeesler/anwork/task/fs"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/http_server"
@@ -34,7 +34,7 @@ func main() {
 	clock := clock.NewClock()
 	publicKey := getPublicKey(log)
 	secret := getSecret(log)
-	authenticator := authenticator.New(clock, rand.Reader, publicKey, secret)
+	authenticator := auth.NewServer(clock, rand.Reader, publicKey, secret)
 
 	runner := http_server.New(address, api.New(log, repo, authenticator))
 	process := ifrit.Invoke(runner)
@@ -56,7 +56,7 @@ func getPublicKey(log *log.Logger) *rsa.PublicKey {
 
 	key, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		log.Fatalf("could not parse PKCS#1 public key: %s", err.Error())
+		log.Fatalf("could not parse PKIX public key: %s", err.Error())
 	}
 
 	publicKey, ok := key.(*rsa.PublicKey)

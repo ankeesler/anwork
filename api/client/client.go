@@ -199,7 +199,7 @@ func (c *client) doExt(method, url string, input interface{}, output interface{}
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", token)
+	req.Header.Add("Authorization", fmt.Sprintf("bearer %s", token))
 
 	c.log.Printf("req %s %s", req.Method, req.URL)
 	rsp, err := http.DefaultClient.Do(req)
@@ -219,24 +219,29 @@ func (c *client) doExt(method, url string, input interface{}, output interface{}
 }
 
 func (c *client) getToken() (string, error) {
-	if token, ok := c.tokenCache.Get(); ok {
-		return token, nil
+	if encryptedToken, ok := c.tokenCache.Get(); ok {
+		if decryptedToken, err := c.authenticator.Validate(encryptedToken); err != nil {
+			c.log.Printf("api/client: invalid token in cache: %s", err.Error())
+		} else {
+			return decryptedToken, nil
+		}
+	} else {
+		c.log.Printf("api/client: token cache miss")
 	}
-	c.log.Printf("api/client: token cache miss")
 
-	token, err := c.reallyGetToken()
+	encryptedToken, decryptedToken, err := c.reallyGetToken()
 	if err != nil {
 		return "", err
 	}
-	c.tokenCache.Set(token)
+	c.tokenCache.Set(encryptedToken)
 
-	return token, nil
+	return decryptedToken, nil
 }
 
-func (c *client) reallyGetToken() (string, error) {
+func (c *client) reallyGetToken() (string, string, error) {
 	req, err := http.NewRequest(http.MethodPost, c.authURL(), nil)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	req.Header.Add("Accept", "application/json")
@@ -244,26 +249,26 @@ func (c *client) reallyGetToken() (string, error) {
 	c.log.Printf("api/client: req %s %s", req.Method, req.URL)
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer rsp.Body.Close()
 	c.log.Printf("api/client: rsp %s", rsp.Status)
 
 	if is5xxStatus(rsp) {
-		return "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+		return "", "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
 	} else if is4xxStatus(rsp) {
-		return "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
+		return "", "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
 	}
 
 	var auth api.Auth
 	if err := decodeBody(rsp.Body, &auth); err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	decryptedToken, err := c.authenticator.Validate(auth.Token)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return fmt.Sprintf("bearer %s", decryptedToken), nil
+	return auth.Token, decryptedToken, nil
 }

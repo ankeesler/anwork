@@ -14,7 +14,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 )
 
-var _ = Describe("Client", func() {
+var _ = Describe("Client (auth)", func() {
 	var (
 		authenticator *clientfakes.FakeAuthenticator
 		cache         *clientfakes.FakeCache
@@ -76,7 +76,7 @@ var _ = Describe("Client", func() {
 			Expect(authenticator.ValidateArgsForCall(0)).To(Equal("some-encrypted-token"))
 
 			Expect(cache.SetCallCount()).To(Equal(1))
-			Expect(cache.SetArgsForCall(0)).To(Equal("bearer some-token"))
+			Expect(cache.SetArgsForCall(0)).To(Equal("some-encrypted-token"))
 		})
 
 		Context("on bad URL", func() {
@@ -225,7 +225,8 @@ var _ = Describe("Client", func() {
 
 	Context("when the cache is not empty", func() {
 		BeforeEach(func() {
-			cache.GetReturnsOnCall(0, "bearer some-token", true)
+			cache.GetReturnsOnCall(0, "some-encrypted-token", true)
+			authenticator.ValidateReturnsOnCall(0, "some-token", nil)
 
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks"),
@@ -239,15 +240,57 @@ var _ = Describe("Client", func() {
 			))
 		})
 
-		It("does not reach out to the /api/v1/auth endpoint and does not cache the token", func() {
+		It("does not reach out to the /api/v1/auth endpoint and validates the token", func() {
 			_, err := client.Tasks()
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 
-			Expect(authenticator.ValidateCallCount()).To(Equal(0))
+			Expect(authenticator.ValidateCallCount()).To(Equal(1))
+			Expect(authenticator.ValidateArgsForCall(0)).To(Equal("some-encrypted-token"))
 
 			Expect(cache.SetCallCount()).To(Equal(0))
+		})
+
+		Context("when the authenticator fails to validate the token", func() {
+			BeforeEach(func() {
+				authenticator.ValidateReturnsOnCall(0, "", errors.New("some validate error"))
+				authenticator.ValidateReturnsOnCall(1, "some-new-token", nil)
+
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest(http.MethodPost, "/api/v1/auth"),
+					ghttp.VerifyHeaderKV("Accept", "application/json"),
+					ghttp.RespondWithJSONEncoded(
+						http.StatusOK,
+						api.Auth{Token: "some-new-encrypted-token"},
+						http.Header{"Content-Type": {"application/json"}},
+					),
+				))
+				server.AppendHandlers(ghttp.CombineHandlers(
+					ghttp.VerifyRequest(http.MethodGet, "/api/v1/tasks"),
+					ghttp.VerifyHeaderKV("Accept", "application/json"),
+					ghttp.VerifyHeaderKV("Authorization", "bearer some-new-token"),
+					ghttp.RespondWithJSONEncoded(
+						http.StatusOK,
+						[]*task.Task{},
+						http.Header{"Content-Type": {"application/json"}},
+					),
+				))
+			})
+
+			It("reaches out to /api/v1/auth to get a new token", func() {
+				_, err := client.Tasks()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(server.ReceivedRequests()).To(HaveLen(2))
+
+				Expect(authenticator.ValidateCallCount()).To(Equal(2))
+				Expect(authenticator.ValidateArgsForCall(0)).To(Equal("some-encrypted-token"))
+				Expect(authenticator.ValidateArgsForCall(1)).To(Equal("some-new-encrypted-token"))
+
+				Expect(cache.SetCallCount()).To(Equal(1))
+				Expect(cache.SetArgsForCall(0)).To(Equal("some-new-encrypted-token"))
+			})
 		})
 	})
 })

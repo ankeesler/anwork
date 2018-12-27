@@ -1,6 +1,11 @@
 package integration
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/hex"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -120,11 +125,17 @@ func TestIntegration(t *testing.T) {
 			apiBin, err = gexec.Build("github.com/ankeesler/anwork/cmd/service")
 			Expect(err).ToNot(HaveOccurred())
 
+			privateKey, publicKey, secret := generateAPICreds()
+
 			cmd := exec.Command(apiBin)
 			cmd.Env = []string{"PORT=12346"}
+			cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_PUBLIC_KEY=%s", publicKey))
+			cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_SECRET=%s", secret))
 
 			if _, ok := os.LookupEnv("ANWORK_API_ADDRESS"); !ok {
 				Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12346")).To(Succeed())
+				Expect(os.Setenv("ANWORK_API_PRIVATE_KEY", privateKey)).To(Succeed())
+				Expect(os.Setenv("ANWORK_API_SECRET", secret)).To(Succeed())
 
 				apiOut, apiErr = gbytes.NewBuffer(), gbytes.NewBuffer()
 				apiSession, err = gexec.Start(cmd, apiOut, apiErr)
@@ -161,4 +172,34 @@ func TestIntegration(t *testing.T) {
 	})
 
 	RunSpecs(t, "Integration Suite")
+}
+
+func generateAPICreds() (privateKey, publicKey, secret string) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	Expect(err).NotTo(HaveOccurred())
+
+	keyBytes := x509.MarshalPKCS1PrivateKey(key)
+	privateKey = string(pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: keyBytes,
+		},
+	))
+
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	Expect(err).NotTo(HaveOccurred())
+	publicKey = string(pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: publicKeyBytes,
+		},
+	))
+
+	r := make([]byte, 8)
+	n, err := rand.Read(r)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(n).To(Equal(8))
+	secret = hex.EncodeToString(r)
+
+	return
 }
