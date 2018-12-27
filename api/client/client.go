@@ -252,7 +252,7 @@ func (c *client) reallyGetToken() (string, error) {
 	if is5xxStatus(rsp) {
 		return "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
 	} else if is4xxStatus(rsp) {
-		return "", &badResponseError{code: rsp.Status}
+		return "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
 	}
 
 	var auth api.Auth

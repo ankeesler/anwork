@@ -14,5 +14,5 @@ func TestClient(t *testing.T) {
 }
 
 func makeLogger() *log.Logger {
-	return log.New(GinkgoWriter, "client-test", 0)
+	return log.New(GinkgoWriter, "client-test: ", 0)
 }
