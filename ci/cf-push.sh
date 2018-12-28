@@ -36,5 +36,8 @@ ANWORK_API_PRIVATE_KEY="$private_key" \
   go run ./cmd/anwork/main.go show
 log "Passed canary test..."
 
-echo "export ANWORK_API_PRIVATE_KEY=$private_key"
-echo "export ANWORK_API_SECRET=$secret"
+creds="/tmp/creds"
+echo "export ANWORK_API_ADDRESS=$(cf app anwork_service | awk '/routes/ {print $2}')" > "$creds"
+echo "export ANWORK_API_PRIVATE_KEY='$private_key'" >> "$creds"
+echo "export ANWORK_API_SECRET=$secret" >> "$creds"
+log "Creds written to $creds..."
