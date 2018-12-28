@@ -13,6 +13,7 @@ We are experimenting with using Pivotal Tracker to keep track of work! Check it 
 - ANWORK architecture now separated repository layer (`task.Repo`) with manager (`manager.Manager`) layer.
 - Bug fixed where you couldn't set tasks to "Ready" with the API.
 - The `api` package was refactored to be more correctly tested. Now it only provides an `http.Handler` that encapsulates the ANWORK API.
+- The `code.cloudfoundry.org/lager` package is now used for logging.
 
 ## Deprecated Functionality
 
