@@ -2,13 +2,12 @@ package api_test
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"os"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/apifakes"
-	"github.com/ankeesler/anwork/lag"
 	taskpkg "github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/taskfakes"
 	. "github.com/onsi/ginkgo"
@@ -70,8 +69,7 @@ var _ = Describe("Task", func() {
 		repo = &taskfakes.FakeRepo{}
 		authenticator = &apifakes.FakeAuthenticator{}
 
-		log := log.New(GinkgoWriter, "api-test: ", 0)
-		a := api.New(lag.New(log, lag.D), repo, authenticator)
+		a := api.New(lagertest.NewTestLogger("api"), repo, authenticator)
 		runner := http_server.New("127.0.0.1:12345", a)
 		process = ifrit.Invoke(runner)
 	})

@@ -4,16 +4,16 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
 	"code.cloudfoundry.org/clock"
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/auth"
 	"github.com/ankeesler/anwork/api/client"
 	"github.com/ankeesler/anwork/api/client/cache"
-	"github.com/ankeesler/anwork/lag"
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/fs"
 	. "github.com/onsi/ginkgo"
@@ -27,7 +27,7 @@ var _ = Describe("Repo", func() {
 		dir       string
 		cacheFile string
 
-		l          *log.Logger
+		logger     lager.Logger
 		privateKey *rsa.PrivateKey
 		secret     []byte
 
@@ -41,7 +41,6 @@ var _ = Describe("Repo", func() {
 
 		repo := fs.New(filepath.Join(dir, "test-context"))
 
-		l = log.New(GinkgoWriter, "api-test: ", 0)
 		privateKey = generatePrivateKey()
 		secret = generateSecret()
 		auth := auth.NewServer(
@@ -51,8 +50,8 @@ var _ = Describe("Repo", func() {
 			secret,
 		)
 
-		log := log.New(GinkgoWriter, "api-test: ", 0)
-		a := api.New(lag.New(log, lag.D), repo, auth)
+		logger = lagertest.NewTestLogger("api")
+		a := api.New(logger, repo, auth)
 		runner := http_server.New("127.0.0.1:12345", a)
 		process = ifrit.Invoke(runner)
 
@@ -68,7 +67,7 @@ var _ = Describe("Repo", func() {
 
 	task.RunRepoTests(func() task.Repo {
 		return client.New(
-			l,
+			logger,
 			"127.0.0.1:12345",
 			auth.NewClient(clock.NewClock(), privateKey, secret),
 			cache.New(cacheFile),

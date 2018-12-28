@@ -5,27 +5,32 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ankeesler/anwork/lag"
+	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/task"
 	"github.com/tedsuo/rata"
 )
 
-func findEvent(l *lag.L, repo task.Repo, w http.ResponseWriter, r *http.Request) (*task.Event, int) {
+func findEvent(
+	logger lager.Logger,
+	repo task.Repo,
+	w http.ResponseWriter,
+	r *http.Request,
+) (*task.Event, int) {
 	id := rata.Param(r, "id")
 	idN, err := strconv.Atoi(id)
 	if err != nil {
-		respondWithError(l, w, http.StatusBadRequest, err)
+		respondWithError(logger, w, http.StatusBadRequest, err)
 		return nil, 0
 	}
 
 	event, err := repo.FindEventByID(idN)
 	if err != nil {
-		respondWithError(l, w, http.StatusInternalServerError, err)
+		respondWithError(logger, w, http.StatusInternalServerError, err)
 		return nil, 0
 	}
 
 	if event == nil {
-		respondWithError(l, w, http.StatusNotFound, fmt.Errorf("unknown event with ID %d", idN))
+		respondWithError(logger, w, http.StatusNotFound, fmt.Errorf("unknown event with ID %d", idN))
 		return nil, 0
 	}
 
@@ -33,28 +38,28 @@ func findEvent(l *lag.L, repo task.Repo, w http.ResponseWriter, r *http.Request)
 }
 
 type getEventHandler struct {
-	l    *lag.L
-	repo task.Repo
+	logger lager.Logger
+	repo   task.Repo
 }
 
 func (h *getEventHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if event, _ := findEvent(h.l, h.repo, w, r); event != nil {
-		respond(h.l, w, http.StatusOK, event)
+	if event, _ := findEvent(h.logger, h.repo, w, r); event != nil {
+		respond(h.logger, w, http.StatusOK, event)
 	}
 }
 
 type deleteEventHandler struct {
-	l    *lag.L
-	repo task.Repo
+	logger lager.Logger
+	repo   task.Repo
 }
 
 func (h *deleteEventHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if event, _ := findEvent(h.l, h.repo, w, r); event != nil {
+	if event, _ := findEvent(h.logger, h.repo, w, r); event != nil {
 		if err := h.repo.DeleteEvent(event); err != nil {
-			respondWithError(h.l, w, http.StatusInternalServerError, err)
+			respondWithError(h.logger, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		respond(h.l, w, http.StatusNoContent, event)
+		respond(h.logger, w, http.StatusNoContent, event)
 	}
 }

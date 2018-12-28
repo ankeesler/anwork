@@ -1,9 +1,10 @@
 package client_test
 
 import (
-	"log"
 	"testing"
 
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -13,6 +14,6 @@ func TestClient(t *testing.T) {
 	RunSpecs(t, "Client Suite")
 }
 
-func makeLogger() *log.Logger {
-	return log.New(GinkgoWriter, "client-test: ", 0)
+func makeLogger() lager.Logger {
+	return lagertest.NewTestLogger("client")
 }

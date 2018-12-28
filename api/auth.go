@@ -3,21 +3,21 @@ package api
 import (
 	"net/http"
 
-	"github.com/ankeesler/anwork/lag"
+	"code.cloudfoundry.org/lager"
 )
 
 type authHandler struct {
-	l             *lag.L
+	logger        lager.Logger
 	authenticator Authenticator
 }
 
 func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	token, err := h.authenticator.Token()
 	if err != nil {
-		respondWithError(h.l, w, http.StatusInternalServerError, err)
+		respondWithError(h.logger, w, http.StatusInternalServerError, err)
 		return
 	}
 
 	auth := Auth{Token: token}
-	respond(h.l, w, http.StatusOK, auth)
+	respond(h.logger, w, http.StatusOK, auth)
 }

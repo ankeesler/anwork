@@ -8,7 +8,6 @@ import (
 )
 
 func signer(secret []byte) (jose.Signer, error) {
-	// TODO: what signing algorithm should we be using?
 	signingKey := jose.SigningKey{Algorithm: jose.HS512, Key: secret}
 	signerOptions := (&jose.SignerOptions{}).WithType("JWT")
 	signer, err := jose.NewSigner(signingKey, signerOptions)
@@ -20,7 +19,6 @@ func signer(secret []byte) (jose.Signer, error) {
 }
 
 func encrypter(publicKey *rsa.PublicKey) (jose.Encrypter, error) {
-	// TODO: what encryption algorithm should we be using?
 	encrypterOptions := (&jose.EncrypterOptions{}).WithType("JWT").WithContentType("JWT")
 	encrypter, err := jose.NewEncrypter(
 		jose.A256GCM,

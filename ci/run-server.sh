@@ -3,7 +3,8 @@
 set -euo pipefail
 
 tmp_dir=/tmp
-log_file="$tmp_dir/service.log"
+stdout_file="$tmp_dir/service.stdout.log"
+stderr_file="$tmp_dir/service.stderr.log"
 private_key_file="$tmp_dir/service.key"
 public_key_file="$tmp_dir/service.key.pub"
 service_binary="$tmp_dir/service"
@@ -18,9 +19,9 @@ echo
 echo "starting server on :$port"
 echo "private key stored in $private_key_file"
 echo "secret is $secret"
-echo "logging to file $log_file"
+echo "logging to file $stdout_file and $stderr_file"
 go build -o "$service_binary" ./cmd/service/main.go
 ANWORK_API_PUBLIC_KEY="$public_key" \
   ANWORK_API_SECRET="$secret" \
   PORT="$port" \
-  "$service_binary" > "$log_file"
+  "$service_binary" 1>"$stdout_file" 2>"$stderr_file"

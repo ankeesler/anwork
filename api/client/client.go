@@ -2,9 +2,9 @@ package client
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/task"
 )
@@ -30,7 +30,7 @@ type Cache interface {
 }
 
 type client struct {
-	log *log.Logger
+	logger lager.Logger
 
 	authenticator Authenticator
 	tokenCache    Cache
@@ -40,13 +40,13 @@ type client struct {
 
 // New returns a new API client pointed at an ANWORK API address.
 func New(
-	log *log.Logger,
+	logger lager.Logger,
 	address string,
 	authenticator Authenticator,
 	cache Cache,
 ) task.Repo {
 	return &client{
-		log:           log,
+		logger:        logger,
 		address:       address,
 		authenticator: authenticator,
 		tokenCache:    cache,
@@ -201,13 +201,13 @@ func (c *client) doExt(method, url string, input interface{}, output interface{}
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("bearer %s", token))
 
-	c.log.Printf("req %s %s", req.Method, req.URL)
+	c.logger.Debug("request", lager.Data{"method": req.Method, "url": req.URL})
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer rsp.Body.Close()
-	c.log.Printf("rsp %s", rsp.Status)
+	c.logger.Debug("response", lager.Data{"status": rsp.Status})
 
 	if is5xxStatus(rsp) {
 		return rsp, &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}
@@ -221,12 +221,12 @@ func (c *client) doExt(method, url string, input interface{}, output interface{}
 func (c *client) getToken() (string, error) {
 	if encryptedToken, ok := c.tokenCache.Get(); ok {
 		if decryptedToken, err := c.authenticator.Validate(encryptedToken); err != nil {
-			c.log.Printf("api/client: invalid token in cache: %s", err.Error())
+			c.logger.Debug("invalid-token-in-cache", lager.Data{"reason": err.Error()})
 		} else {
 			return decryptedToken, nil
 		}
 	} else {
-		c.log.Printf("api/client: token cache miss")
+		c.logger.Debug("token-cache-miss")
 	}
 
 	encryptedToken, decryptedToken, err := c.reallyGetToken()
@@ -246,13 +246,13 @@ func (c *client) reallyGetToken() (string, string, error) {
 
 	req.Header.Add("Accept", "application/json")
 
-	c.log.Printf("api/client: req %s %s", req.Method, req.URL)
+	c.logger.Debug("request", lager.Data{"method": req.Method, "url": req.URL})
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", "", err
 	}
 	defer rsp.Body.Close()
-	c.log.Printf("api/client: rsp %s", rsp.Status)
+	c.logger.Debug("response", lager.Data{"status": rsp.Status})
 
 	if is5xxStatus(rsp) {
 		return "", "", &badResponseError{code: rsp.Status, message: decodeError(rsp.Body)}

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ankeesler/anwork/lag"
+	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/task"
 	"github.com/tedsuo/rata"
 )
@@ -28,7 +28,7 @@ type Authenticator interface {
 }
 
 type api struct {
-	l             *lag.L
+	logger        lager.Logger
 	repo          task.Repo
 	authenticator Authenticator
 }
@@ -50,41 +50,45 @@ var routes = rata.Routes{
 }
 
 // New creates an http.Handler that will perform the ANWORK API functionality.
-func New(l *lag.L, repo task.Repo, authenticator Authenticator) http.Handler {
+func New(
+	logger lager.Logger,
+	repo task.Repo,
+	authenticator Authenticator,
+) http.Handler {
 	return &api{
-		l:             l,
+		logger:        logger,
 		repo:          repo,
 		authenticator: authenticator,
 	}
 }
 
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.l.P(lag.I, "api: handling %s %s", r.Method, r.URL.Path)
+	a.logger.Debug("handling", lager.Data{"method": r.Method, "path": r.URL.Path})
 
 	if err, statusCode := a.authenticate(r); err != nil {
-		respondWithError(a.l, w, statusCode, err)
+		respondWithError(a.logger, w, statusCode, err)
 		return
 	}
-	a.l.P(lag.I, "api: authentication succeeded")
+	a.logger.Debug("authenticated")
 
 	handlers := rata.Handlers{
-		"auth":   &authHandler{a.l, a.authenticator},
-		"health": &healthHandler{a.l},
+		"auth":   &authHandler{a.logger, a.authenticator},
+		"health": &healthHandler{},
 
-		"get_tasks":   &getTasksHandler{a.l, a.repo},
-		"create_task": &createTaskHandler{a.l, a.repo},
-		"get_task":    &getTaskHandler{a.l, a.repo},
-		"update_task": &updateTaskHandler{a.l, a.repo},
-		"delete_task": &deleteTaskHandler{a.l, a.repo},
+		"get_tasks":   &getTasksHandler{a.logger, a.repo},
+		"create_task": &createTaskHandler{a.logger, a.repo},
+		"get_task":    &getTaskHandler{a.logger, a.repo},
+		"update_task": &updateTaskHandler{a.logger, a.repo},
+		"delete_task": &deleteTaskHandler{a.logger, a.repo},
 
-		"get_events":   &getEventsHandler{a.l, a.repo},
-		"create_event": &createEventHandler{a.l, a.repo},
-		"get_event":    &getEventHandler{a.l, a.repo},
-		"delete_event": &deleteEventHandler{a.l, a.repo},
+		"get_events":   &getEventsHandler{a.logger, a.repo},
+		"create_event": &createEventHandler{a.logger, a.repo},
+		"get_event":    &getEventHandler{a.logger, a.repo},
+		"delete_event": &deleteEventHandler{a.logger, a.repo},
 	}
 	router, err := rata.NewRouter(routes, handlers)
 	if err != nil {
-		respondWithError(a.l, w, http.StatusInternalServerError, err)
+		respondWithError(a.logger, w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -109,12 +113,22 @@ func (a *api) authenticate(r *http.Request) (error, int) {
 	return a.authenticator.Authenticate(splitData[1]), http.StatusForbidden
 }
 
-func respondWithError(l *lag.L, w http.ResponseWriter, statusCode int, err error) {
-	respond(l, w, statusCode, Error{Message: err.Error()})
+func respondWithError(
+	logger lager.Logger,
+	w http.ResponseWriter,
+	statusCode int,
+	err error,
+) {
+	respond(logger, w, statusCode, Error{Message: err.Error()})
 }
 
-func respond(l *lag.L, w http.ResponseWriter, statusCode int, body interface{}) {
-	l.P(lag.I, "api: responding with %d: %+v", statusCode, body)
+func respond(
+	logger lager.Logger,
+	w http.ResponseWriter,
+	statusCode int,
+	body interface{},
+) {
+	logger.Debug("responding", lager.Data{"status": statusCode})
 
 	var bytes []byte = []byte{}
 	var jsonErr error

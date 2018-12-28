@@ -1,24 +1,18 @@
-// This is the main anwork command line executable. This command line executable provides the
+// This is the main ANWORK command line executable. This command line executable provides the
 // ability to create, read, update, and delete anwork Task objects.
-//
-// Versioning is done with a single 32-bit integer. Version names start with a lowercase 'v' and are
-// then followed by the number of the release. For example, the first version of the release was
-// named _v1_. The second version of the release will be _v2_. There are no minor version
-// numbers. This version number is controlled via the "version" global in the runner package. See
-// the CLI command "anwork version" for more information.
 package main
 
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
 	"code.cloudfoundry.org/clock"
+	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/api/auth"
 	"github.com/ankeesler/anwork/api/client"
 	"github.com/ankeesler/anwork/api/client/cache"
@@ -107,11 +101,24 @@ func main() {
 		os.Exit(0)
 	}
 
-	l := log.New(ioutil.Discard, "ANWORK: ", log.Ldate|log.Ltime|log.Lshortfile)
+	var logLevel lager.LogLevel
+	if dw.debug {
+		logLevel = lager.DEBUG
+	} else {
+		logLevel = lager.FATAL
+	}
+
+	logger := lager.NewLogger("anwork")
+	logger.RegisterSink(lager.NewPrettySink(os.Stdout, logLevel))
 
 	var repo task.Repo
 	if address, ok := useApi(); ok {
-		repo = client.New(l, address, wireAuth(l), wireCache(l))
+		repo = client.New(
+			logger.Session("api-client"),
+			address,
+			wireAuth(logger.Session("wire-auth")),
+			wireCache(logger.Session("wire-cache")),
+		)
 	} else {
 		repo = fs.New(filepath.Join(root.String(), context))
 	}
@@ -130,31 +137,39 @@ func useApi() (string, bool) {
 	return os.LookupEnv("ANWORK_API_ADDRESS")
 }
 
-func wireAuth(l *log.Logger) *auth.Client {
+func wireAuth(logger lager.Logger) *auth.Client {
 	privateKeyData, ok := os.LookupEnv("ANWORK_API_PRIVATE_KEY")
 	if !ok {
-		l.Fatal("must set ANWORK_API_PRIVATE_KEY")
+		msg := "must set ANWORK_API_PRIVATE_KEY"
+		logger.Fatal("missing-private-key-env-var", errors.New(msg))
 	}
 
 	block, _ := pem.Decode([]byte(privateKeyData))
+	if block == nil {
+		msg := "failed to decode private key PEM data"
+		logger.Fatal("failed-to-decode-private-key-pem", errors.New(msg))
+	}
 	if expected := "RSA PRIVATE KEY"; block.Type != expected {
-		l.Fatalf("unexpected PEM type: got %s, expected %s", block.Type, expected)
+		msg := fmt.Sprintf("unexpected PEM type: got %s, expected %s",
+			block.Type, expected)
+		logger.Fatal("invalid-private-key-pem-type", errors.New(msg))
 	}
 
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		l.Fatalf("failed to parse private key: %s", err.Error())
+		logger.Fatal("failed-to-parse-private-key", err)
 	}
 
 	secret, ok := os.LookupEnv("ANWORK_API_SECRET")
 	if !ok {
-		l.Fatal("must set ANWORK_API_SECRET")
+		msg := "must set ANWORK_API_SECRET"
+		logger.Fatal("missing-secret-env-var", errors.New(msg))
 	}
 
 	return auth.NewClient(clock.NewClock(), privateKey, []byte(secret))
 }
 
-func wireCache(l *log.Logger) *cache.Cache {
+func wireCache(logger lager.Logger) *cache.Cache {
 	var dir string
 	if homeDir, ok := os.LookupEnv("HOME"); ok {
 		dir = filepath.Join(homeDir, ".anwork")

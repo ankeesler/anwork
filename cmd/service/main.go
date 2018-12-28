@@ -1,3 +1,4 @@
+// This is the ANWORK service. It runs an HTTP server and serves the ANWORK API.
 package main
 
 import (
@@ -5,15 +6,15 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 
 	"code.cloudfoundry.org/clock"
+	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/auth"
-	"github.com/ankeesler/anwork/lag"
 	"github.com/ankeesler/anwork/task/fs"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/http_server"
@@ -27,56 +28,64 @@ func main() {
 		address = ":12345"
 	}
 
-	log := log.New(os.Stdout, "ANWORK Service: ", log.Ldate|log.Ltime)
-	l := lag.New(log, lag.D)
-	l.P(lag.I, "hey")
+	logger := lager.NewLogger("anwork-service")
+	logger.RegisterSink(lager.NewPrettySink(os.Stdout, lager.DEBUG))
+	logger.Info("hey")
 
 	repo := fs.New("/tmp/default-context")
 
 	clock := clock.NewClock()
-	publicKey := getPublicKey(log)
-	secret := getSecret(log)
+	publicKey := getPublicKey(logger.Session("get-public-key"))
+	secret := getSecret(logger.Session("get-secret"))
 	authenticator := auth.NewServer(clock, rand.Reader, publicKey, secret)
 
-	runner := http_server.New(address, api.New(l, repo, authenticator))
+	runner := http_server.New(
+		address, api.New(logger.Session("api"), repo, authenticator))
 	process := ifrit.Invoke(runner)
-	l.P(lag.I, "running")
+	logger.Info("running")
 
-	log.Fatal(<-process.Wait())
+	logger.Fatal("process-exited", <-process.Wait())
 }
 
-func getPublicKey(log *log.Logger) *rsa.PublicKey {
+func getPublicKey(logger lager.Logger) *rsa.PublicKey {
 	publicKeyPEMBytes, ok := os.LookupEnv("ANWORK_API_PUBLIC_KEY")
 	if !ok {
-		log.Fatalf("could not read public key file from ANWORK_API_PUBLIC_KEY env var")
+		msg := "could not read public key from ANWORK_API_PUBLIC_KEY env var"
+		logger.Fatal("missing-env-var", errors.New(msg))
 	}
 
 	block, _ := pem.Decode([]byte(publicKeyPEMBytes))
 	if block == nil {
-		log.Fatal("ANWORK_API_PUBLIC_KEY is in an invalid format")
+		msg := "ANWORK_API_PUBLIC_KEY is in an invalid format"
+		logger.Fatal("failed-to-decode-pem", errors.New(msg))
 	}
 	if expected := "PUBLIC KEY"; block.Type != expected {
-		log.Fatalf("unexpected PEM type: got %s, expected %s", block.Type, expected)
+		msg := fmt.Sprintf("unexpected PEM type: got %s, expected %s",
+			block.Type, expected)
+		logger.Fatal("invalid-pem-type", errors.New(msg))
 	}
 
 	key, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		log.Fatalf("could not parse PKIX public key: %s", err.Error())
+		msg := fmt.Sprintf("could not parse PKIX public key: %s", err.Error())
+		logger.Fatal("failed-to-parse", errors.New(msg))
 	}
 
 	publicKey, ok := key.(*rsa.PublicKey)
 	if !ok {
-		log.Fatalf("expected type *rsa.PublicKey from ANWORK_API_PUBLIC_KEY, got %s",
+		msg := fmt.Sprintf("expected type *rsa.PublicKey from ANWORK_API_PUBLIC_KEY, got %s",
 			reflect.TypeOf(key).String())
+		logger.Fatal("wrong-key-type", errors.New(msg))
 	}
 
 	return publicKey
 }
 
-func getSecret(log *log.Logger) []byte {
+func getSecret(logger lager.Logger) []byte {
 	secret, ok := os.LookupEnv("ANWORK_API_SECRET")
 	if !ok {
-		log.Fatalf("could not read secret from ANWORK_API_SECRET env var")
+		msg := "could not read secret from ANWORK_API_SECRET env var"
+		logger.Fatal("missing-env-var", errors.New(msg))
 	}
 
 	return []byte(secret)
