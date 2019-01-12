@@ -112,7 +112,7 @@ var _ = Describe("SQL Repo", func() {
 					Expect(repo.DeleteTask(&t)).To(Succeed())
 				}
 			})
-			Expect(runtime.Seconds()).To(BeNumerically("<", .5))
+			Expect(runtime.Seconds()).To(BeNumerically("<", 2))
 		}, 5)
 	})
 })

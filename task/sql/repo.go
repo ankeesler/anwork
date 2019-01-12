@@ -16,6 +16,8 @@ type repo struct {
 	logger lager.Logger
 
 	db *DB
+
+	tablesCreated bool
 }
 
 // New returns a task.Repo that stores task.Task's in an SQL database.
@@ -412,6 +414,10 @@ func (r *repo) DeleteEvent(event *task.Event) error {
 }
 
 func (r *repo) ensureTablesExist(logger lager.Logger) error {
+	if r.tablesCreated {
+		return nil
+	}
+
 	if exists, err := r.tablesExist(logger); err != nil {
 		return err
 	} else if !exists {
@@ -450,6 +456,9 @@ CREATE TABLE events (
 			return err
 		}
 	}
+
+	r.tablesCreated = true
+
 	return nil
 }
 
