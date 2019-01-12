@@ -30,28 +30,37 @@ func Open(logger lager.Logger, driverName, dataSourceName string) (*DB, error) {
 
 func (db *DB) Exec(query string, args ...interface{}) (stdlibsql.Result, error) {
 	db.logger.Debug("exec", lager.Data{"query": query, "args": args})
+
+	ctx, cancel := makeCtx()
+	defer cancel()
 	if args == nil {
-		return db.db.ExecContext(makeCtx(), query)
+		return db.db.ExecContext(ctx, query)
 	} else {
-		return db.db.ExecContext(makeCtx(), query, args)
+		return db.db.ExecContext(ctx, query, args)
 	}
 }
 
 func (db *DB) Query(query string, args ...interface{}) (*stdlibsql.Rows, error) {
 	db.logger.Debug("query", lager.Data{"query": query, "args": args})
+
+	ctx, cancel := makeCtx()
+	defer cancel()
 	if args == nil {
-		return db.db.QueryContext(makeCtx(), query)
+		return db.db.QueryContext(ctx, query)
 	} else {
-		return db.db.QueryContext(makeCtx(), query, args)
+		return db.db.QueryContext(ctx, query, args)
 	}
 }
 
 func (db *DB) QueryRow(query string, args ...interface{}) *stdlibsql.Row {
 	db.logger.Debug("query", lager.Data{"query-row": query, "args": args})
+
+	ctx, cancel := makeCtx()
+	defer cancel()
 	if args == nil {
-		return db.db.QueryRowContext(makeCtx(), query)
+		return db.db.QueryRowContext(ctx, query)
 	} else {
-		return db.db.QueryRowContext(makeCtx(), query, args...)
+		return db.db.QueryRowContext(ctx, query, args...)
 	}
 }
 
@@ -63,7 +72,9 @@ func (db *DB) Close() error {
 func (db *DB) Prepare(query string) (*stmt, error) {
 	db.logger.Debug("prepare", lager.Data{"query": query})
 
-	s, err := db.db.PrepareContext(makeCtx(), query)
+	ctx, cancel := makeCtx()
+	defer cancel()
+	s, err := db.db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +90,10 @@ type stmt struct {
 
 func (s *stmt) Exec(args ...interface{}) (stdlibsql.Result, error) {
 	s.logger.Debug("exec", lager.Data{"args": args})
-	return s.stmt.ExecContext(makeCtx(), args...)
+
+	ctx, cancel := makeCtx()
+	defer cancel()
+	return s.stmt.ExecContext(ctx, args...)
 }
 
 func (s *stmt) Close() error {
@@ -87,7 +101,6 @@ func (s *stmt) Close() error {
 	return s.stmt.Close()
 }
 
-func makeCtx() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
-	return ctx
+func makeCtx() (context.Context, func()) {
+	return context.WithTimeout(context.Background(), time.Second*5)
 }
