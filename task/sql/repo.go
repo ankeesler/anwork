@@ -3,8 +3,10 @@
 package sql
 
 import (
+	"context"
 	stdlibsql "database/sql"
 	"fmt"
+	"time"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/task"
@@ -22,27 +24,42 @@ func New(logger lager.Logger, db *DB) task.Repo {
 }
 
 func (r *repo) CreateTask(task *task.Task) error {
-	r.logger.Debug("create-task-begin", lager.Data{"task": task})
-	defer r.logger.Debug("create-task-end")
+	logger := r.logger.Session("create-task")
+	logger.Debug("begin", lager.Data{"task": task})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return err
 	}
 
-	stmt, err := r.db.Prepare(`INSERT INTO tasks (name, start_date, priority, state) VALUES (?, ?, ?, ?)`)
+	ctx, cancel := makeCtx()
+	defer cancel()
+
+	q := `INSERT INTO tasks (name, start_date, priority, state) VALUES (?, ?, ?, ?)`
+	stmt, err := r.db.Prepare(ctx, logger, q)
 	if err != nil {
+		logger.Error("prepare", err)
 		return err
 	}
-	defer stmt.Close()
+	defer stmt.Close(logger)
 
-	result, err := stmt.Exec(task.Name, task.StartDate, task.Priority, task.State)
+	result, err := stmt.Exec(
+		ctx,
+		logger,
+		task.Name,
+		task.StartDate,
+		task.Priority,
+		task.State,
+	)
 	if err != nil {
+		logger.Error("exec", err)
 		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
+		logger.Error("result-last-insert-id", err)
 		return err
 	}
 	task.ID = int(id)
@@ -51,25 +68,32 @@ func (r *repo) CreateTask(task *task.Task) error {
 }
 
 func (r *repo) Tasks() ([]*task.Task, error) {
-	r.logger.Debug("tasks-begin")
-	defer r.logger.Debug("tasks-end")
+	logger := r.logger.Session("tasks")
+	logger.Debug("begin")
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return nil, err
 	}
 
-	rows, err := r.db.Query("SELECT * FROM tasks")
+	ctx, cancel := makeCtx()
+	defer cancel()
+	rows, err := r.db.Query(ctx, logger, "SELECT * FROM tasks")
 	if err != nil {
-		r.logger.Error("get-tasks", err)
+		logger.Error("get-tasks", err)
 		return nil, err
 	}
 
 	tasks := make([]*task.Task, 0)
-	for rows.Next() {
-		if rows.Err() != nil {
-			r.logger.Error("rows-next", err)
-			return nil, err
+	for {
+		if !rows.Next() {
+			if err := rows.Err(); err != nil {
+				logger.Error("rows-next", err)
+				return nil, err
+			} else {
+				break
+			}
 		}
 
 		task := new(task.Task)
@@ -80,7 +104,7 @@ func (r *repo) Tasks() ([]*task.Task, error) {
 			&task.Priority,
 			&task.State,
 		); err != nil {
-			r.logger.Error("rows-scan", err)
+			logger.Error("rows-scan", err)
 			return nil, err
 		}
 
@@ -91,16 +115,20 @@ func (r *repo) Tasks() ([]*task.Task, error) {
 }
 
 func (r *repo) FindTaskByID(id int) (*task.Task, error) {
-	r.logger.Debug("find-task-by-id-begin", lager.Data{"id": id})
-	defer r.logger.Debug("find-task-by-id-end")
+	logger := r.logger.Session("find-by-id")
+	logger.Debug("begin", lager.Data{"id": id})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return nil, err
 	}
 
+	ctx, cancel := makeCtx()
+	defer cancel()
+
 	q := fmt.Sprintf(`SELECT * FROM tasks WHERE id = %d`, id)
-	row := r.db.QueryRow(q)
+	row := r.db.QueryRow(ctx, logger, q)
 
 	task := new(task.Task)
 	if err := row.Scan(
@@ -113,6 +141,7 @@ func (r *repo) FindTaskByID(id int) (*task.Task, error) {
 		if err == stdlibsql.ErrNoRows {
 			return nil, nil
 		} else {
+			logger.Error("scan-row", err)
 			return nil, err
 		}
 	}
@@ -121,16 +150,20 @@ func (r *repo) FindTaskByID(id int) (*task.Task, error) {
 }
 
 func (r *repo) FindTaskByName(name string) (*task.Task, error) {
-	r.logger.Debug("find-task-by-name-begin", lager.Data{"name": name})
-	defer r.logger.Debug("find-task-by-name-end")
+	logger := r.logger.Session("find-task-by-name")
+	logger.Debug("begin", lager.Data{"name": name})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return nil, err
 	}
 
+	ctx, cancel := makeCtx()
+	defer cancel()
+
 	q := fmt.Sprintf(`SELECT * FROM tasks WHERE name = '%s'`, name)
-	row := r.db.QueryRow(q)
+	row := r.db.QueryRow(ctx, logger, q)
 
 	task := new(task.Task)
 	if err := row.Scan(
@@ -143,6 +176,7 @@ func (r *repo) FindTaskByName(name string) (*task.Task, error) {
 		if err == stdlibsql.ErrNoRows {
 			return nil, nil
 		} else {
+			logger.Error("scan-row", err)
 			return nil, err
 		}
 	}
@@ -151,21 +185,26 @@ func (r *repo) FindTaskByName(name string) (*task.Task, error) {
 }
 
 func (r *repo) UpdateTask(task *task.Task) error {
-	r.logger.Debug("update-task-begin", lager.Data{"task": task})
-	defer r.logger.Debug("update-task-end")
+	logger := r.logger.Session("update-task")
+	logger.Debug("begin", lager.Data{"task": task})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return err
 	}
+
+	ctx, cancel := makeCtx()
+	defer cancel()
 
 	q := fmt.Sprintf(`
 UPDATE tasks
 SET name = '%s', start_date = %d, priority = %d, state = '%s'
 WHERE id = %d`,
 		task.Name, task.StartDate, task.Priority, task.State, task.ID)
-	result, err := r.db.Exec(q)
+	result, err := r.db.Exec(ctx, logger, q)
 	if err != nil {
+		logger.Error("exec", err)
 		return err
 	}
 
@@ -180,17 +219,29 @@ WHERE id = %d`,
 }
 
 func (r *repo) DeleteTask(task *task.Task) error {
-	r.logger.Debug("delete-task-begin", lager.Data{"task": task})
-	defer r.logger.Debug("delete-task-end")
+	logger := r.logger.Session("delete-task")
+	logger.Debug("begin", lager.Data{"task": task})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return err
 	}
 
-	q := fmt.Sprintf(`DELETE FROM tasks WHERE id = %d`, task.ID)
-	result, err := r.db.Exec(q)
+	ctx, cancel := makeCtx()
+	defer cancel()
+
+	q := fmt.Sprintf(`DELETE FROM events WHERE task_id = %d`, task.ID)
+	result, err := r.db.Exec(ctx, logger, q)
 	if err != nil {
+		logger.Error("exec", err)
+		return err
+	}
+
+	q = fmt.Sprintf(`DELETE FROM tasks WHERE id = %d`, task.ID)
+	result, err = r.db.Exec(ctx, logger, q)
+	if err != nil {
+		logger.Error("exec", err)
 		return err
 	}
 
@@ -205,27 +256,42 @@ func (r *repo) DeleteTask(task *task.Task) error {
 }
 
 func (r *repo) CreateEvent(event *task.Event) error {
-	r.logger.Debug("create-event-begin", lager.Data{"event": event})
-	defer r.logger.Debug("create-event-end")
+	logger := r.logger.Session("create-event")
+	logger.Debug("begin", lager.Data{"event": event})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return err
 	}
 
-	stmt, err := r.db.Prepare(`INSERT INTO events (title, date, type, task_id) VALUES (?, ?, ?, ?)`)
+	ctx, cancel := makeCtx()
+	defer cancel()
+
+	q := `INSERT INTO events (title, date, type, task_id) VALUES (?, ?, ?, ?)`
+	stmt, err := r.db.Prepare(ctx, logger, q)
 	if err != nil {
+		logger.Error("prepare", err)
 		return err
 	}
-	defer stmt.Close()
+	defer stmt.Close(logger)
 
-	result, err := stmt.Exec(event.Title, event.Date, event.Type, event.TaskID)
+	result, err := stmt.Exec(
+		ctx,
+		logger,
+		event.Title,
+		event.Date,
+		event.Type,
+		event.TaskID,
+	)
 	if err != nil {
+		logger.Error("exec", err)
 		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
+		logger.Error("last-insert-id", err)
 		return err
 	}
 	event.ID = int(id)
@@ -234,25 +300,32 @@ func (r *repo) CreateEvent(event *task.Event) error {
 }
 
 func (r *repo) Events() ([]*task.Event, error) {
-	r.logger.Debug("events-begin")
-	defer r.logger.Debug("events-end")
+	logger := r.logger.Session("events")
+	logger.Debug("begin")
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return nil, err
 	}
 
-	rows, err := r.db.Query("SELECT * FROM events")
+	ctx, cancel := makeCtx()
+	defer cancel()
+	rows, err := r.db.Query(ctx, logger, "SELECT * FROM events")
 	if err != nil {
-		r.logger.Error("get-tasks", err)
+		logger.Error("get-tasks", err)
 		return nil, err
 	}
 
 	events := make([]*task.Event, 0)
-	for rows.Next() {
-		if rows.Err() != nil {
-			r.logger.Error("rows-next", err)
-			return nil, err
+	for {
+		if !rows.Next() {
+			if err := rows.Err(); err != nil {
+				logger.Error("rows-next", err)
+				return nil, err
+			} else {
+				break
+			}
 		}
 
 		event := new(task.Event)
@@ -263,7 +336,7 @@ func (r *repo) Events() ([]*task.Event, error) {
 			&event.Type,
 			&event.TaskID,
 		); err != nil {
-			r.logger.Error("rows-scan", err)
+			logger.Error("rows-scan", err)
 			return nil, err
 		}
 
@@ -274,16 +347,20 @@ func (r *repo) Events() ([]*task.Event, error) {
 }
 
 func (r *repo) FindEventByID(id int) (*task.Event, error) {
-	r.logger.Debug("find-event-by-id-begin", lager.Data{"id": id})
-	defer r.logger.Debug("find-event-by-id-end")
+	logger := r.logger.Session("find-event-by-id")
+	logger.Debug("begin", lager.Data{"id": id})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return nil, err
 	}
 
+	ctx, cancel := makeCtx()
+	defer cancel()
+
 	q := fmt.Sprintf(`SELECT * FROM events WHERE id = %d`, id)
-	row := r.db.QueryRow(q)
+	row := r.db.QueryRow(ctx, logger, q)
 
 	event := new(task.Event)
 	if err := row.Scan(
@@ -296,6 +373,7 @@ func (r *repo) FindEventByID(id int) (*task.Event, error) {
 		if err == stdlibsql.ErrNoRows {
 			return nil, nil
 		} else {
+			logger.Error("scan", err)
 			return nil, err
 		}
 	}
@@ -304,17 +382,22 @@ func (r *repo) FindEventByID(id int) (*task.Event, error) {
 }
 
 func (r *repo) DeleteEvent(event *task.Event) error {
-	r.logger.Debug("delete-event-begin", lager.Data{"event": event})
-	defer r.logger.Debug("delete-event-end")
+	logger := r.logger.Session("delete-event")
+	logger.Debug("begin", lager.Data{"event": event})
+	defer logger.Debug("end")
 
-	if err := r.ensureTablesExist(); err != nil {
-		r.logger.Error("ensure-tables", err)
+	if err := r.ensureTablesExist(logger); err != nil {
+		logger.Error("ensure-tables", err)
 		return err
 	}
 
+	ctx, cancel := makeCtx()
+	defer cancel()
+
 	q := fmt.Sprintf(`DELETE FROM events WHERE id = %d`, event.ID)
-	result, err := r.db.Exec(q)
+	result, err := r.db.Exec(ctx, logger, q)
 	if err != nil {
+		logger.Error("exec", err)
 		return err
 	}
 
@@ -328,10 +411,13 @@ func (r *repo) DeleteEvent(event *task.Event) error {
 	return nil
 }
 
-func (r *repo) ensureTablesExist() error {
-	if exists, err := r.tablesExist(); err != nil {
+func (r *repo) ensureTablesExist(logger lager.Logger) error {
+	if exists, err := r.tablesExist(logger); err != nil {
 		return err
 	} else if !exists {
+		ctx, cancel := makeCtx()
+		defer cancel()
+
 		q := `
 CREATE TABLE tasks (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -341,8 +427,9 @@ CREATE TABLE tasks (
   state varchar(16) NOT NULL
 )
 `
-		_, err = r.db.Query(q)
+		_, err = r.db.Exec(ctx, logger, q)
 		if err != nil {
+			r.logger.Error("create-tasks-table", err)
 			return err
 		}
 
@@ -357,17 +444,21 @@ CREATE TABLE events (
   FOREIGN KEY (task_id) REFERENCES tasks(id)
 )
 `
-		_, err = r.db.Query(q)
+		_, err = r.db.Exec(ctx, logger, q)
 		if err != nil {
+			r.logger.Error("create-events-table", err)
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *repo) tablesExist() (bool, error) {
+func (r *repo) tablesExist(logger lager.Logger) (bool, error) {
+	ctx, cancel := makeCtx()
+	defer cancel()
+
 	q := `SHOW TABLES`
-	rows, err := r.db.Query(q)
+	rows, err := r.db.Query(ctx, logger, q)
 
 	if err != nil {
 		return false, err
@@ -376,4 +467,8 @@ func (r *repo) tablesExist() (bool, error) {
 	} else {
 		return true, nil
 	}
+}
+
+func makeCtx() (context.Context, func()) {
+	return context.WithTimeout(context.Background(), time.Second*3)
 }
