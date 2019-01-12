@@ -20,6 +20,14 @@ echo "starting server on :$port"
 echo "private key stored in $private_key_file"
 echo "secret is $secret"
 echo "logging to file $stdout_file and $stderr_file"
+
+creds="/tmp/creds"
+private_key="$(cat $private_key_file)"
+echo "export ANWORK_API_ADDRESS=localhost:$port" > "$creds"
+echo "export ANWORK_API_PRIVATE_KEY='$private_key'" >> "$creds"
+echo "export ANWORK_API_SECRET=$secret" >> "$creds"
+echo "creds written to $creds"
+
 go build -o "$service_binary" ./cmd/service/main.go
 ANWORK_API_PUBLIC_KEY="$public_key" \
   ANWORK_API_SECRET="$secret" \

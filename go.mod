@@ -5,6 +5,7 @@ require (
 	code.cloudfoundry.org/lager v2.0.0+incompatible
 	github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.6.0

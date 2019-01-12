@@ -15,7 +15,10 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/ankeesler/anwork/api"
 	"github.com/ankeesler/anwork/api/auth"
+	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/fs"
+	"github.com/ankeesler/anwork/task/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/http_server"
 )
@@ -32,7 +35,7 @@ func main() {
 	logger.RegisterSink(lager.NewPrettySink(os.Stdout, lager.DEBUG))
 	logger.Info("hey")
 
-	repo := fs.New("/tmp/default-context")
+	repo := wireRepo(logger)
 
 	clock := clock.NewClock()
 	publicKey := getPublicKey(logger.Session("get-public-key"))
@@ -45,6 +48,20 @@ func main() {
 	logger.Info("running")
 
 	logger.Fatal("process-exited", <-process.Wait())
+}
+
+func wireRepo(logger lager.Logger) task.Repo {
+	var repo task.Repo
+	if dsn, ok := os.LookupEnv("ANWORK_SQL_DSN"); ok {
+		db, err := sql.Open(logger.Session("db"), "mysql", dsn)
+		if err != nil {
+			logger.Fatal("open-db-failure", err)
+		}
+		repo = sql.New(logger.Session("repo"), db)
+	} else {
+		repo = fs.New("/tmp/default-context")
+	}
+	return repo
 }
 
 func getPublicKey(logger lager.Logger) *rsa.PublicKey {

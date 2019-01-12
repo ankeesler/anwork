@@ -105,7 +105,7 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateTask(taskC)).To(Succeed())
 			})
 			It("returns nil and nil error", func() {
-				task, err := repo.FindTaskByID(2)
+				task, err := repo.FindTaskByID(99)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(task).To(BeNil())
 			})
@@ -230,6 +230,12 @@ func RunRepoTests(createRepoFunc func() Repo) {
 	Describe("CreateEvent", func() {
 		Context("when events are created", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventB.TaskID = task.ID
+				eventC.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
@@ -244,6 +250,12 @@ func RunRepoTests(createRepoFunc func() Repo) {
 		})
 		Context("when an event with that ID already exists", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventB.TaskID = task.ID
+				eventC.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
@@ -280,6 +292,12 @@ func RunRepoTests(createRepoFunc func() Repo) {
 		})
 		Context("events exist", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventB.TaskID = task.ID
+				eventC.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
@@ -297,11 +315,16 @@ func RunRepoTests(createRepoFunc func() Repo) {
 	Describe("FindEventByID", func() {
 		Context("when the event does not exist", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventC.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
 			})
 			It("returns nil and nil error", func() {
-				event, err := repo.FindEventByID(2)
+				event, err := repo.FindEventByID(99)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(event).To(BeNil())
 			})
@@ -309,6 +332,11 @@ func RunRepoTests(createRepoFunc func() Repo) {
 
 		Context("when the event exists", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventB.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 			})
@@ -324,6 +352,11 @@ func RunRepoTests(createRepoFunc func() Repo) {
 	Describe("DeleteEvent", func() {
 		Context("when the event does not exist", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventC.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
 			})
@@ -335,6 +368,11 @@ func RunRepoTests(createRepoFunc func() Repo) {
 
 		Context("when the event exists", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventB.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 			})
@@ -411,6 +449,12 @@ func RunRepoTests(createRepoFunc func() Repo) {
 		})
 		Context("when events are created with one repo", func() {
 			BeforeEach(func() {
+				task := Task{Name: "task"}
+				Expect(repo.CreateTask(&task)).To(Succeed())
+
+				eventA.TaskID = task.ID
+				eventB.TaskID = task.ID
+				eventC.TaskID = task.ID
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventB)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
