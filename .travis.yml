@@ -9,7 +9,11 @@ os:
 env:
   global:
   - GO111MODULE=on
-  - secure: BISVrzdru6ZdSyViYup+2pu5S7sbIljI30IPc50/dDM81yNMOUXmPJjEc449z/JMKF9Qa9XahTILG8iMeFewRrO+ROpBVsbWMm7tY8VSTo49CckiPYE/E2mg68c1674ir5Lvr0eUQ0lJnJJ1lrKr3eVHCWM04gdr3XfTN5yc/4zk/Om3dha88SuudWzNa9k5RkQYnUEtxC6H0O77E9dtXfwlGkGgpBVjbuU/vAxmWLe7RaQxIv95ydpiOuOrAaxZYBkO8HPQ56UzWHr76y+P973YJwgBE1C5r9/zxrQaXBHEunNqk/Nfk5/n2OJ3vDscl7+fDpwuKsIiH3uWScm3yB1HR/UeTo8dTVkzdfi/rUmEYv3XwoE7zPDuh+1CfiIrMOEBPgVzmufUEFxsaDI0lgEfeJmzimon9HotR5oyd9C2oFxmTouBZj18RObo/A9aqkuXtCX7l+IHfRad0XS1enlxan6x2PcbioxeI5KA7x9+eV3Piwv3IEDwrLV6KMV/k0rA1RFT9+teGnrcp7Xwwd2cZe5LnL/3yGErWFyl60Ca1zVbY9t8VPM4pmtDnpTzD9Ir/Pd4FRSm88XfHIPyko8xG3+tFmLtn7GKuVfUpd7IvwwwmgqM6CIaHBBiaCIYpmEWu6rbWVCsQCb24Wcvy4qfzgQoRDS+WhOXJXv1YEE=
+  - ANWORK_TEST_SQL_DSN=travis@tcp(127.0.0.1)/anwork_sql_test
+services:
+  - mysql
+before_install:
+  - mysql -e 'CREATE DATABASE anwork_sql_test;'
 install:
 - go mod download
 - go install -v github.com/onsi/ginkgo/ginkgo
