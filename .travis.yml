@@ -9,7 +9,7 @@ os:
 env:
   global:
   - GO111MODULE=on
-  - ANWORK_TEST_SQL_DSN=travis@tcp(127.0.0.1)/anwork_sql_test
+  - ANWORK_TEST_SQL_DSN=travis@tcp\(127.0.0.1\)/anwork_sql_test
 services:
   - mysql
 before_install:
