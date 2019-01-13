@@ -52,7 +52,7 @@ func main() {
 
 func wireRepo(logger lager.Logger) task.Repo {
 	var repo task.Repo
-	if dsn, ok := os.LookupEnv("ANWORK_SQL_DSN"); ok {
+	if dsn, ok := os.LookupEnv("ANWORK_API_SQL_DSN"); ok {
 		db, err := sql.Open("mysql", dsn)
 		if err != nil {
 			logger.Fatal("open-db-failure", err)

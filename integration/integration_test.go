@@ -180,7 +180,7 @@ var _ = Describe("anwork", func() {
 			run(outBuf, errBuf, "journal", "task-a")
 			Expect(outBuf).To(gbytes.Say("\\[.*\\]: Created task 'task-a'"))
 		})
-		It("records the event in the globas journal", func() {
+		It("records the event in the global journal", func() {
 			run(outBuf, errBuf, "journal")
 			Expect(outBuf).To(gbytes.Say("\\[.*\\]: Created task 'task-a'"))
 		})

@@ -63,7 +63,10 @@ func New(
 }
 
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.logger.Debug("handling", lager.Data{"method": r.Method, "path": r.URL.Path})
+	a.logger.Debug(
+		"handling",
+		lager.Data{"method": r.Method, "path": r.URL.Path, "query": r.URL.RawQuery},
+	)
 
 	if err, statusCode := a.authenticate(r); err != nil {
 		respondWithError(a.logger, w, statusCode, err)
@@ -128,7 +131,10 @@ func respond(
 	statusCode int,
 	body interface{},
 ) {
-	logger.Debug("responding", lager.Data{"status": statusCode})
+	logger.Debug(
+		"responding",
+		lager.Data{"status": statusCode, "headers": w.Header()},
+	)
 
 	var bytes []byte = []byte{}
 	var jsonErr error

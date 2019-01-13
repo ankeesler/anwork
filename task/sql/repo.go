@@ -233,8 +233,8 @@ func (r *repo) DeleteTask(task *task.Task) error {
 	ctx, cancel := makeCtx()
 	defer cancel()
 
-	q = fmt.Sprintf(`DELETE FROM tasks WHERE id = %d`, task.ID)
-	_, err = r.db.Exec(ctx, logger, q)
+	q := fmt.Sprintf(`DELETE FROM tasks WHERE id = %d`, task.ID)
+	_, err := r.db.Exec(ctx, logger, q)
 	if err != nil {
 		logger.Error("exec", err)
 		return err
