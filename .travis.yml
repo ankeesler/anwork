@@ -5,7 +5,6 @@ git:
   depth: 3
 os:
 - linux
-- osx
 env:
   global:
   - GO111MODULE=on
