@@ -18,6 +18,7 @@ type Repo interface {
 	// values to those provided.
 	UpdateTask(*Task) error
 	// DeleteTask deletes a Task with the provided ID.
+	// If the Task does not exist, this function will return nil.
 	DeleteTask(*Task) error
 
 	// CreateEvent creates a Event. The Event.ID field is set by the Repo.
@@ -28,5 +29,6 @@ type Repo interface {
 	// not exist, it will return nil, nil.
 	FindEventByID(int) (*Event, error)
 	// DeleteEvent deletes an Event with the provided ID.
+	// If the Event does not exist, this function will return nil.
 	DeleteEvent(*Event) error
 }

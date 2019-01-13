@@ -192,6 +192,12 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(tasks).To(HaveLen(2))
 			})
+
+			Context("when the task is updated with the same data", func() {
+				It("succeeds", func() {
+					Expect(repo.UpdateTask(taskA)).To(Succeed())
+				})
+			})
 		})
 	})
 
@@ -201,9 +207,9 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateTask(taskA)).To(Succeed())
 				Expect(repo.CreateTask(taskC)).To(Succeed())
 			})
-			It("returns an error", func() {
+			It("returns success since the task doesn't exist", func() {
 				taskB.ID = 999
-				Expect(repo.DeleteTask(taskB)).NotTo(Succeed())
+				Expect(repo.DeleteTask(taskB)).To(Succeed())
 			})
 		})
 
@@ -360,9 +366,9 @@ func RunRepoTests(createRepoFunc func() Repo) {
 				Expect(repo.CreateEvent(eventA)).To(Succeed())
 				Expect(repo.CreateEvent(eventC)).To(Succeed())
 			})
-			It("returns an error", func() {
+			It("returns success since the task isn't there", func() {
 				eventB.ID = 999
-				Expect(repo.DeleteEvent(eventB)).NotTo(Succeed())
+				Expect(repo.DeleteEvent(eventB)).To(Succeed())
 			})
 		})
 

@@ -199,22 +199,22 @@ func (r *repo) UpdateTask(task *task.Task) error {
 	ctx, cancel := makeCtx()
 	defer cancel()
 
+	if exists, err := r.taskExists(ctx, logger, task.ID); err != nil {
+		logger.Error("task-exists", err)
+		return err
+	} else if !exists {
+		return fmt.Errorf("unknown task with id %d", task.ID)
+	}
+
 	q := fmt.Sprintf(`
 UPDATE tasks
 SET name = '%s', start_date = %d, priority = %d, state = '%s'
 WHERE id = %d`,
 		task.Name, task.StartDate, task.Priority, task.State, task.ID)
-	result, err := r.db.Exec(ctx, logger, q)
+	_, err := r.db.Exec(ctx, logger, q)
 	if err != nil {
 		logger.Error("exec", err)
 		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	} else if rows == 0 {
-		return fmt.Errorf("unknown task with id %d", task.ID)
 	}
 
 	return nil
@@ -241,17 +241,10 @@ func (r *repo) DeleteTask(task *task.Task) error {
 	}
 
 	q = fmt.Sprintf(`DELETE FROM tasks WHERE id = %d`, task.ID)
-	result, err = r.db.Exec(ctx, logger, q)
+	_, err = r.db.Exec(ctx, logger, q)
 	if err != nil {
 		logger.Error("exec", err)
 		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	} else if rows == 0 {
-		return fmt.Errorf("unknown task with id %d", task.ID)
 	}
 
 	return nil
@@ -315,7 +308,7 @@ func (r *repo) Events() ([]*task.Event, error) {
 	defer cancel()
 	rows, err := r.db.Query(ctx, logger, "SELECT * FROM events")
 	if err != nil {
-		logger.Error("get-tasks", err)
+		logger.Error("get-events", err)
 		return nil, err
 	}
 
@@ -397,17 +390,10 @@ func (r *repo) DeleteEvent(event *task.Event) error {
 	defer cancel()
 
 	q := fmt.Sprintf(`DELETE FROM events WHERE id = %d`, event.ID)
-	result, err := r.db.Exec(ctx, logger, q)
+	_, err := r.db.Exec(ctx, logger, q)
 	if err != nil {
 		logger.Error("exec", err)
 		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	} else if rows == 0 {
-		return fmt.Errorf("unknown event with id %d", event.ID)
 	}
 
 	return nil
@@ -473,6 +459,21 @@ func (r *repo) tablesExist(logger lager.Logger) (bool, error) {
 		return false, err
 	} else if !rows.Next() {
 		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
+func (r *repo) taskExists(
+	ctx context.Context,
+	logger lager.Logger,
+	id int,
+) (bool, error) {
+	q := fmt.Sprintf("SELECT id FROM tasks WHERE id = %d", id)
+	if err := r.db.QueryRow(ctx, logger, q).Scan(&id); err == stdlibsql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, err
 	} else {
 		return true, nil
 	}

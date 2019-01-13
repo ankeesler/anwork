@@ -111,7 +111,7 @@ func (r *repo) DeleteTask(task *task.Task) error {
 		r.MyTasks = append(r.MyTasks[:index], r.MyTasks[index+1:]...)
 		return r.commit()
 	} else {
-		return &unknownTaskError{name: task.Name, id: task.ID}
+		return nil
 	}
 }
 
@@ -156,7 +156,7 @@ func (r *repo) DeleteEvent(event *task.Event) error {
 		r.MyEvents = append(r.MyEvents[:index], r.MyEvents[index+1:]...)
 		return r.commit()
 	} else {
-		return &unknownEventError{title: event.Title, date: event.Date}
+		return nil
 	}
 }
 

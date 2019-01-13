@@ -109,7 +109,12 @@ func (c *client) UpdateTask(task *task.Task) error {
 }
 
 func (c *client) DeleteTask(task *task.Task) error {
-	return c.do(http.MethodDelete, c.taskURL(task.ID), nil, nil)
+	rsp, err := c.doExt(http.MethodDelete, c.taskURL(task.ID), nil, nil)
+	if rsp != nil && rsp.StatusCode == http.StatusNotFound {
+		return nil
+	} else {
+		return err
+	}
 }
 
 func (c *client) CreateEvent(event *task.Event) error {
@@ -149,7 +154,12 @@ func (c *client) FindEventByID(id int) (*task.Event, error) {
 }
 
 func (c *client) DeleteEvent(event *task.Event) error {
-	return c.do(http.MethodDelete, c.eventURL(event.ID), nil, nil)
+	rsp, err := c.doExt(http.MethodDelete, c.eventURL(event.ID), nil, nil)
+	if rsp != nil && rsp.StatusCode == http.StatusNotFound {
+		return nil
+	} else {
+		return err
+	}
 }
 
 func (c *client) tasksURL() string {
