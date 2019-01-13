@@ -18,6 +18,7 @@ import (
 	"github.com/ankeesler/anwork/task"
 	"github.com/ankeesler/anwork/task/fs"
 	"github.com/ankeesler/anwork/task/sql"
+	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/http_server"
@@ -35,7 +36,7 @@ func main() {
 	logger.RegisterSink(lager.NewPrettySink(os.Stdout, lager.DEBUG))
 	logger.Info("hey")
 
-	repo := wireRepo(logger)
+	repo := wireRepo(logger.Session("wire-repo"))
 
 	clock := clock.NewClock()
 	publicKey := getPublicKey(logger.Session("get-public-key"))
@@ -52,16 +53,25 @@ func main() {
 
 func wireRepo(logger lager.Logger) task.Repo {
 	var repo task.Repo
-	if dsn, ok := os.LookupEnv("ANWORK_API_SQL_DSN"); ok {
-		db, err := sql.Open("mysql", dsn)
-		if err != nil {
-			logger.Fatal("open-db-failure", err)
-		}
-		repo = sql.New(logger.Session("repo"), db)
+	if dsn, ok := getCFServiceDSN(logger.Session("get-cf-service-dsn")); ok {
+		repo = wireSQLRepo(logger, dsn)
+		logger.Info("created-sql-repo-with-cf-service")
+	} else if dsn, ok := os.LookupEnv("ANWORK_API_SQL_DSN"); ok {
+		repo = wireSQLRepo(logger, dsn)
+		logger.Info("created-sql-repo")
 	} else {
 		repo = fs.New("/tmp/default-context")
+		logger.Info("created-fs-repo")
 	}
 	return repo
+}
+
+func wireSQLRepo(logger lager.Logger, dsn string) task.Repo {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		logger.Fatal("open-db-failure", err)
+	}
+	return sql.New(logger.Session("repo"), db)
 }
 
 func getPublicKey(logger lager.Logger) *rsa.PublicKey {
@@ -106,4 +116,30 @@ func getSecret(logger lager.Logger) []byte {
 	}
 
 	return []byte(secret)
+}
+
+func getCFServiceDSN(logger lager.Logger) (string, bool) {
+	app, err := cfenv.Current()
+	if err != nil {
+		logger.Info("current-failed", lager.Data{"error": err})
+		return "", false
+	}
+
+	services, err := app.Services.WithTag("anwork-service-db")
+	if err != nil {
+		logger.Info("with-tag-failed", lager.Data{"error": err})
+		return "", false
+	}
+
+	if len(services) != 1 {
+		logger.Info("found-wrong-number-services", lager.Data{"number": len(services)})
+		return "", false
+	}
+
+	credentials := services[0].Credentials
+	username := credentials["username"]
+	password := credentials["password"]
+	hostname := credentials["hostname"]
+	dbName := credentials["name"]
+	return fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, hostname, dbName), true
 }

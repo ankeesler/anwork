@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	stdlibsql "database/sql"
+	"time"
 
 	"code.cloudfoundry.org/lager"
 )
@@ -22,6 +23,8 @@ func Open(driverName, dataSourceName string) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db.SetConnMaxLifetime(time.Second)
 
 	return &DB{db: db}, nil
 }

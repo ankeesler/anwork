@@ -127,13 +127,13 @@ func TestIntegration(t *testing.T) {
 
 			privateKey, publicKey, secret := generateAPICreds()
 
-			cmd := exec.Command(apiBin)
-			cmd.Env = []string{"PORT=12346"}
-			cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_PUBLIC_KEY=%s", publicKey))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_SECRET=%s", secret))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_SQL_DSN=%s", getSQLDSN()))
-
 			if _, ok := os.LookupEnv("ANWORK_API_ADDRESS"); !ok {
+				cmd := exec.Command(apiBin)
+				cmd.Env = []string{"PORT=12346"}
+				cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_PUBLIC_KEY=%s", publicKey))
+				cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_SECRET=%s", secret))
+				cmd.Env = append(cmd.Env, fmt.Sprintf("ANWORK_API_SQL_DSN=%s", getSQLDSN()))
+
 				Expect(os.Setenv("ANWORK_API_ADDRESS", "127.0.0.1:12346")).To(Succeed())
 				Expect(os.Setenv("ANWORK_API_PRIVATE_KEY", privateKey)).To(Succeed())
 				Expect(os.Setenv("ANWORK_API_SECRET", secret)).To(Succeed())
