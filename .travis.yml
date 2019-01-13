@@ -1,35 +1,26 @@
 language: go
 go:
-    - "1.11"
-
-# This takes a little bit of pressure off of the git clone of this repo.
+- '1.11'
 git:
   depth: 3
-
 os:
-  - linux
-  - osx
-
+- linux
+- osx
 env:
   global:
-    - GO111MODULE=on
-    - secure: TLvcyg164HYKLqOaI4hRp81vlHAJgFWcMa0Ve8Q07EEUqcX+o/d8DYYoSYtt6NVZNTV6L5o8qR9vClI1NfTjuuY0K941rg8fJoMcsffexS0NpF3Lhkmj7DepJ6FMtl5KuvczRLTqgS5sA12hXXzTpiTUp2m60wkxdFLoxlUcmxDefBgvgV4WvB8wkSmXEDZwN2r/bqwvWrua5eHQ0KpmZLflYVtUHwb28gjhweYxtJTuIUmLnqsMKNnq441AAcDchu4CQGjDts4n4P7p4zLWmwuJTLCMwDJUZBxmZHWauyBUx01AskOwpbuS5LADffponxSl3P5iUttlcFFXl+fCghOuWNbkBWyRAXZawv45uxunyoRb/CPG4w1DmUVx+Pqtn8Sb7EQ+qC7sXHP9I4wEQ+YKN4hFH9amBULutIG2wBKE2BoiuKoBR6q/HQeHFrfEj6eOytkiXB48a8/iVs/QtA0Vxmi2GMR1TOK596S2VrIwXvIKSxl1svoeY/YySOJHF8Xc6kbDejY2l4dTn4UK9gg644HwkMvk59uirs256MpElfGZ06IAdOyFrdIAJn6BSRpbq3sMaoUFvYW772URilv1iEP2bsyZWS1tCgBYxJM1d3AYdAoLOGFqR4H/meIBFF3Ecws4gp3TlJLYoe2f3ova2MKIB/xUJji4o3oYn+8="
-
+  - GO111MODULE=on
+  - secure: d+71ZLqy3/0z7bMgAYkW3glUFqjauESDaRrJuWTB77lhY8PiZljju0oYBowF1W29YkbxfsxfrYb24DqG9I5YvQMFJ3/QVgPMYRl/R6Ch15RTcVKzmTdJ5XkbymW750d8kRHK5f0IzqG9jL8bwlHudjYIKV6BDIerScTB0ujIktPM4p3nBYTcNzMMeISAq1L0N6QuT3009Yq/MO1yBnAE8c/z0q7u4f4lzDWENGmmTl3joqBtGIDQ1VGWSpi7RMsO5hEABWIyQ0cAG5Pgor7gGSWWQI++YxjZcTVG4hs1KoEycWsqOdXW+YSxlHR9lDqWBkq/ouOzwnEqwavwQYmEusUUmrPoX0r9fr2xpWodpuhtq6oG+nroDiRlyZxqqCEqUv8HIGzYdEzDgUkCgSqhh1FJrPx6DzKrcXn3gFVeEpw2KEzNXyLckk/kdSdBBrG0L4r1HUeSgqh8c7kEkcNoGOslc1wp8ObvQD3R/8rzbGg7EmUoW2qAsClXqeDm6uMmzry2zdh4kWpQ5lMDlkKG3iwnDZwytw4CW8+1dNZZH1SAloF0WYeTIBWKiJteDiFl8+WGPYucykm8v4b6gmpjDkjn8uyWF2kCZ6ABchFbueaVs/5yXlXrCpJ/tZMW+6Ua+9peZnSeLvkdemxJ1i3ho1qKU2glALYEC2HDt2mPgPI=
 install:
- - go mod download
- - go install -v github.com/onsi/ginkgo/ginkgo
-
+- go mod download
+- go install -v github.com/onsi/ginkgo/ginkgo
 script:
-  - go vet ./...
-  - ./ci/check-fmt.sh
-  - ./ci/test.sh
-
+- go vet ./...
+- "./ci/check-fmt.sh"
+- "./ci/test.sh"
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -f *.coverprofile
-
+- bash <(curl -s https://codecov.io/bash) -f *.coverprofile
 notifications:
   email:
     recipients:
-      - ankeesler1@gmail.com
-    on_success: changed
+    - ankeesler1@gmail.com
     on_failure: always
