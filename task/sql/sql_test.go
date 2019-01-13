@@ -65,30 +65,6 @@ var _ = Describe("SQL Repo", func() {
 		})
 	})
 
-	Context("when we try to delete a task before all its events", func() {
-		var repo task.Repo
-
-		BeforeEach(func() {
-			repo = sql.New(logger, db)
-
-			t := task.Task{Name: "task"}
-			Expect(repo.CreateTask(&t)).To(Succeed())
-			for i := 0; i < 3; i++ {
-				e := task.Event{Title: fmt.Sprintf("event-%d", i), TaskID: t.ID}
-				Expect(repo.CreateEvent(&e)).To(Succeed())
-			}
-
-			Expect(repo.Tasks()).To(HaveLen(1))
-			Expect(repo.Events()).To(HaveLen(3))
-
-			Expect(repo.DeleteTask(&t)).To(Succeed())
-		})
-
-		It("deletes all of the events too", func() {
-			Expect(repo.Events()).To(HaveLen(0))
-		})
-	})
-
 	Context("benchmarking", func() {
 		Measure("CRUD'ing 10 tasks with one repo", func(b Benchmarker) {
 			repo := sql.New(logger, db)

@@ -233,13 +233,6 @@ func (r *repo) DeleteTask(task *task.Task) error {
 	ctx, cancel := makeCtx()
 	defer cancel()
 
-	q := fmt.Sprintf(`DELETE FROM events WHERE task_id = %d`, task.ID)
-	result, err := r.db.Exec(ctx, logger, q)
-	if err != nil {
-		logger.Error("exec", err)
-		return err
-	}
-
 	q = fmt.Sprintf(`DELETE FROM tasks WHERE id = %d`, task.ID)
 	_, err = r.db.Exec(ctx, logger, q)
 	if err != nil {
@@ -425,15 +418,13 @@ CREATE TABLE tasks (
 			return err
 		}
 
-		// TODO: can this be combined with the above?
 		q = `
 CREATE TABLE events (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
   title varchar(255) NOT NULL,
   date bigint NOT NULL,
   type int NOT NULL,
-  task_id int NOT NULL,
-  FOREIGN KEY (task_id) REFERENCES tasks(id)
+  task_id int NOT NULL
 )
 `
 		_, err = r.db.Exec(ctx, logger, q)
