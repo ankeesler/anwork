@@ -86,9 +86,7 @@ func (s *Server) Token() (string, error) {
 
 	// TODO: how big should this be?
 	r := make([]byte, 32)
-	if n, err := s.rand.Read(r); n != len(r) {
-		return "", fmt.Errorf("could not get %d random bytes: got %d", len(r), n)
-	} else if err != nil {
+	if _, err := io.ReadFull(s.rand, r); err != nil {
 		return "", fmt.Errorf("could not get %d random bytes: %s", len(r), err.Error())
 	}
 
