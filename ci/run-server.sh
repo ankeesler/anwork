@@ -32,4 +32,5 @@ go build -o "$service_binary" ./cmd/service/main.go
 ANWORK_API_PUBLIC_KEY="$public_key" \
   ANWORK_API_SECRET="$secret" \
   PORT="$port" \
+  ANWORK_API_SQL_DSN="root:root@/anwork_api" \
   "$service_binary" 1>"$stdout_file" 2>"$stderr_file"
