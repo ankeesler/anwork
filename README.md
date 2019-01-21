@@ -52,7 +52,7 @@ READY tasks:
   pay-bills (10)
 FINISHED tasks:
   take-out-trash (8)
-``
+```
 
 ## API
 
