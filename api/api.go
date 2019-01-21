@@ -68,16 +68,16 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		lager.Data{"method": r.Method, "path": r.URL.Path, "query": r.URL.RawQuery},
 	)
 
-	if strings.HasPrefix(r.URL.Path, "/debug/pprof") {
-		handleDebug(w, r)
-		return
-	}
-
 	if err, statusCode := a.authenticate(r); err != nil {
 		respondWithError(a.logger, w, statusCode, err)
 		return
 	}
 	a.logger.Debug("authenticated")
+
+	if strings.HasPrefix(r.URL.Path, "/debug/pprof") {
+		handleDebug(w, r)
+		return
+	}
 
 	handlers := rata.Handlers{
 		"auth":   &authHandler{a.logger, a.authenticator},
