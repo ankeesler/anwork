@@ -25,33 +25,25 @@ Here is an example ANWORK CLI session.
 ```bash
 $ anwork create take-out-trash
 $ anwork create buy-groceries-for-dinner
-$ anwork create pay-bills
 $ anwork show
 RUNNING tasks:
 BLOCKED tasks:
 READY tasks:
   take-out-trash (8)
   buy-groceries-for-dinner (9)
-  pay-bills (10)
 FINISHED tasks:
-$ anwork set-running take-out-trash
+$ anwork set-blocked take-out-trash
+$ anwork set-running buy-groceries-for-dinner
 $ anwork show
 RUNNING tasks:
-  take-out-trash (8)
-BLOCKED tasks:
-READY tasks:
   buy-groceries-for-dinner (9)
-  pay-bills (10)
+BLOCKED tasks:
+  take-out-trash (8)
+READY tasks:
 FINISHED tasks:
-$ anwork set-finished take-out-trash
+$ anwork set-finished buy-groceries-for-dinner
 $ anwork show
-RUNNING tasks:
-BLOCKED tasks:
-READY tasks:
-  buy-groceries-for-dinner (9)
-  pay-bills (10)
-FINISHED tasks:
-  take-out-trash (8)
+...
 ```
 
 ## API
