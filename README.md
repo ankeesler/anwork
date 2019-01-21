@@ -15,42 +15,45 @@ Upcoming features/bugs/refactors: [Tracker Project](https://www.pivotaltracker.c
 - As a computer, multitasking is easy.
 - If humans apply some concepts from multitasking operating systems, we may be able to improve our multitasking abilities.
 
-## Running
+## CLI
 
-To get up and running with ANWORK...
-- If you are running on darwin, download the latest binary [here](https://github.com/ankeesler/anwork/releases/latest)
-- If you are running on linux, I am sure you know how to build Go code, so build the `./cmd/anwork` package
-- If you are running on windows, ..., meh
+Read more about the CLI [here](doc/CLI-OVERVIEW.md).
 
-See [CLI-OVERVIEW.md](doc/CLI-OVERVIEW.md) for full usage documentation.
+See [CLI.md](doc/CLI.md) for a full overview of the CLI.
 
-## Developing
+Here is an example ANWORK CLI session.
+```bash
+$ anwork create take-out-trash
+$ anwork create buy-groceries-for-dinner
+$ anwork create pay-bills
+$ anwork show
+RUNNING tasks:
+BLOCKED tasks:
+READY tasks:
+  take-out-trash (8)
+  buy-groceries-for-dinner (9)
+  pay-bills (10)
+FINISHED tasks:
+$ anwork set-running take-out-trash
+$ anwork show
+RUNNING tasks:
+  take-out-trash (8)
+BLOCKED tasks:
+READY tasks:
+  buy-groceries-for-dinner (9)
+  pay-bills (10)
+FINISHED tasks:
+$ anwork set-finished take-out-trash
+$ anwork show
+RUNNING tasks:
+BLOCKED tasks:
+READY tasks:
+  buy-groceries-for-dinner (9)
+  pay-bills (10)
+FINISHED tasks:
+  take-out-trash (8)
+``
 
-To develop on the anwork project...
-- Make sure you have at least go version 1.11 - I recommend using [`brew`](https://brew.sh/) (see command below).
-  - `$ brew install go`
-- To run all the tests...
-  - `$ ./ci/test.sh`
-- To run a single package of tests...
-  - `$ ginkgo ./path/to/package`
+## API
 
-### Style
-
-Thanks to the use of Go, there are not a lot of style conventions to note here. Here are the few
-formatting rules used in this codebase.
-1. Use `go fmt` for formatting all code.
-2. No line should extend past column 100.
-3. If function arguments would go past the 100 character limit, they should be wrapped to the next
-   line.
-
-### Directory Structure
-
-Again, the directory structure is pretty simple. Every directory is a Go source directory except for
-the following that are documented here. Information can be found on the Go source directories using
-the `go doc` command.
-
-| Directory | Use |
-| --- | --- |
-| ci | Scripts used in the Travis Continuous Integration jobs |
-| doc | Documentation about the anwork executable, e.g., a quick start guide |
-| integration | Integration tests for the anwork executable/API |
+See [API.md](doc/API.md) for full overview of the API.
